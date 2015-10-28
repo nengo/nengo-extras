@@ -97,6 +97,18 @@ class RNN(object):
         self._cost = theano.function([self.X, self.Y], cost)
         self._predict = theano.function([self.X], self.y_te)
 
+    @property
+    def dtype(self):
+        return theano.config.floatX
+
+    @property
+    def size_in(self):
+        return self.layers[0].size
+
+    @property
+    def size_out(self):
+        return self.layers[-1].size
+
     def fit(self, trX, trY, batch_size=64, n_epochs=1,
             len_filter=LenFilter(), snapshot_freq=1, path=None):
         """Train model on given training examples.
