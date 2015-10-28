@@ -3,6 +3,10 @@
 Culled from https://github.com/IndicoDataSolutions/Passage (MIT license).
 """
 
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import sys
 from time import time
 
@@ -10,8 +14,8 @@ import theano
 import theano.tensor as T
 import numpy as np
 
-from . import costs, iterators, optimizers
-from .utils import case_insensitive_import, flatten, list_index, one_hot, save
+from . import costs, iterators, layers, optimizers
+from .utils import case_insensitive_import, flatten, list_index, one_hot
 
 
 def standardize_targets(Y, cost):
@@ -156,7 +160,7 @@ class RNN(object):
             elif self.verbose == 1:
                 print status
             if path and e % snapshot_freq == 0:
-                save(self, "{0}.{1}".format(path, e))
+                self.save("{0}.{1}".format(path, e))
         return costs
 
     def predict(self, X):
@@ -182,3 +186,30 @@ class RNN(object):
             preds.append(pred)
             idxs.extend(idxmb)
         return np.vstack(preds)[np.argsort(idxs)]
+
+    def __getstate__(self):
+        layer_configs = []
+        for layer in self.layers:
+            layer_config = layer.settings
+            layer_name = layer.__class__.__name__
+            weights = [p.get_value() for p in layer.params]
+            layer_config['weights'] = weights
+            layer_configs.append({'layer': layer_name, 'config': layer_config})
+        self.settings['layers'] = layer_configs
+        return {'config': self.settings}
+
+    def __setstate__(self, state):
+        state['config']['layers'] = [
+            getattr(layers, layer['layer'])(**layer['config'])
+            for layer in state['config']['layers']
+        ]
+        self.__init__(**state['config'])
+
+    def save(self, path):
+        with open(path, 'wb') as fp:
+            pickle.dump(self, fp)
+
+    @classmethod
+    def load(cls, path):
+        with open(path, 'rb') as fp:
+            return pickle.load(fp)

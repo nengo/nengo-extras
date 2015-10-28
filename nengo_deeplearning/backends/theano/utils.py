@@ -2,11 +2,6 @@
 
 Culled from https://github.com/IndicoDataSolutions/Passage (MIT license).
 """
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
-
 import numpy as np
 import theano
 
@@ -90,34 +85,3 @@ def shuffle(*data):
 def case_insensitive_import(module, name):
     mapping = dict((k.lower(), k) for k in dir(module))
     return getattr(module, mapping[name.lower()])
-
-
-def load(path):
-    from . import layers
-    from . import models
-    with open(path, 'rb') as fp:
-        model = pickle.load(fp)
-    model_class = getattr(models, model['model'])
-    model['config']['layers'] = [
-        getattr(layers, layer['layer'])(**layer['config'])
-        for layer in model['config']['layers']
-    ]
-    model = model_class(**model['config'])
-    return model
-
-
-def save(model, path):
-    layer_configs = []
-    for layer in model.layers:
-        layer_config = layer.settings
-        layer_name = layer.__class__.__name__
-        weights = [p.get_value() for p in layer.params]
-        layer_config['weights'] = weights
-        layer_configs.append({'layer': layer_name, 'config': layer_config})
-    model.settings['layers'] = layer_configs
-    serializable_model = {
-        'model': model.__class__.__name__,
-        'config': model.settings
-    }
-    with open(path, 'wb') as fp:
-        pickle.dump(serializable_model, fp)
