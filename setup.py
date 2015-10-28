@@ -44,4 +44,7 @@ setup(
         "nengo",
         "numpy",
     ],
+    extras_require={
+        'rnn': ["theano"],
+    }
 )
