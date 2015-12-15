@@ -9,3 +9,7 @@ dist
 *.swp
 .ipynb_checkpoints/
 .cache
+
+# Example data
+examples/*.gz
+examples/*.pkl
