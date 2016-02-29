@@ -56,11 +56,10 @@ class EnsembleLayer:
 
         # add gain/bias
         layer = self.input
-        gain, bias = nengo.builder.ensemble.get_gain_bias(ens)
-#         if gain is not None:
-#             print "gain", gain
-#             layer = lgn.layers.NonlinearityLayer(layer, lambda x: x * gain,
-#                                                  name=self.name + "_gain")
+        gain, bias, _, _ = nengo.builder.ensemble.get_gain_bias(ens)
+        if gain is not None:
+            layer = lgn.layers.NonlinearityLayer(layer, lambda x: x * gain,
+                                                 name=self.name + "_gain")
         if bias is not None:
             layer = lgn.layers.BiasLayer(layer, name=self.name + "_bias")
 
@@ -85,60 +84,60 @@ class EnsembleLayer:
         return self._decoded_input
 
 
-class MultiDenseLayer(lgn.layers.ElemwiseMergeLayer):
-    """A layer that receives inputs from multiple layers.
-
-    Basically DenseLayer and ElementwiseSumLayer combined together.
-    """
-
-    def __init__(self, incomings, num_units,
-                 nonlinearity=lgn.nonlinearities.rectify,
-                 Ws=lgn.init.GlorotUniform(),
-                 gain=None, b=None,
-                 **kwargs):
-        super(MultiDenseLayer, self).__init__(incomings, T.add, **kwargs)
-
-        self.num_units = num_units
-        self.nonlinearity = nonlinearity
-
-        if isinstance(Ws, list):
-            if len(Ws) != len(incomings):
-                raise ValueError("Mismatch: got %d Ws for %d incomings" %
-                                 (len(Ws), len(incomings)))
-        else:
-            Ws = [Ws] * len(incomings)
-
-        self.Ws = [self.add_param(Ws[i], (incomings[i].output_shape[1],
-                                          num_units), name="W_%d" % i)
-                   for i in range(len(incomings))]
-
-        # TODO: do we want gains/biases to be trainable?
-        if gain is None:
-            self.gain = gain
-        else:
-            self.gain = self.add_param(gain, (num_units,), name="gain",
-                                       trainable=True)
-        if b is None:
-            self.b = b
-        else:
-            self.b = self.add_param(b, (num_units,), name="b",
-                                    trainable=True)
-
-    def get_output_shape_for(self, input_shapes):
-        # check that all the batch sizes are the same
-        assert len(np.unique([x[0] for x in input_shapes])) == 1
-
-        return (input_shapes[0][0], self.num_units)
-
-    def get_output_for(self, inputs, **kwargs):
-        inputs = [T.dot(input, W)
-                  for input, W in zip(inputs, self.Ws)]
-
-        output = super(MultiDenseLayer, self).get_output_for(inputs, **kwargs)
-        if self.gain is not None:
-            output *= self.gain
-        if self.b is not None:
-            output += self.b
-        output = self.nonlinearity(output)
-
-        return output
+# class MultiDenseLayer(lgn.layers.ElemwiseMergeLayer):
+#     """A layer that receives inputs from multiple layers.
+#
+#     Basically DenseLayer and ElementwiseSumLayer combined together.
+#     """
+#
+#     def __init__(self, incomings, num_units,
+#                  nonlinearity=lgn.nonlinearities.rectify,
+#                  Ws=lgn.init.GlorotUniform(),
+#                  gain=None, b=None,
+#                  **kwargs):
+#         super(MultiDenseLayer, self).__init__(incomings, T.add, **kwargs)
+#
+#         self.num_units = num_units
+#         self.nonlinearity = nonlinearity
+#
+#         if isinstance(Ws, list):
+#             if len(Ws) != len(incomings):
+#                 raise ValueError("Mismatch: got %d Ws for %d incomings" %
+#                                  (len(Ws), len(incomings)))
+#         else:
+#             Ws = [Ws] * len(incomings)
+#
+#         self.Ws = [self.add_param(Ws[i], (incomings[i].output_shape[1],
+#                                           num_units), name="W_%d" % i)
+#                    for i in range(len(incomings))]
+#
+#         # TODO: do we want gains/biases to be trainable?
+#         if gain is None:
+#             self.gain = gain
+#         else:
+#             self.gain = self.add_param(gain, (num_units,), name="gain",
+#                                        trainable=True)
+#         if b is None:
+#             self.b = b
+#         else:
+#             self.b = self.add_param(b, (num_units,), name="b",
+#                                     trainable=True)
+#
+#     def get_output_shape_for(self, input_shapes):
+#         # check that all the batch sizes are the same
+#         assert len(np.unique([x[0] for x in input_shapes])) == 1
+#
+#         return (input_shapes[0][0], self.num_units)
+#
+#     def get_output_for(self, inputs, **kwargs):
+#         inputs = [T.dot(input, W)
+#                   for input, W in zip(inputs, self.Ws)]
+#
+#         output = super(MultiDenseLayer, self).get_output_for(inputs, **kwargs)
+#         if self.gain is not None:
+#             output *= self.gain
+#         if self.b is not None:
+#             output += self.b
+#         output = self.nonlinearity(output)
+#
+#         return output

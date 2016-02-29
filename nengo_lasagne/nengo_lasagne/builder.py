@@ -14,11 +14,11 @@ from nengo_lasagne import layers
 class Model:
     def __init__(self, network):
         # check that it's a valid network
-        print "checking network"
+        print("checking network")
         self.check_network(network)
 
         # create the lasagne network
-        print "building network"
+        print("building network")
         self.build_network(network)
 
     def check_network(self, net):
@@ -74,7 +74,7 @@ class Model:
     def train_network(self, train_data=None, batch_size=100, n_epochs=1000,
                       l_rate=0.1):
         # run training
-        print "training network"
+        print("training network")
 
         # loss function
         train_inputs, train_targets = train_data
@@ -102,11 +102,11 @@ class Model:
         self.eval = theano.function([x.input_var for x in inputs.values()],
                                     lgn_outputs)
 
-#         print "params", lgn.layers.get_all_params(outputs.values())
-#         print theano.printing.debugprint(self.eval)
-#         print theano.printing.debugprint(self.train)
+        #         print "params", lgn.layers.get_all_params(outputs.values())
+        #         print theano.printing.debugprint(self.eval)
+        #         print theano.printing.debugprint(self.train)
 
-        n_inputs = len(train_inputs[inputs.keys()[0]])
+        n_inputs = len(train_inputs[list(inputs)[0]])
         for _ in range(n_epochs):
             indices = np.arange(n_inputs)
             np.random.shuffle(indices)
@@ -117,26 +117,60 @@ class Model:
                              [train_targets[x][minibatch] for x in outputs]))
 
     def add_connection(self, conn):
-        if isinstance(conn.pre, nengo.Node):
-            pre = self.lgn_objs[conn.pre]
-        elif isinstance(conn.pre, nengo.Ensemble):
-            pre = self.lgn_objs[conn.pre].output
-        elif isinstance(conn.pre, nengo.ensemble.Neurons):
-            pre = self.lgn_objs[conn.pre.ensemble].output
+        if isinstance(conn.pre, nengo.base.ObjView):
+            pre_slice = conn.pre.slice
+            pre = conn.pre.obj
         else:
-            raise ValueError("Unknown pre type (%s)" % conn.pre)
+            pre_slice = None
+            pre = conn.pre
 
-        if isinstance(conn.post, nengo.Node):
-            post = self.lgn_objs[conn.post]
-        elif isinstance(conn.post, nengo.Ensemble):
-            post = self.lgn_objs[conn.post].decoded_input
-        elif isinstance(conn.post, nengo.ensemble.Neurons):
-            post = self.lgn_objs[conn.post.ensemble].input
+        if isinstance(conn.post, nengo.base.ObjView):
+            post_slice = conn.post.slice
+            post = conn.post.obj
         else:
-            raise ValueError("Unknown post type (%s)" % conn.post)
+            post_slice = None
+            post = conn.post
+
+        if isinstance(pre, nengo.Node):
+            pre = self.lgn_objs[pre]
+        elif isinstance(pre, nengo.Ensemble):
+            pre = self.lgn_objs[pre].output
+        elif isinstance(pre, nengo.ensemble.Neurons):
+            pre = self.lgn_objs[pre.ensemble].output
+        else:
+            raise ValueError("Unknown pre type (%s)" % type(conn.pre))
+
+        if pre_slice is not None:
+            pre = lgn.layers.SliceLayer(pre, pre_slice)
+
+        if isinstance(post, nengo.Node):
+            post = self.lgn_objs[post]
+        elif isinstance(post, nengo.Ensemble):
+            post = self.lgn_objs[post].decoded_input
+        elif isinstance(post, nengo.ensemble.Neurons):
+            post = self.lgn_objs[post.ensemble].input
+        else:
+            raise ValueError("Unknown post type (%s)" % type(conn.post))
+
+        if post_slice is not None:
+            num_post = len(range(post.num_units)[post_slice])
+            incoming = lgn.layers.DenseLayer(
+                pre, len(range(post.num_units)[post_slice]), nonlinearity=None,
+                b=None)
+
+            # zero-pad to get full shape (TODO: more efficient solution?)
+            def pad_func(x):
+                z = T.zeros((x.shape[0], post.num_units))
+                return T.inc_subtensor(z[:, post_slice], x)
+
+            incoming = lgn.layers.ExpressionLayer(
+                incoming, pad_func, output_shape=(None, post.num_units))
+
+        else:
+            incoming = lgn.layers.DenseLayer(pre, post.num_units,
+                                             nonlinearity=None, b=None)
 
         # TODO: initialize the weights here based on function/transform
         # specified in connection
-        post.add_incoming(lgn.layers.DenseLayer(pre, post.num_units,
-                                                nonlinearity=None, b=None))
+        post.add_incoming(incoming)
         # TODO: put a dropout layer in here?

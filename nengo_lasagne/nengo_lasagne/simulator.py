@@ -2,7 +2,7 @@ import lasagne as lgn
 import nengo
 import numpy as np
 
-import builder
+from nengo_lasagne import builder
 
 
 class Simulator(object):
