@@ -1,1 +1,3 @@
 from .version import version as __version__
+
+from .convnet import Conv2d, Pool2d
