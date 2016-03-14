@@ -20,12 +20,12 @@ class Conv2d(Process):
         Shape of the input images: channels, height, width.
     """
 
-    shape_in = TupleParam(length=3)
-    shape_out = TupleParam(length=3)
-    stride = TupleParam(length=2)
-    padding = TupleParam(length=2)
-    filters = NdarrayParam(shape=('...',))
-    biases = NdarrayParam(shape=('...',), optional=True)
+    shape_in = TupleParam('shape_in', length=3)
+    shape_out = TupleParam('shape_out', length=3)
+    stride = TupleParam('stride', length=2)
+    padding = TupleParam('padding', length=2)
+    filters = NdarrayParam('filters', shape=('...',))
+    biases = NdarrayParam('biases', shape=('...',), optional=True)
 
     def __init__(self, shape_in, filters, biases=None, stride=1, padding=0):  # noqa: C901
         from nengo.utils.compat import is_iterable, is_integer
@@ -133,11 +133,11 @@ class Conv2d(Process):
 
 class Pool2d(Process):
     """Perform 2-D (image) pooling on an input."""
-    shape_in = TupleParam(length=3)
-    shape_out = TupleParam(length=3)
-    size = IntParam(low=1)
-    stride = IntParam(low=1)
-    kind = EnumParam(values=('avg', 'max'))
+    shape_in = TupleParam('shape_in', length=3)
+    shape_out = TupleParam('shape_out', length=3)
+    size = IntParam('size', low=1)
+    stride = IntParam('stride', low=1)
+    kind = EnumParam('kind', values=('avg', 'max'))
 
     def __init__(self, shape_in, size, stride=None, kind='avg'):
         self.shape_in = shape_in
