@@ -89,15 +89,14 @@ class Conv2d(Process):
             default_size_in=np.prod(self.shape_in),
             default_size_out=np.prod(self.shape_out))
 
-    def make_step(self, size_in, size_out, dt, rng):
-        assert size_in == np.prod(self.shape_in)
-        assert size_out == np.prod(self.shape_out)
+    def make_step(self, shape_in, shape_out, dt, rng):
+        assert np.prod(shape_in) == np.prod(self.shape_in)
+        assert np.prod(shape_out) == np.prod(self.shape_out)
+        shape_in, shape_out = self.shape_in, self.shape_out
 
         filters = self.filters
         local_filters = filters.ndim == 6
         biases = self.biases
-        shape_in = self.shape_in
-        shape_out = self.shape_out
 
         nxi, nxj = shape_in[-2:]
         nyi, nyj = shape_out[-2:]
@@ -157,9 +156,9 @@ class Pool2d(Process):
             default_size_in=np.prod(self.shape_in),
             default_size_out=np.prod(self.shape_out))
 
-    def make_step(self, size_in, size_out, dt, rng):
-        assert size_in == np.prod(self.shape_in)
-        assert size_out == np.prod(self.shape_out)
+    def make_step(self, shape_in, shape_out, dt, rng):
+        assert np.prod(shape_in) == np.prod(self.shape_in)
+        assert np.prod(shape_out) == np.prod(self.shape_out)
         nc, nxi, nxj = self.shape_in
         nc, nyi, nyj = self.shape_out
         s = self.size
