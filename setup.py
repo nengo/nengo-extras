@@ -23,13 +23,13 @@ def read(*filenames, **kwargs):
 
 root = os.path.dirname(os.path.realpath(__file__))
 version_module = imp.load_source(
-    'version', os.path.join(root, 'nengo_deeplearning', 'version.py'))
+    'version', os.path.join(root, 'nengo_extras', 'version.py'))
 description = "Deep learning in Nengo."
 long_description = read('README.rst', 'CHANGES.rst')
 
-url = "https://github.com/nengo/nengo_deeplearning"
+url = "https://github.com/nengo/nengo_extras"
 setup(
-    name="nengo_deeplearning",
+    name="nengo_extras",
     version=version_module.version,
     author="Nengo developers",
     author_email="tbekolay@gmail.com",
