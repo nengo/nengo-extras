@@ -1,7 +1,23 @@
-**********************
-Deep learning in Nengo
-**********************
+************
+Nengo extras
+************
 
-Experimental repository for examples and utilties
-incorporating and embedding deep learning networks
-in Nengo.
+Extra utilities and add-ons for Nengo.
+
+This repository contains utilities that occupy
+a liminal space not quite generic enough for inclusion in Nengo_,
+but useful enough that they should be publicly accessible.
+
+Some of these utilities may eventually migrate to Nengo_,
+and others may be split off into their own separate repositories.
+
+.. _Nengo: https://github.com/nengo/nengo
+
+Current contents
+================
+
+Convolutional Network processes
+-------------------------------
+
+- ``nengo_extras.Conv2d``
+- ``nengo_extras.Pool2d``
