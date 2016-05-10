@@ -2,8 +2,9 @@ import numpy as np
 import pytest
 
 import nengo
+from nengo.utils.stdlib import Timer
 
-from nengo_deeplearning import Conv2d, Pool2d
+from nengo_extras import Conv2d, Pool2d
 
 
 @pytest.mark.parametrize('local', [False, True])
@@ -13,14 +14,35 @@ def test_conv2d(local, Simulator, rng):
     ni, nj = 30, 32
     si, sj = 5, 3
 
-    fshape = (f, ni, nj, c, si, sj) if local else (f, c, si, sj)
-    filters = rng.normal(size=fshape)
-    biases = rng.normal(size=f)
-    image = rng.normal(size=(c, ni, nj))
+    # f = 64
+    # c = 64
+    # ni, nj = 32, 32
+    # si, sj = 11, 11
 
-    result = np.zeros((f, ni, nj))
     si2 = int((si - 1) / 2.)
     sj2 = int((sj - 1) / 2.)
+
+    fshape = (f, ni, nj, c, si, sj) if local else (f, c, si, sj)
+    filters = rng.uniform(-1, 1, size=fshape)
+    biases = rng.uniform(-1, 1, size=f)
+    image = rng.uniform(-1, 1, size=(c, ni, nj))
+
+    model = nengo.Network()
+    with model:
+        u = nengo.Node(image.ravel())
+        v = nengo.Node(Conv2d(
+            (c, ni, nj), filters, biases, padding=(si2, sj2)))
+        nengo.Connection(u, v, synapse=None)
+        vp = nengo.Probe(v)
+
+    with Simulator(model) as sim:
+        with Timer() as timer:
+            sim.step()
+
+    print("Conv2d(local=%s): %0.3e" % (local, timer.duration))
+
+    # --- check result
+    result = np.zeros((f, ni, nj))
     for i in range(ni):
         for j in range(nj):
             i0, i1 = i - si2, i + si2 + 1
@@ -34,16 +56,6 @@ def test_conv2d(local, Simulator, rng):
 
     result += biases.reshape(-1, 1, 1)
 
-    model = nengo.Network()
-    with model:
-        u = nengo.Node(image.ravel())
-        v = nengo.Node(Conv2d(
-            (c, ni, nj), filters, biases, padding=(si2, sj2)))
-        nengo.Connection(u, v, synapse=None)
-        vp = nengo.Probe(v)
-
-    sim = Simulator(model)
-    sim.step()
     y = sim.data[vp][-1].reshape((f, ni, nj))
     assert np.allclose(result, y, rtol=1e-3, atol=1e-6)
 
