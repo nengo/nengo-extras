@@ -13,11 +13,15 @@ and others may be split off into their own separate repositories.
 
 .. _Nengo: https://github.com/nengo/nengo
 
-Current contents
-================
+The current contents of this repository are listed below.
 
 Convolutional Network processes
--------------------------------
+===============================
 
 - ``nengo_extras.Conv2d``
 - ``nengo_extras.Pool2d``
+
+Neuron types
+============
+
+- ``nengo_extras.SoftLIFRate``
