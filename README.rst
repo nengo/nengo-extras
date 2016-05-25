@@ -24,4 +24,5 @@ Convolutional Network processes
 Neuron types
 ============
 
+- ``nengo_extras.FastLIF``
 - ``nengo_extras.SoftLIFRate``

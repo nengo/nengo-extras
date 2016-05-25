@@ -87,3 +87,36 @@ class SoftLIFRate(nengo.neurons.LIFRate):
         d[j > 0] = (gain * self.tau_rc * vv * vv) / (
             self.amplitude * jj * (jj + 1) * (1 + np.exp(-yy / self.sigma)))
         return d
+
+
+class FastLIF(nengo.neurons.LIF):
+    """Faster version of the leaky integrate-and-fire (LIF) neuron model.
+
+    This neuron model is faster than ``LIF`` but does not produce the ideal
+    firing rate for larger ``dt`` due to linearization of the tuning curves.
+    """
+
+    def step_math(self, dt, J, spiked, voltage, refractory_time):
+
+        # update voltage using accurate exponential integration scheme
+        dV = -np.expm1(-dt / self.tau_rc) * (J - voltage)
+        voltage += dV
+        voltage[voltage < self.min_voltage] = self.min_voltage
+
+        # update refractory period assuming no spikes for now
+        refractory_time -= dt
+
+        # set voltages of neurons still in their refractory period to 0
+        # and linearly reduce voltage when partway out of ref. period
+        voltage *= (1 - refractory_time / dt).clip(0, 1)
+
+        # determine which neurons spike (if v > 1 set spiked = 1/dt, else 0)
+        spiked[:] = (voltage > 1) / dt
+
+        # linearly approximate time since neuron crossed spike threshold
+        overshoot = (voltage[spiked > 0] - 1) / dV[spiked > 0]
+        spiketime = dt * (1 - overshoot)
+
+        # set spiking neurons' voltages to zero, and ref. time to tau_ref
+        voltage[spiked > 0] = 0
+        refractory_time[spiked > 0] = self.tau_ref + spiketime

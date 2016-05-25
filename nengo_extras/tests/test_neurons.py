@@ -1,8 +1,8 @@
-import numpy as np
-
 import nengo
+import numpy as np
+from nengo.utils.numpy import rms
 
-from nengo_extras import SoftLIFRate
+from nengo_extras import FastLIF, SoftLIFRate
 
 
 def test_softlifrate_rates(plt):
@@ -46,3 +46,64 @@ def test_softlifrate_derivative(plt):
     plt.plot(x2, deltar, 'k--')
 
     assert np.allclose(dr, deltar, atol=1e-5, rtol=1e-2)
+
+
+def test_fastlif(plt):
+    """Test that the dynamic model approximately matches the rates."""
+    # Based nengo.tests.test_neurons.test_lif
+    rng = np.random.RandomState(10)
+
+    dt = 1e-3
+    n = 5000
+    x = 0.5
+    encoders = np.ones((n, 1))
+    max_rates = rng.uniform(low=10, high=200, size=n)
+    intercepts = rng.uniform(low=-1, high=1, size=n)
+
+    m = nengo.Network()
+    with m:
+        ins = nengo.Node(x)
+        ens = nengo.Ensemble(n, dimensions=1,
+                             neuron_type=FastLIF(),
+                             encoders=encoders,
+                             max_rates=max_rates,
+                             intercepts=intercepts)
+        nengo.Connection(
+            ins, ens.neurons, transform=np.ones((n, 1)), synapse=None)
+        spike_probe = nengo.Probe(ens.neurons)
+        voltage_probe = nengo.Probe(ens.neurons, 'voltage')
+        ref_probe = nengo.Probe(ens.neurons, 'refractory_time')
+
+    t_final = 1.0
+    with nengo.Simulator(m, dt=dt) as sim:
+        sim.run(t_final)
+
+    i = 3
+    plt.subplot(311)
+    plt.plot(sim.trange(), sim.data[spike_probe][:, :i])
+    plt.subplot(312)
+    plt.plot(sim.trange(), sim.data[voltage_probe][:, :i])
+    plt.subplot(313)
+    plt.plot(sim.trange(), sim.data[ref_probe][:, :i])
+    plt.ylim([-dt, ens.neuron_type.tau_ref + dt])
+
+    # check rates against analytic rates
+    math_rates = ens.neuron_type.rates(
+        x, *ens.neuron_type.gain_bias(max_rates, intercepts))
+    spikes = sim.data[spike_probe]
+    sim_rates = (spikes > 0).sum(0) / t_final
+    print("ME = %f" % (sim_rates - math_rates).mean())
+    print("RMSE = %f" % (
+        rms(sim_rates - math_rates) / (rms(math_rates) + 1e-20)))
+    assert np.sum(math_rates > 0) > 0.5 * n, (
+        "At least 50% of neurons must fire")
+    assert np.allclose(sim_rates, math_rates, atol=1, rtol=0.02)
+
+    # if voltage and ref time are non-constant, the probe is doing something
+    assert np.abs(np.diff(sim.data[voltage_probe])).sum() > 1
+    assert np.abs(np.diff(sim.data[ref_probe])).sum() > 1
+
+    # compute spike counts after each timestep
+    actual_counts = (spikes > 0).cumsum(axis=0)
+    expected_counts = np.outer(sim.trange(), math_rates)
+    assert (abs(actual_counts - expected_counts) < 1).all()
