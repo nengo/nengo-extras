@@ -1,8 +1,38 @@
 import numpy as np
 
+from nengo.exceptions import ValidationError
 from nengo.processes import Process
-from nengo.params import EnumParam, IntParam, NdarrayParam, TupleParam
-from nengo.utils.compat import range
+from nengo.params import (EnumParam, NdarrayParam, Parameter, TupleParam,
+                          Unconfigurable)
+from nengo.utils.compat import is_iterable, range
+
+
+class ShapeParam(TupleParam):
+    """A parameter where the value is a tuple of integers."""
+
+    equatable = True
+
+    def __init__(self, name, default=Unconfigurable, length=None, low=0,
+                 optional=False, readonly=None):
+        super(ShapeParam, self).__init__(name, default=default, length=length,
+                                         optional=optional, readonly=readonly)
+        self.low = low
+
+    def __set__(self, instance, value):
+        try:
+            value = tuple(int(v) for v in value)
+        except TypeError:
+            raise ValidationError("Value must be castable to a tuple of ints",
+                                  attr=self.name, obj=instance)
+        Parameter.__set__(self, instance, value)
+
+    def validate(self, instance, value):
+        super(ShapeParam, self).validate(instance, value)
+        for i, v in enumerate(value):
+            if self.low is not None and v < self.low:
+                raise ValidationError(
+                    "Element %d must be >= %d (got %d)" % (i, self.low, v),
+                    attr=self.name, obj=instance)
 
 
 class Conv2d(Process):
@@ -20,21 +50,15 @@ class Conv2d(Process):
         Shape of the input images: channels, height, width.
     """
 
-    shape_in = TupleParam('shape_in', length=3)
-    shape_out = TupleParam('shape_out', length=3)
-    stride = TupleParam('stride', length=2)
-    padding = TupleParam('padding', length=2)
+    shape_in = ShapeParam('shape_in', length=3, low=1)
+    shape_out = ShapeParam('shape_out', length=3, low=1)
+    strides = ShapeParam('strides', length=2, low=1)
+    padding = ShapeParam('padding', length=2)
     filters = NdarrayParam('filters', shape=('...',))
     biases = NdarrayParam('biases', shape=('...',), optional=True)
 
-    def __init__(self, shape_in, filters, biases=None, stride=1, padding=0):  # noqa: C901
-        from nengo.utils.compat import is_iterable, is_integer
-
-        self.shape_in = tuple(shape_in)
-        if len(self.shape_in) != 3:
-            raise ValueError("`shape_in` must have three dimensions "
-                             "(channels, height, width)")
-
+    def __init__(self, shape_in, filters, biases=None, strides=1, padding=0):  # noqa: C901
+        self.shape_in = shape_in
         self.filters = filters
         if self.filters.ndim not in [4, 6]:
             raise ValueError(
@@ -48,23 +72,16 @@ class Conv2d(Process):
             raise ValueError("Filter shapes must be odd (got %r)"
                              % (self.filters.shape[-2:],))
 
-        self.stride = stride if is_iterable(stride) else [stride] * 2
-        if not all(is_integer(s) and s >= 1 for s in self.stride):
-            raise ValueError("All strides must be integers >= 1 (got %s)"
-                             % (self.stride,))
-
+        self.strides = strides if is_iterable(strides) else [strides] * 2
         self.padding = padding if is_iterable(padding) else [padding] * 2
-        if not all(is_integer(p) and p >= 0 for p in self.padding):
-            raise ValueError("All padding must be integers >= 0 (got %s)"
-                             % (self.padding,))
 
         nf = self.filters.shape[0]
         nxi, nxj = self.shape_in[1:]
         si, sj = self.filters.shape[-2:]
         pi, pj = self.padding
-        sti, stj = self.stride
-        nyi = 1 + max(int(np.ceil((2*pi + nxi - si) / float(sti))), 0)
-        nyj = 1 + max(int(np.ceil((2*pj + nxj - sj) / float(stj))), 0)
+        sti, stj = self.strides
+        nyi = 1 + max(int(np.ceil(float(2*pi + nxi - si) / sti)), 0)
+        nyj = 1 + max(int(np.ceil(float(2*pj + nxj - sj) / stj)), 0)
         self.shape_out = (nf, nyi, nyj)
         if self.filters.ndim == 6 and self.filters.shape[1:3] != (nyi, nyj):
             raise ValueError("Number of local filters %r must match out shape "
@@ -103,7 +120,7 @@ class Conv2d(Process):
         nf = filters.shape[0]
         si, sj = filters.shape[-2:]
         pi, pj = self.padding
-        sti, stj = self.stride
+        sti, stj = self.strides
 
         def step_conv2d(t, x):
             x = x.reshape(shape_in)
@@ -132,24 +149,27 @@ class Conv2d(Process):
 
 class Pool2d(Process):
     """Perform 2-D (image) pooling on an input."""
-    shape_in = TupleParam('shape_in', length=3)
-    shape_out = TupleParam('shape_out', length=3)
-    size = IntParam('size', low=1)
-    stride = IntParam('stride', low=1)
+    shape_in = ShapeParam('shape_in', length=3, low=1)
+    shape_out = ShapeParam('shape_out', length=3, low=1)
+    pool_size = ShapeParam('pool_size', length=2, low=1)
+    strides = ShapeParam('strides', length=2, low=1)
     kind = EnumParam('kind', values=('avg', 'max'))
 
-    def __init__(self, shape_in, size, stride=None, kind='avg'):
+    def __init__(self, shape_in, pool_size, strides=None, kind='avg'):
         self.shape_in = shape_in
-        self.size = size
-        self.stride = stride if stride is not None else size
+        self.pool_size = (pool_size if is_iterable(pool_size) else
+                          [pool_size] * 2)
+        self.strides = (strides if is_iterable(strides) else
+                        [strides] * 2 if strides is not None else
+                        self.pool_size)
         self.kind = kind
-        if self.stride > self.size:
-            raise ValueError("Stride (%d) must be <= size (%d)" %
-                             (self.stride, self.size))
+        if not all(st <= p for st, p in zip(self.strides, self.pool_size)):
+            raise ValueError("Strides %s must be <= pool_size %s" %
+                             (self.strides, self.pool_size))
 
         nc, nxi, nxj = self.shape_in
-        nyi = 1 + int(np.ceil(float(nxi - size) / self.stride))
-        nyj = 1 + int(np.ceil(float(nxj - size) / self.stride))
+        nyi = 1 + int(np.ceil(float(nxi-self.pool_size[0]) / self.strides[0]))
+        nyj = 1 + int(np.ceil(float(nxj-self.pool_size[1]) / self.strides[1]))
         self.shape_out = (nc, nyi, nyj)
 
         super(Pool2d, self).__init__(
@@ -161,19 +181,19 @@ class Pool2d(Process):
         assert np.prod(shape_out) == np.prod(self.shape_out)
         nc, nxi, nxj = self.shape_in
         nc, nyi, nyj = self.shape_out
-        s = self.size
-        st = self.stride
+        si, sj = self.pool_size
+        sti, stj = self.strides
         kind = self.kind
-        nxi2, nxj2 = nyi * st, nyj * st
+        nxi2, nxj2 = nyi * sti, nyj * stj
 
         def step_pool2d(t, x):
             x = x.reshape(nc, nxi, nxj)
             y = np.zeros((nc, nyi, nyj), dtype=x.dtype)
             n = np.zeros((nyi, nyj))
 
-            for i in range(s):
-                for j in range(s):
-                    xij = x[:, i:min(nxi2+i, nxi):st, j:min(nxj2+j, nxj):st]
+            for i in range(si):
+                for j in range(sj):
+                    xij = x[:, i:min(nxi2+i, nxi):sti, j:min(nxj2+j, nxj):stj]
                     ni, nj = xij.shape[-2:]
                     if kind == 'max':
                         y[:, :ni, :nj] = np.maximum(y[:, :ni, :nj], xij)

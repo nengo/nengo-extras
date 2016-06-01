@@ -85,7 +85,7 @@ def test_pool2d(s, st, Simulator, rng):
     model = nengo.Network()
     with model:
         u = nengo.Node(image.ravel())
-        v = nengo.Node(Pool2d(image.shape, s, stride=st))
+        v = nengo.Node(Pool2d(image.shape, s, strides=st))
         nengo.Connection(u, v, synapse=None)
         vp = nengo.Probe(v)
 
