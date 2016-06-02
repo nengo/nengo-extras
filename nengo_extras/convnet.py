@@ -209,3 +209,9 @@ class Pool2d(Process):
             return y.ravel()
 
         return step_pool2d
+
+
+def softmax(x, axis=None):
+    """Stable softmax function"""
+    ex = np.exp(x - x.max(axis=axis, keepdims=True))
+    return ex / ex.sum(axis=axis, keepdims=True)
