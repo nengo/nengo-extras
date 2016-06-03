@@ -10,6 +10,9 @@ dist
 .ipynb_checkpoints/
 .cache
 
+*.json
+*.h5
+
 nengo.simulator.logs/
 nengo.simulator.analytics/
 nengo.simulator.plots/
