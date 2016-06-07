@@ -79,3 +79,35 @@ def image_display_function(image_shape, preprocess=preprocess_display,
         display_func._nengo_html_ = html_function(x)
 
     return display_func
+
+
+class PresentImages(nengo.processes.PresentInput):
+    """PresentInput process whose inputs are displayed as images in nengo_gui.
+    """
+
+    image_shape = ShapeParam('image_shape', length=3, low=1)
+
+    def __init__(self, images, presentation_time, **kwargs):
+        self.image_shape = images.shape[1:]
+        super(PresentImages, self).__init__(
+            images, presentation_time, **kwargs)
+        self.configure_display()
+
+    def configure_display(self, preprocess=preprocess_display,
+                          **preprocess_args):
+        """Configure display parameters for images
+
+        Parameters
+        ----------
+        preprocess : callable
+            Callable that takes an image and preprocesses it to be displayed.
+        preprocess_args : dict
+            Optional dictionary of keyword arguments for ``preprocess``.
+        """
+        html_function = image_html_function(
+            self.image_shape, preprocess=preprocess, **preprocess_args)
+
+        def _nengo_html_(t, x):
+            return html_function(x)
+
+        self._nengo_html_ = _nengo_html_
