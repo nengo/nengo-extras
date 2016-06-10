@@ -188,7 +188,8 @@ def load_ilsvrc2012(filepath=None, n_files=None):
     def string_to_array(s):
         f = StringIO(s)
         image = PIL.Image.open(f)
-        array = np.array(image, dtype=np.uint8).reshape(image.size[0], image.size[1], 3)
+        array = np.array(image, dtype=np.uint8).reshape(
+            image.size[0], image.size[1], 3)
         array = np.transpose(array, (2, 0, 1))
         return array
 
