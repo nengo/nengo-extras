@@ -42,7 +42,7 @@ with model:
 
     def display_func(t, x, input_shape=input_shape):
         import base64
-        import PIL
+        import PIL.Image
         import cStringIO
 
         values = x.reshape(input_shape)
