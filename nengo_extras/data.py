@@ -283,3 +283,69 @@ def spasafe_names(label_names):
             duplicates[name] += 1
 
     return vocab_names
+
+
+class ZCAWhiten(object):
+    """ZCA Whitening
+
+    References
+    ----------
+    .. [1] Krizhevsky, Alex. "Learning multiple layers of features from tiny
+           images" (2009) MSc Thesis, Dept. of Comp. Science, Univ. of
+           Toronto. pp. 48-49.
+    """
+
+    def __init__(self, beta=1e-2, gamma=1e-5):
+        self.beta = beta
+        self.gamma = gamma
+
+        self.dims = None
+        self.pixel_mu = None
+        self.e = None
+        self.V = None
+        self.Sinv = None
+
+    def contrast_normalize(self, X, remove_mean=True, beta=None,
+                           hard_beta=True):
+        X = np.asarray(X, dtype=np.float64)
+        if X.ndim != 2:
+            raise ValueError('contrast_normalize requires flat patches')
+
+        Xc = X - X.mean(axis=1)[:, None] if remove_mean else X
+        l2 = (Xc * Xc).sum(axis=1)
+
+        beta = self.beta if beta is None else beta
+        div2 = np.maximum(l2, beta) if hard_beta else l2 + beta
+        return Xc / np.sqrt(div2[:, None])
+
+    def fit(self, X):
+        """Fit whitening transform to training data
+
+        Parameters
+        ----------
+        X : array_like
+            Flattened data, with each row corresponding to one example
+        """
+        X = self.contrast_normalize(X)
+        self.dims = X.shape[1]
+
+        self.pixel_mu = X.mean(axis=0)
+        X -= self.pixel_mu[None, :]  # each pixel has zero mean
+
+        S = np.dot(X.T, X) / (X.shape[0] - 1)
+        e, V = np.linalg.eigh(S)
+        self.e = e
+        self.V = V
+
+        self.Sinv = np.dot(np.sqrt(1.0 / (e + self.gamma)) * V, V.T)
+
+        return np.dot(X, self.Sinv)
+
+    def transform(self, X):
+        assert self.dims is not None
+
+        X = self.contrast_normalize(X, beta=self.beta)
+        assert X.shape[1] == self.dims
+
+        X -= self.pixel_mu[None, :]
+        return np.dot(X, self.Sinv)
