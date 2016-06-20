@@ -168,8 +168,8 @@ class Pool2d(Process):
                              (self.strides, self.pool_size))
 
         nc, nxi, nxj = self.shape_in
-        nyi = 1 + int(np.ceil(float(nxi-self.pool_size[0]) / self.strides[0]))
-        nyj = 1 + int(np.ceil(float(nxj-self.pool_size[1]) / self.strides[1]))
+        nyi = 1 + ((nxi-self.pool_size[0]) / self.strides[0])
+        nyj = 1 + ((nxj-self.pool_size[1]) / self.strides[1])
         self.shape_out = (nc, nyi, nyj)
 
         super(Pool2d, self).__init__(
