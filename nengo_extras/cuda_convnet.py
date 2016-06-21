@@ -171,7 +171,7 @@ class CudaConvnetNetwork(nengo.Network):
         st = layer['stride']
         kind = layer['pool']
 
-        pool2d = Pool2d((nc, nx, nx), s, strides=st, kind=kind)
+        pool2d = Pool2d((nc, nx, nx), s, strides=st, kind=kind, mode='full')
         node = nengo.Node(pool2d, label=layer['name'])
         nengo.Connection(self._get_input(layer), node, synapse=None)
         return node

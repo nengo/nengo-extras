@@ -40,14 +40,24 @@ class Conv2d(Process):
 
     Parameters
     ----------
+    shape_in : 3-tuple (n_channels, height, width)
+        Shape of the input images: channels, height, width.
     filters : array_like (n_filters, n_channels, f_height, f_width)
         Static filters to convolve with the input. Shape is number of filters,
         number of input channels, filter height, and filter width. Shape can
         also be (n_filters, height, width, n_channels, f_height, f_width)
         to apply different filters at each point in the image, where 'height'
         and 'width' are the input image height and width.
-    shape_in : 3-tuple (n_channels, height, width)
-        Shape of the input images: channels, height, width.
+    biases : array_like (1,) or (n_filters,) or (n_filters, height, width)
+        Biases to add to outputs. Can have one bias across the entire output
+        space, one bias per filter, or a unique bias for each output pixel.
+    strides : 2-tuple (vertical, horizontal) or int
+        Spacing between filter placements. If an integer
+        is provided, the same spacing is used in both dimensions.
+    padding : 2-tuple (vertical, horizontal) or int
+        Amount of zero-padding around the outside of the input image. Padding
+        is applied to both sides, e.g. ``padding=(1, 0)`` will add one pixel
+        of padding to the top and bottom, and none to the left and right.
     """
 
     shape_in = ShapeParam('shape_in', length=3, low=1)
@@ -148,14 +158,39 @@ class Conv2d(Process):
 
 
 class Pool2d(Process):
-    """Perform 2-D (image) pooling on an input."""
+    """Perform 2-D (image) pooling on an input.
+
+    Parameters
+    ----------
+    shape_in : 3-tuple (channels, height, width)
+        Shape of the input image.
+    pool_size : 2-tuple (vertical, horizontal) or int
+        Shape of the pooling region. If an integer is provided, the shape will
+        be square with the given side length.
+    strides : 2-tuple (vertical, horizontal) or int
+        Spacing between pooling placements. If ``None`` (default), will be
+        equal to ``pool_size`` resulting in non-overlapping pooling.
+    kind : "avg" or "max"
+        Type of pooling to perform: average pooling or max pooling.
+    mode : "full" or "valid"
+        If the input image does not divide into an integer number of pooling
+        regions, whether to add partial pooling regions for the extra
+        pixels ("full"), or discard extra input pixels ("valid").
+
+    Attributes
+    ----------
+    shape_out : 3-tuple (channels, height, width)
+        Shape of the output image.
+    """
     shape_in = ShapeParam('shape_in', length=3, low=1)
     shape_out = ShapeParam('shape_out', length=3, low=1)
     pool_size = ShapeParam('pool_size', length=2, low=1)
     strides = ShapeParam('strides', length=2, low=1)
     kind = EnumParam('kind', values=('avg', 'max'))
+    mode = EnumParam('mode', values=('full', 'valid'))
 
-    def __init__(self, shape_in, pool_size, strides=None, kind='avg'):
+    def __init__(self, shape_in, pool_size, strides=None,
+                 kind='avg', mode='full'):
         self.shape_in = shape_in
         self.pool_size = (pool_size if is_iterable(pool_size) else
                           [pool_size] * 2)
@@ -163,13 +198,20 @@ class Pool2d(Process):
                         [strides] * 2 if strides is not None else
                         self.pool_size)
         self.kind = kind
+        self.mode = mode
         if not all(st <= p for st, p in zip(self.strides, self.pool_size)):
             raise ValueError("Strides %s must be <= pool_size %s" %
                              (self.strides, self.pool_size))
 
         nc, nxi, nxj = self.shape_in
-        nyi = 1 + int(np.ceil(float(nxi-self.pool_size[0]) / self.strides[0]))
-        nyj = 1 + int(np.ceil(float(nxj-self.pool_size[1]) / self.strides[1]))
+        nyi_float = float(nxi - self.pool_size[0]) / self.strides[0]
+        nyj_float = float(nxj - self.pool_size[1]) / self.strides[1]
+        if self.mode == 'full':
+            nyi = 1 + int(np.ceil(nyi_float))
+            nyj = 1 + int(np.ceil(nyj_float))
+        elif self.mode == 'valid':
+            nyi = 1 + int(np.floor(nyi_float))
+            nyj = 1 + int(np.floor(nyj_float))
         self.shape_out = (nc, nyi, nyj)
 
         super(Pool2d, self).__init__(

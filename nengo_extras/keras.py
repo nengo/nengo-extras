@@ -140,7 +140,9 @@ class SequentialNetwork(nengo.Network):
         shape_in = layer.input_shape[1:]
         pool_size = layer.pool_size
         strides = layer.strides
-        pool2d = Pool2d(shape_in, pool_size, strides=strides, kind=kind)
+        pool2d = Pool2d(shape_in, pool_size, strides=strides, kind=kind,
+                        mode='valid')
+        assert pool2d.shape_out == layer.output_shape[1:]
         node = nengo.Node(pool2d, label=layer.name)
         nengo.Connection(pre, node, synapse=None)
         return node
