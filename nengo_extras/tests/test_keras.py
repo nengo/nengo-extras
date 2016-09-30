@@ -1,8 +1,6 @@
 import numpy as np
 import pytest
 
-import nengo_extras
-
 
 def test_softlif_layer(plt):
     pytest.importorskip('keras')
