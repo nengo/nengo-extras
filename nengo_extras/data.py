@@ -28,7 +28,7 @@ def get_cifar100_tar_gz():
     return get_file(filename, url)
 
 
-def get_ilsvrc_tar_gz():
+def get_ilsvrc2012_tar_gz():
     filename = 'ilsvrc-2012-batches-test3.tar.gz'
     url = 'http://files.figshare.com/5370887/ilsvrc-2012-batches-test3.tar.gz'
     return get_file(filename, url)
@@ -148,26 +148,28 @@ def load_cifar100(filepath=None, fine_labels=True, label_names=False):
 
 
 def load_ilsvrc2012(filepath=None, n_files=None):
-    """Load the CIFAR-10 dataset.
+    """Load part of the ILSVRC 2012 (ImageNet) dataset.
+
+    This loads a small section of the ImageNet Large Scale Visual Recognition
+    Challenge (ILSVRC) 2012 dataset. The images are from the test portion of
+    the dataset, and can be used to test pretrained classifiers.
 
     Parameters
     ----------
     filepath : str (optional, Default: None)
-        Path to the previously downloaded 'cifar-10-python.tar.gz' file.
+        Path to the previously downloaded 'ilsvrc-2012-batches-test3.tar.gz'.
         If `None`, the file will be downloaded to the current directory.
-    n_train : int (optional, Default: 6)
-        The number of training batches to load (max: 6).
-    n_test : int (optional, Default: 6)
-        The number of testing batches to load (max: 1).
-    label_names : boolean (optional, Default: False)
-        Whether to provide the category label names.
+    n_files : int (optional, Default: None)
+        Number of files (batches) to load from the archive. Defaults to all.
 
     Returns
     -------
-    train_set : (n_train, n_pixels) ndarray, (n_train,) ndarray
-        A tuple of the training image array and label array.
-    test_set : (n_test, n_pixels) ndarray, (n_test,) ndarray
-        A tuple of the testing image array and label array.
+    images : (n_images, nc, ny, nx) ndarray
+        The loaded images. nc = number of channels, ny = height, nx = width
+    labels : (n_images,) ndarray
+        The labels of the images.
+    data_mean : (nc, ny, nx) ndarray
+        The mean of the images in the whole of the training set.
     label_names : list
         A list of the label names.
     """
@@ -178,7 +180,7 @@ def load_ilsvrc2012(filepath=None, n_files=None):
         from io import StringIO
 
     if filepath is None:
-        filepath = get_ilsvrc_tar_gz()
+        filepath = get_ilsvrc2012_tar_gz()
 
     # helper for reading each batch file
     def read_tar_batch(tar, name):
@@ -212,15 +214,17 @@ def load_ilsvrc2012(filepath=None, n_files=None):
             raw_images.extend(x)
             raw_labels.extend(y)
 
-        image0 = string_to_array(raw_images[0])
-        images = np.zeros((len(raw_images),) + image0.shape, dtype=np.uint8)
+        n_images = len(raw_images)
+        image_shape = string_to_array(raw_images[0]).shape
+        images = np.zeros((n_images,) + image_shape, dtype=np.uint8)
         for i, s in enumerate(raw_images):
             images[i] = string_to_array(s)
 
         labels = np.array(raw_labels)
+        labels.shape = (n_images,)
 
         meta = unpickle_tarfile(tar, 'batches.meta')
-        data_mean = meta['data_mean']
+        data_mean = meta['data_mean'].reshape(image_shape)
         label_names = meta['label_names']
 
     return images, labels, data_mean, label_names

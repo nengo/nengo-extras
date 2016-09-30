@@ -4,10 +4,12 @@ Classifier for the ImageNet ILSVRC-2012 dataset.
 import os
 
 import nengo
+import nengo_ocl
 import numpy as np
 
 from nengo_extras.data import load_ilsvrc2012, spasafe_names
 from nengo_extras.cuda_convnet import CudaConvnetNetwork, load_model_pickle
+
 
 # retrieve from https://figshare.com/s/cdde71007405eb11a88f
 filename = 'ilsvrc-2012-batches-test3.tar.gz'
@@ -17,9 +19,10 @@ X_test = X_test.astype('float32')
 
 # crop data
 X_test = X_test[:, :, 16:-16, 16:-16]
+data_mean = data_mean[:, 16:-16, 16:-16]
+image_shape = X_test.shape[1:]
 
 # subtract mean
-data_mean = X_test.mean(axis=0)
 X_test -= data_mean
 
 # retrieve from https://figshare.com/s/f343c68df647e675af28
@@ -35,15 +38,11 @@ with model:
     ccnet = CudaConvnetNetwork(cc_model, synapse=nengo.synapses.Alpha(0.001))
     nengo.Connection(u, ccnet.inputs['data'], synapse=None)
 
-    input_p = nengo.Probe(u)
+    # input_p = nengo.Probe(u)
     output_p = nengo.Probe(ccnet.output)
 
     # --- image display
-    # input_shape = kmodel.input_shape[1:]
-    # input_shape = (3, 24, 24)
-    input_shape = (3, 224, 224)
-
-    def display_func(t, x, input_shape=input_shape):
+    def display_func(t, x, input_shape=image_shape):
         import base64
         import PIL.Image
         import cStringIO
@@ -85,12 +84,16 @@ with model:
         output = nengo.spa.State(len(vocab_names), subdimensions=10, vocab=vocab)
     nengo.Connection(ccnet.output, output.input)
 
-with nengo.Simulator(model) as sim:
-    nb_presentations = 20
-    sim.run(nb_presentations * presentation_time)
+with nengo_ocl.Simulator(model) as sim:
+    n_presentations = 20
+    sim.run(n_presentations * presentation_time)
 
 nt = int(presentation_time / sim.dt)
-blocks = sim.data[output_p].reshape(nb_presentations, nt, nb_classes)
-choices = np.argmax(blocks[:, -20:, :].mean(axis=1), axis=1)
-accuracy = (choices == y_test[:nb_presentations]).mean()
-print('Spiking accuracy (%d examples): %0.3f' % (nb_presentations, accuracy))
+n_classes = ccnet.output.size_out
+blocks = sim.data[output_p].reshape(n_presentations, nt, n_classes)
+choices = np.argsort(blocks[:, -20:, :].mean(axis=1), axis=1)
+top5corrects = choices[:, -5:] == Y_test[:n_presentations, None]
+top1accuracy = top5corrects[:, -1].mean()
+top5accuracy = np.any(top5corrects, axis=1).mean()
+print('Spiking accuracy (%d examples): %0.3f (top-1), %0.3f (top-5)' %
+      (n_presentations, top1accuracy, top5accuracy))
