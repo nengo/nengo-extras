@@ -8,6 +8,7 @@ import numpy as np
 
 from nengo_extras.data import load_mnist
 from nengo_extras.vision import Gabor, Mask
+from nengo_extras.gui import image_display_function
 
 
 def one_hot(labels, c=None):
@@ -65,34 +66,9 @@ with nengo.Network(seed=3) as model:
         eval_points=X_train, function=train_targets, solver=solver)
 
     # --- image display
-    input_shape = (1, 28, 28)
-
-    def display_func(t, x, input_shape=input_shape):
-        import base64
-        import PIL.Image
-        import cStringIO
-
-        values = x.reshape(input_shape)
-        values = values.transpose((1, 2, 0))
-        values = (values + 1) * 128.
-        values = values.astype('uint8')
-
-        if values.shape[-1] == 1:
-            values = values[:, :, 0]
-
-        png = PIL.Image.fromarray(values)
-        buffer = cStringIO.StringIO()
-        png.save(buffer, format="PNG")
-        img_str = base64.b64encode(buffer.getvalue())
-
-        display_func._nengo_html_ = '''
-            <svg width="100%%" height="100%%" viewbox="0 0 100 100">
-            <image width="100%%" height="100%%"
-                   xlink:href="data:image/png;base64,%s"
-                   style="image-rendering: pixelated;">
-            </svg>''' % (''.join(img_str))
-
-    display_node = nengo.Node(display_func, size_in=u.size_out)
+    image_shape = (1, 28, 28)
+    display_f = image_display_function(image_shape, offset=1, scale=128)
+    display_node = nengo.Node(display_f, size_in=u.size_out)
     nengo.Connection(u, display_node, synapse=None)
 
     # --- output spa display

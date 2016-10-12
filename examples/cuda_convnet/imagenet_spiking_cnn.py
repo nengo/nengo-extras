@@ -9,7 +9,7 @@ import numpy as np
 
 from nengo_extras.data import load_ilsvrc2012, spasafe_names
 from nengo_extras.cuda_convnet import CudaConvnetNetwork, load_model_pickle
-
+from nengo_extras.gui import image_display_function
 
 # retrieve from https://figshare.com/s/cdde71007405eb11a88f
 filename = 'ilsvrc-2012-batches-test3.tar.gz'
@@ -42,32 +42,8 @@ with model:
     output_p = nengo.Probe(ccnet.output)
 
     # --- image display
-    def display_func(t, x, input_shape=image_shape):
-        import base64
-        import PIL.Image
-        import cStringIO
-
-        values = x.reshape(input_shape)
-        values = values + data_mean
-        values = values.transpose((1, 2, 0))
-        values = values.astype('uint8')
-
-        if values.shape[-1] == 1:
-            values = values[:, :, 0]
-
-        png = PIL.Image.fromarray(values)
-        buffer = cStringIO.StringIO()
-        png.save(buffer, format="PNG")
-        img_str = base64.b64encode(buffer.getvalue())
-
-        display_func._nengo_html_ = '''
-            <svg width="100%%" height="100%%" viewbox="0 0 100 100">
-            <image width="100%%" height="100%%"
-                   xlink:href="data:image/png;base64,%s"
-                   style="image-rendering: pixelated;">
-            </svg>''' % (''.join(img_str))
-
-    display_node = nengo.Node(display_func, size_in=u.size_out)
+    display_f = image_display_function(image_shape, scale=1., offset=data_mean)
+    display_node = nengo.Node(display_f, size_in=u.size_out)
     nengo.Connection(u, display_node, synapse=None)
 
     # --- output spa display

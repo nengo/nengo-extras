@@ -15,7 +15,7 @@ from keras.utils import np_utils
 import nengo
 from nengo_extras.keras import (
     load_model_pair, save_model_pair, SequentialNetwork, SoftLIF)
-
+from nengo_extras.gui import image_display_function
 
 filename = 'mnist_spiking_cnn'
 
@@ -96,34 +96,9 @@ with model:
     output_p = nengo.Probe(seq.output)
 
     # --- image display
-    input_shape = kmodel.input_shape[1:]
-
-    def display_func(t, x, input_shape=input_shape):
-        import base64
-        import PIL.Image
-        import cStringIO
-
-        values = x.reshape(input_shape)
-        values = values.transpose((1, 2, 0))
-        values = values * 255.
-        values = values.astype('uint8')
-
-        if values.shape[-1] == 1:
-            values = values[:, :, 0]
-
-        png = PIL.Image.fromarray(values)
-        buffer = cStringIO.StringIO()
-        png.save(buffer, format="PNG")
-        img_str = base64.b64encode(buffer.getvalue())
-
-        display_func._nengo_html_ = '''
-            <svg width="100%%" height="100%%" viewbox="0 0 100 100">
-            <image width="100%%" height="100%%"
-                   xlink:href="data:image/png;base64,%s"
-                   style="image-rendering: pixelated;">
-            </svg>''' % (''.join(img_str))
-
-    display_node = nengo.Node(display_func, size_in=u.size_out)
+    image_shape = kmodel.input_shape[1:]
+    display_f = image_display_function(image_shape)
+    display_node = nengo.Node(display_f, size_in=u.size_out)
     nengo.Connection(u, display_node, synapse=None)
 
     # --- output spa display
