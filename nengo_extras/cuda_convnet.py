@@ -9,11 +9,11 @@ def load_model_pickle(loadfile):
 
 
 class CudaConvnetNetwork(nengo.Network):
-    def __init__(self, model, synapse=None, spiking=True, **kwargs):
+    def __init__(self, model, synapse=None, lif_type='lif', **kwargs):
         super(CudaConvnetNetwork, self).__init__(**kwargs)
         self.model = model
         self.synapse = synapse
-        self.spiking = spiking
+        self.lif_type = lif_type
 
         self.inputs = {}
         self.outputs = {}
@@ -81,9 +81,16 @@ class CudaConvnetNetwork(nengo.Network):
             from .neurons import SoftLIFRate
             tau_ref, tau_rc, alpha, amp, sigma, noise = [
                 neuron['params'][k] for k in ['t', 'r', 'a', 'm', 'g', 'n']]
-            e.neuron_type = (
-                nengo.LIF(tau_rc=tau_rc, tau_ref=tau_ref) if self.spiking else
-                SoftLIFRate(sigma=sigma, tau_rc=tau_rc, tau_ref=tau_ref))
+            lif_type = self.lif_type.lower()
+            if lif_type == 'lif':
+                e.neuron_type = nengo.LIF(tau_rc=tau_rc, tau_ref=tau_ref)
+            elif lif_type == 'lifrate':
+                e.neuron_type = nengo.LIFRate(tau_rc=tau_rc, tau_ref=tau_ref)
+            elif lif_type == 'softlifrate':
+                e.neuron_type = SoftLIFRate(
+                    sigma=sigma, tau_rc=tau_rc, tau_ref=tau_ref)
+            else:
+                raise KeyError("Unrecognized LIF type %r" % self.lif_type)
             e.gain = alpha * np.ones(n)
             e.bias = np.ones(n)
             transform = amp
