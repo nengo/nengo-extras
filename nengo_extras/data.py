@@ -364,6 +364,25 @@ def one_hot_from_labels(labels, classes=None, dtype=float):
     return y
 
 
+def patches_from_images(images, n_patches, patch_size, rng=np.random):
+    """Exctract patches of a given size randomly from images"""
+    assert images.ndim in (3, 4)
+    nc0 = None if images.ndim == 3 else images.shape[1]
+    images = images[:, None, :, :] if nc0 is None else images
+    n_images, nc, ni, nj = images.shape
+
+    pi, pj = patch_size
+    k = rng.randint(n_images, size=n_patches)
+    i = rng.randint(ni - pi, size=n_patches)
+    j = rng.randint(nj - pj, size=n_patches)
+
+    patches = np.zeros((n_patches, nc, pi, pj), dtype=images.dtype)
+    for p, (kk, ii, jj) in enumerate(zip(k, i, j)):
+        patches[p] = images[kk, :, ii:ii+pi, jj:jj+pj]
+
+    return patches[:, 0, :, :] if nc0 is None else patches
+
+
 class ZCAWhiten(object):
     """ZCA Whitening
 

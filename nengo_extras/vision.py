@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import numpy as np
 
 from nengo.dists import Choice, Uniform, DistributionParam
@@ -26,11 +28,11 @@ class Gabor(FrozenObject):
 
     def generate(self, n, shape, rng=np.random, norm=1.):
         assert isinstance(shape, tuple) and len(shape) == 2
-        thetas = self.theta.sample(n, rng=rng)[:, None, None]
-        freqs = self.freq.sample(n, rng=rng)[:, None, None]
-        phases = self.phase.sample(n, rng=rng)[:, None, None]
-        sigma_xs = self.sigma_x.sample(n, rng=rng)[:, None, None]
-        sigma_ys = self.sigma_y.sample(n, rng=rng)[:, None, None]
+        thetas = self.theta.sample(n, d=1, rng=rng).reshape(-1, 1, 1)
+        freqs = self.freq.sample(n, d=1, rng=rng).reshape(-1, 1, 1)
+        phases = self.phase.sample(n, d=1, rng=rng).reshape(-1, 1, 1)
+        sigma_xs = self.sigma_x.sample(n, d=1, rng=rng).reshape(-1, 1, 1)
+        sigma_ys = self.sigma_y.sample(n, d=1, rng=rng).reshape(-1, 1, 1)
 
         x, y = np.linspace(-1, 1, shape[1]), np.linspace(-1, 1, shape[0])
         X, Y = np.meshgrid(x, y)
@@ -222,3 +224,62 @@ def percentile_biases(encoders, trainX, percentile=50):
     H = np.dot(trainX, encoders.T)
     biases = np.percentile(H, percentile, axis=0)
     return biases
+
+
+def image_freq_mixture(images):
+    """Create a mixture model distribution for frequencies in an image set.
+    """
+    from nengo_extras.dists import MultivariateGaussian, Mixture
+
+    assert images.ndim == 3
+    n, ni, nj = images.shape
+
+    I = np.fft.fft2(images)
+    S = np.abs(I).mean(axis=0)
+    S[0, 0] = 0
+    S /= S.sum()
+    S = np.fft.fftshift(S, axes=(-2, -1))
+
+    dists = []
+    fis = np.fft.fftshift(np.fft.fftfreq(ni))
+    fjs = np.fft.fftshift(np.fft.fftfreq(nj))
+    var_i = (0.5/ni)**2
+    var_j = (0.5/nj)**2
+    for fi in fis:
+        for fj in fjs:
+            dist = MultivariateGaussian((fi, fj), (var_i, var_j))
+            dists.append(dist)
+
+    return Mixture(dists, p=S.ravel())
+
+
+def gabors_for_images(images, n_gabors, gabor_size, rng=np.random):
+    """Return Gabor encoders with statistics matching images
+
+    Currently, this takes statistics across the whole image, and creates
+    Gabors based on that. However, it would be more effective to determine
+    Gabors for each location in the image, based on the statistics of that
+    location.
+    """
+    from nengo_extras.dists import Tile
+    f_dist = image_freq_mixture(images)
+    f_pts = f_dist.sample(n_gabors, d=2, rng=rng)
+    f_pts = f_pts * (0.5 * np.array(gabor_size))  # `Gabor` freqs in window units
+
+    thetas = np.arctan2(f_pts[:, 0], f_pts[:, 1])
+    freqs = np.sqrt((f_pts**2).sum(axis=1))
+
+    gabor = Gabor(theta=Tile(thetas), freq=Tile(freqs))
+    gabors = gabor.generate(n_gabors, gabor_size, rng=rng)
+
+    return gabors
+
+
+def gabors_for_patches(images, n_gabors, patch_size, n_patches=None, rng=np.random):
+    """Return Gabor encoders with statistics matching image patches"""
+    from .data import patches_from_images
+
+    if n_patches is None:
+        n_patches = 5 * n_gabors
+    patches = patches_from_images(images, n_patches, patch_size, rng=rng)
+    return gabors_for_images(patches, n_gabors, patch_size, rng=rng)
