@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import numpy as np
 
 from nengo.dists import Distribution
@@ -57,3 +59,42 @@ class Mixture(Distribution):
             samples[i == k] = self.distributions[k].sample(c[k], d=dd, rng=rng)
 
         return samples[:, 0] if d is None else samples
+
+
+class Tile(Distribution):
+    """Choose values in order from an array
+
+    This distribution is not random, but rather tiles an array to be a
+    particular size. This is useful for example if you want to pass an array
+    for a neuron parameter, but are not sure how many neurons there will be.
+
+    Parameters
+    ----------
+    values : array_like
+        The values to tile.
+    """
+
+    values = NdarrayParam('values', shape=('*', '*'))
+
+    def __init__(self, values):
+        super(Tile, self).__init__()
+
+        values = np.asarray(values)
+        self.values = values.reshape(-1, 1) if values.ndim < 2 else values
+
+    def __repr__(self):
+        return "Tile(values=%s)" % (self.values)
+
+    def sample(self, n, d=None, rng=np.random):
+        out1 = d is None
+        d = 1 if d is None else d
+        nv, dv = self.values.shape
+
+        if n > nv or d > dv:
+            values = np.tile(self.values, (int(np.ceil(float(n) / nv)),
+                                           int(np.ceil(float(d) / dv))))
+        else:
+            values = self.values
+
+        values = values[:n, :d]
+        return values[:, 0] if out1 else values

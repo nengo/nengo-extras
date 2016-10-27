@@ -1,7 +1,7 @@
 import numpy as np
 
 from nengo.dists import Gaussian, Uniform
-from nengo_extras.dists import Mixture, MultivariateGaussian
+from nengo_extras.dists import Mixture, MultivariateGaussian, Tile
 
 
 def test_multivariate_gaussian(plt, rng):
@@ -39,3 +39,12 @@ def test_mixture_2d(plt, rng):
         plt.subplot(len(mdists), 1, k+1)
         pts = dist.sample(n, d=2, rng=rng)
         plt.hist2d(pts[:, 0], pts[:, 1], bins=np.arange(-5, 5, 0.2))
+
+
+def test_tile(rng):
+    a = rng.uniform(-1, 1, size=(10, 3))
+
+    dist = Tile(a)
+
+    b = dist.sample(25, 4)
+    assert np.array_equal(b, np.tile(a, (3, 2))[:25, :4])
