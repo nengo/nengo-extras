@@ -3,7 +3,28 @@ from __future__ import absolute_import
 import numpy as np
 
 from nengo.dists import Distribution
-from nengo.params import NdarrayParam, TupleParam
+from nengo.params import NdarrayParam, NumberParam, TupleParam
+
+
+class Concatenate(Distribution):
+    """Concatenate distributions to form an independent multivariate"""
+
+    distributions = TupleParam('distributions', readonly=True)
+    d = NumberParam('d', low=1, readonly=True)
+
+    def __init__(self, distributions):
+        super(Concatenate, self).__init__()
+        self.distributions = distributions
+
+        # --- determine dimensionality
+        rng = np.random.RandomState(0)
+        s = np.column_stack([d.sample(1, rng=rng) for d in self.distributions])
+        self.d = s.shape[1]
+
+    def sample(self, n, d=None, rng=np.random):
+        assert d is None or d == self.d
+        return np.column_stack(
+            [d.sample(n, rng=rng) for d in self.distributions])
 
 
 class MultivariateGaussian(Distribution):

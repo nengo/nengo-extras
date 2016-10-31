@@ -1,7 +1,23 @@
 import numpy as np
 
 from nengo.dists import Gaussian, Uniform
-from nengo_extras.dists import Mixture, MultivariateGaussian, Tile
+from nengo_extras.dists import Concatenate, Mixture, MultivariateGaussian, Tile
+
+
+def test_concatenate(plt, rng):
+    n = 10000
+
+    dist = Concatenate([Uniform(-1, 1),
+                        Uniform(0, 1),
+                        MultivariateGaussian([0, 2], [2, 1]),
+                        Gaussian(3, 0.5)])
+    pts = dist.sample(n, rng=rng)
+    assert pts.shape == (n, 5)
+    n, d = pts.shape
+
+    for i in range(d):
+        plt.subplot(d, 1, i+1)
+        plt.hist(pts[:, i], bins=np.linspace(-4, 4, 101))
 
 
 def test_multivariate_gaussian(plt, rng):
