@@ -10,8 +10,15 @@ dist
 .ipynb_checkpoints/
 .cache
 
+# --- data files:
 *.json
 *.h5
+*.pkl
+*.pkl.gz
+*.tar.gz
+
+# --- nengo_gui files:
+*.py.cfg
 
 nengo.simulator.logs/
 nengo.simulator.analytics/
