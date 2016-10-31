@@ -6,6 +6,32 @@ from nengo.dists import Distribution
 from nengo.params import NdarrayParam, NumberParam, TupleParam
 
 
+def gaussian_icdf(mean, std):
+    import scipy.stats as sps
+    def icdf(p):
+        return sps.norm.ppf(p, scale=std, loc=mean)
+
+    return icdf
+
+
+def loggaussian_icdf(log_mean, log_std, base=np.e):
+    import scipy.stats as sps
+
+    mean = base**log_mean
+    log_std2 = log_std * np.log(base)
+    def icdf(p):
+        return sps.lognorm.ppf(p, log_std2, scale=mean)
+
+    return icdf
+
+
+def uniform_icdf(low, high):
+    def icdf(p):
+        return p * (high - low) + low
+
+    return icdf
+
+
 class Concatenate(Distribution):
     """Concatenate distributions to form an independent multivariate"""
 
@@ -25,6 +51,72 @@ class Concatenate(Distribution):
         assert d is None or d == self.d
         return np.column_stack(
             [d.sample(n, rng=rng) for d in self.distributions])
+
+
+class MultivariateCopula(Distribution):
+    """Generalized multivariate distribution.
+
+    Uses the copula method to sample from a general multivariate distribution,
+    given marginal distributions and copula covariances [1]_.
+
+    Parameters
+    ----------
+    marginal_icdfs : iterable
+        List of functions, each one being the inverse CDF of the marginal
+        distribution across that dimension.
+    rho : array_like (optional)
+        Array of copula covariances [1]_ between parameters. Defaults to
+        the identity matrix (independent parameters).
+
+    See also
+    --------
+    gaussian_icdf, loggaussian_icdf, uniform_icdf
+
+    References
+    ----------
+    .. [1] Copula (probability theory). Wikipedia.
+       https://en.wikipedia.org/wiki/Copula_(probability_theory)
+    """
+
+    marginal_icdfs = TupleParam('marginal_icdfs', readonly=True)
+    rho = NdarrayParam('rho', shape=('*', '*'), optional=True, readonly=True)
+
+    def __init__(self, marginal_icdfs, rho=None):
+        import scipy.stats  # we need this for sampling
+
+        super(MultivariateCopula, self).__init__()
+        self.marginal_icdfs = marginal_icdfs
+        self.rho = rho
+
+        d = len(self.marginal_icdfs)
+        if not all(callable(f) for f in self.marginal_icdfs):
+            raise ValueError("`marginal_icdfs` must be a list of callables")
+        if self.rho is not None:
+            if self.rho.shape != (d, d):
+                raise ValueError("`rho` must be a %d x %d array" % (d, d))
+            if not np.array_equal(self.rho, self.rho.T):
+                raise ValueError(
+                    "`rho` must be a symmetrical positive-definite array")
+
+    def sample(self, n, d=None, rng=np.random):
+        import scipy.stats as sps
+
+        assert d is None or d == len(self.marginal_icdfs)
+        d = len(self.marginal_icdfs)
+
+        # normalize rho
+        rho = np.eye(d) if self.rho is None else self.rho
+        stds = np.sqrt(np.diag(rho))
+        rho = rho / np.outer(stds, stds)
+
+        # sample from copula
+        x = sps.norm.cdf(sps.multivariate_normal.rvs(cov=rho, size=n))
+
+        # apply marginal inverse CDFs
+        for i in range(d):
+            x[:, i] = self.marginal_icdfs[i](x[:, i])
+
+        return x
 
 
 class MultivariateGaussian(Distribution):

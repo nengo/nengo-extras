@@ -1,7 +1,8 @@
 import numpy as np
 
 from nengo.dists import Gaussian, Uniform
-from nengo_extras.dists import Concatenate, Mixture, MultivariateGaussian, Tile
+from nengo_extras.dists import (
+    Concatenate, Mixture, MultivariateCopula, MultivariateGaussian, Tile)
 
 
 def test_concatenate(plt, rng):
@@ -18,6 +19,39 @@ def test_concatenate(plt, rng):
     for i in range(d):
         plt.subplot(d, 1, i+1)
         plt.hist(pts[:, i], bins=np.linspace(-4, 4, 101))
+
+
+def test_icdfs(plt, rng):
+    from nengo_extras.dists import (
+        gaussian_icdf, loggaussian_icdf, uniform_icdf)
+
+    p = rng.rand(100000)
+
+    rows = 3
+    plt.subplot(rows, 1, 1)
+    plt.hist(gaussian_icdf(1, 0.5)(p), bins=51)
+
+    plt.subplot(rows, 1, 2)
+    h, b = np.histogram(loggaussian_icdf(-2, 0.5, base=10)(p),
+                        bins=np.logspace(-4, 0))
+    plt.semilogx(0.5*(b[:-1] + b[1:]), h)
+
+    plt.subplot(rows, 1, 3)
+    plt.hist(uniform_icdf(-3, 1)(p), bins=51)
+
+
+def test_multivariate_copula_simple(plt, rng):
+    from nengo_extras.dists import gaussian_icdf, uniform_icdf
+    n = 100000
+
+    c = 0.7
+    dist = MultivariateCopula([gaussian_icdf(-1, 1),
+                               uniform_icdf(-1, 1)],
+                              rho=[[1., c], [c, 1.]])
+    pts = dist.sample(n, rng=rng)
+    assert pts.shape == (n, 2)
+
+    plt.hist2d(pts[:, 0], pts[:, 1], bins=31)
 
 
 def test_multivariate_gaussian(plt, rng):
