@@ -1,7 +1,7 @@
-"""Nengo version information.
+"""nengo_extras version information.
 
 We use semantic versioning (see http://semver.org/).
-and confrom to PEP440 (see https://www.python.org/dev/peps/pep-0440/).
+and conform to PEP440 (see https://www.python.org/dev/peps/pep-0440/).
 '.devN' will be added to the version unless the code base represents
 a release version. Release versions are git tagged with the version.
 """
