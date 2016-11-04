@@ -5,76 +5,60 @@ import nengo
 from nengo_extras.probe import probe_all
 
 
+def make_net():
+    with nengo.Network() as net:
+        net.ens1 = nengo.Ensemble(n_neurons=1, dimensions=1)
+        net.node1 = nengo.Node(output=lambda t, x: x, size_in=1)
+        net.conn = nengo.Connection(net.ens1, net.node1,
+                                    learning_rule_type=[nengo.PES()])
+
+        with nengo.Network() as net.subnet:
+            net.ens2 = nengo.Ensemble(n_neurons=1, dimensions=1)
+            net.node2 = nengo.Node(output=[0])
+
+    return net
+
+
 @pytest.mark.parametrize("recursive", [False, True])
 def test_probe_all_recursive(recursive):
+    net = make_net()
+    probes = probe_all(net, recursive=recursive)
 
-    model = nengo.Network(label='test_probing')
-    with model:
-        ens1 = nengo.Ensemble(n_neurons=1, dimensions=1)
-        node1 = nengo.Node(output=[0])
-        conn = nengo.Connection(node1, ens1)
-        subnet = nengo.Network(label='subnet')
+    assert(len(probes[net.ens1]) == len(net.ens1.probeable))
+    assert(len(probes[net.ens1.neurons]) == len(net.ens1.neurons.probeable))
+    assert(len(probes[net.node1]) == len(net.node1.probeable))
+    assert(len(probes[net.conn]) == len(net.conn.probeable))
+    for lr in net.conn.learning_rule:
+        assert(len(probes[lr]) == len(lr.probeable))
 
-        with subnet:
-            ens2 = nengo.Ensemble(n_neurons=1, dimensions=1)
-            node2 = nengo.Node(output=[0])
-
-    probes = probe_all(model, recursive=recursive)
-
-    # test top level probing
-    total_number_probes1 = len(
-        ens1.probeable) + len(node1.probeable) + len(conn.probeable)
-    assert(len(model.probes) == total_number_probes1)
-
-    # test dictionary
-    assert(len(probes[ens1]) == len(ens1.probeable))
-    assert(len(probes[node1]) == len(node1.probeable))
-    assert(len(probes[conn]) == len(conn.probeable))
-
-    # test recursive probing
     if recursive:
-        total_number_probes2 = len(ens2.probeable) + len(node2.probeable)
-        assert(len(subnet.probes) == total_number_probes2)
-        assert(len(probes[ens2]) == len(ens2.probeable))
-        assert(len(probes[node2]) == len(node2.probeable))
+        assert(len(probes) == 8)
+        assert(len(probes[net.ens2]) == len(net.ens2.probeable))
+        assert(len(probes[net.node2]) == len(net.node2.probeable))
     else:
-        assert(len(subnet.probes) == 0)
-        assert ens2 not in probes
+        assert(len(probes) == 5)
+        assert net.ens2 not in probes
+        assert net.ens2.neurons not in probes
+        assert net.node2 not in probes
 
 
-def test_probe_all_options():
-    model = nengo.Network(label='test_probing')
-    with model:
-        ens1 = nengo.Ensemble(n_neurons=1, dimensions=1)
-        node1 = nengo.Node(output=[0])
-        nengo.Connection(node1, ens1)
-        subnet = nengo.Network(label='subnet')
+@pytest.mark.parametrize("recursive", [False, True])
+def test_probe_all_options(recursive):
+    net = make_net()
 
-        with subnet:
-            nengo.Ensemble(n_neurons=1, dimensions=1)
-            nengo.Node(output=[0])
-
-    probe_all(model, recursive=True, probe_options={
+    probe_all(net, recursive=recursive, probe_options={
         nengo.Ensemble: ['decoded_output']})
 
-    # only probes spikes and decoded output of the ensembles
-    assert(len(model.probes) == 1)
-    assert(len(subnet.probes) == 1)
+    if recursive:
+        assert(len(net.probes) == 2)
+    else:
+        assert(len(net.probes) == 1)
 
 
 def test_probe_all_kwargs():
-    model = nengo.Network(label='test_probing')
-    with model:
-        ens1 = nengo.Ensemble(n_neurons=1, dimensions=1)
-        node1 = nengo.Node(output=[0])
-        nengo.Connection(node1, ens1)
-        subnet = nengo.Network(label='subnet')
+    net = make_net()
+    probe_all(net, recursive=True, sample_every=0.1, seed=10)
 
-        with subnet:
-            nengo.Ensemble(n_neurons=1, dimensions=1)
-            nengo.Node(output=[0])
-
-    probe_all(model, recursive=True, sample_every=0.1, seed=10)
-    for probe in model.probes + subnet.probes:
+    for probe in net.probes:
         assert probe.sample_every == 0.1
         assert probe.seed == 10

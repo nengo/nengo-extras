@@ -1,20 +1,18 @@
 import nengo
-from nengo.utils.compat import iteritems
+from nengo.utils.compat import is_iterable
 
 
-def probe_all(net, recursive=False, probe_options=None,  # noqa: C901
-              **probe_args):
+def probe_all(net, recursive=False, probe_options=None, **probe_args):
     """Probes all objects in a network.
 
     Parameters
     ----------
     net : nengo.Network
-    recursive : bool, optional
-        probe subnetworks recursively, False by default.
-    probe_options: dict, optional
+    recursive : bool, optional (Default: False)
+        Probe subnetworks recursively.
+    probe_options: dict, optional (Default: None)
         A dict of the form {nengo_object_class: [attributes_to_probe]}.
-        If not specified, every probeable attribute of every object
-        will be probed.
+        If None, every probeable attribute of every object will be probed.
 
     Returns
     -------
@@ -24,12 +22,9 @@ def probe_all(net, recursive=False, probe_options=None,  # noqa: C901
     --------
 
     Probe the decoded output and spikes in all ensembles in a network and
-    its subnetworks.
+    its subnetworks::
 
-    ::
-
-        model = nengo.Network(label='_test_probing')
-        with model:
+        with nengo.Network() as model:
             ens1 = nengo.Ensemble(n_neurons=1, dimensions=1)
             node1 = nengo.Node(output=[0])
             conn = nengo.Connection(node1, ens1)
@@ -37,42 +32,51 @@ def probe_all(net, recursive=False, probe_options=None,  # noqa: C901
             with subnet:
                 ens2 = nengo.Ensemble(n_neurons=1, dimensions=1)
                 node2 = nengo.Node(output=[0])
-
         probe_options = {nengo.Ensemble: ['decoded_output', 'spikes']}
-        object_probe_dict = probe(model, recursive=True,
-                                  probe_options=probe_options)
+        probes = probe_all(model, recursive=True, probe_options=probe_options)
 
     """
 
     probes = {}
 
-    def probe_helper(net, recursive, probe_options):
-        with net:
-            for obj_type, obj_list in iteritems(net.objects):
+    def all_probes(obj):
+        if probe_options is not None and type(obj) in probe_options:
+            attrs = probe_options[type(obj)]
+        else:
+            attrs = obj.probeable
 
-                # recursively probe subnetworks if required
-                if obj_type is nengo.Network and recursive:
-                    for subnet in obj_list:
-                        probe_helper(subnet, recursive=recursive,
-                                     probe_options=probe_options)
+        return {attr: nengo.Probe(obj, attr, **probe_args) for attr in attrs}
 
-                # probe all probeable objects
-                elif probe_options is None:
-                    for obj in obj_list:
-                        if hasattr(obj, 'probeable') and len(
-                                obj.probeable) > 0:
-                            probes[obj] = {}
-                            for probeable in obj.probeable:
-                                probes[obj][probeable] = nengo.Probe(
-                                    obj, probeable, **probe_args)
+    ensembles = net.all_ensembles if recursive else net.ensembles
+    nodes = net.all_nodes if recursive else net.nodes
+    connections = net.all_connections if recursive else net.connections
 
-                # probe specified objects only
-                elif obj_type in probe_options:
-                    for obj in obj_list:
-                        probes[obj] = {}
-                        for attr in probe_options[obj_type]:
-                            probes[obj][attr] = (
-                                nengo.Probe(obj, attr, **probe_args))
+    with net:
+        if probe_options is None or nengo.Ensemble in probe_options:
+            for ens in ensembles:
+                probes[ens] = all_probes(ens)
 
-    probe_helper(net, recursive, probe_options)
+        if probe_options is None or nengo.ensemble.Neurons in probe_options:
+            for ens in ensembles:
+                probes[ens.neurons] = all_probes(ens.neurons)
+
+        if probe_options is None or nengo.Node in probe_options:
+            for node in nodes:
+                probes[node] = all_probes(node)
+
+        if probe_options is None or nengo.Connection in probe_options:
+            for conn in connections:
+                probes[conn] = all_probes(conn)
+
+        LearningRule = nengo.connection.LearningRule
+        if probe_options is None or LearningRule in probe_options:
+            for conn in connections:
+                lr = conn.learning_rule
+                if lr is None:
+                    continue
+                if not is_iterable(lr):
+                    lr = [lr]
+                for rule in lr:
+                    probes[rule] = all_probes(rule)
+
     return probes
