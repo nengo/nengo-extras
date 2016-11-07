@@ -1,7 +1,5 @@
-
-
-def preprocess_display(x, image_shape, transpose=(1, 2, 0), scale=255.,
-                       offset=0.):
+def preprocess_display(x, image_shape,
+                       transpose=(1, 2, 0), scale=255., offset=0.):
     """Basic preprocessing that reshapes, transposes, and scales an image"""
     y = x.reshape(image_shape)
     y = (y + offset) * scale

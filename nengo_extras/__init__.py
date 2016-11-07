@@ -2,4 +2,4 @@ from .version import version as __version__
 
 from .convnet import Conv2d, Pool2d
 from .neurons import FastLIF, SoftLIFRate
-from . import networks
+from . import data, dists, gui, networks, vision

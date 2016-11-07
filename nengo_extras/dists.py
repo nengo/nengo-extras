@@ -8,6 +8,7 @@ from nengo.params import NdarrayParam, NumberParam, TupleParam
 
 def gaussian_icdf(mean, std):
     import scipy.stats as sps
+
     def icdf(p):
         return sps.norm.ppf(p, scale=std, loc=mean)
 
@@ -19,6 +20,7 @@ def loggaussian_icdf(log_mean, log_std, base=np.e):
 
     mean = base**log_mean
     log_std2 = log_std * np.log(base)
+
     def icdf(p):
         return sps.lognorm.ppf(p, log_std2, scale=mean)
 
@@ -50,7 +52,7 @@ class Concatenate(Distribution):
     def sample(self, n, d=None, rng=np.random):
         assert d is None or d == self.d
         return np.column_stack(
-            [d.sample(n, rng=rng) for d in self.distributions])
+            [dist.sample(n, rng=rng) for dist in self.distributions])
 
 
 class MultivariateCopula(Distribution):
@@ -83,6 +85,7 @@ class MultivariateCopula(Distribution):
 
     def __init__(self, marginal_icdfs, rho=None):
         import scipy.stats  # we need this for sampling
+        assert scipy.stats
 
         super(MultivariateCopula, self).__init__()
         self.marginal_icdfs = marginal_icdfs
