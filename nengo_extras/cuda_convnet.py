@@ -1,9 +1,12 @@
+import os
+
 import nengo
 from nengo.utils.compat import pickle
 import numpy as np
 
 
 def load_model_pickle(loadfile):
+    loadfile = os.path.expanduser(loadfile)
     with open(loadfile, 'rb') as f:
         return pickle.load(f)
 
