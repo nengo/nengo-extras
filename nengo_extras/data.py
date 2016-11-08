@@ -4,7 +4,7 @@ import re
 import tarfile
 import urllib
 
-from nengo.utils.compat import pickle
+from nengo.utils.compat import is_integer, is_iterable, pickle
 import numpy as np
 
 
@@ -287,6 +287,47 @@ def spasafe_names(label_names):
             duplicates[name] += 1
 
     return vocab_names
+
+
+def one_hot_from_labels(labels, classes=None, dtype=float):
+    """Turn integer labels into a one-hot encoding.
+
+    Parameters
+    ==========
+    labels : (n,) array
+        Labels to turn into one-hot encoding.
+    classes : int or (n_classes,) array (optional)
+        Classes for encoding. If integer and ``labels.dtype`` is integer, this
+        is the number of classes in the encoding. If iterable, this is the
+        list of classes to place in the one-hot (must be a superset of the
+        unique elements in ``labels``).
+    dtype : dtype (optional)
+        Data type of returned one-hot encoding (defaults to ``float``).
+    """
+    assert labels.ndim == 1
+    n = labels.shape[0]
+
+    if np.issubdtype(labels.dtype, np.integer) and (
+            classes is None or is_integer(classes)):
+        index = labels
+        index_min, index_max = index.min(), index.max()
+        n_classes = (index_max + 1) if classes is None else classes
+        assert index_min >= 0
+        assert index_max < n_classes
+    else:
+        if classes is not None:
+            assert is_iterable(classes)
+            assert set(np.unique(labels)).issubset(classes)
+        classes = np.unique(labels) if classes is None else classes
+        n_classes = len(classes)
+
+        c_index = np.argsort(classes)
+        c_sorted = classes[c_index]
+        index = c_index[np.searchsorted(c_sorted, labels)]
+
+    y = np.zeros((n, n_classes), dtype=dtype)
+    y[np.arange(n), index] = 1
+    return y
 
 
 class ZCAWhiten(object):
