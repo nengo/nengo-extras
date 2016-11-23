@@ -8,7 +8,7 @@ import numpy as np
 
 from nengo_extras.data import load_mnist
 from nengo_extras.vision import Gabor, Mask
-from nengo_extras.gui import image_display_function
+from nengo_extras.gui import PresentImages
 
 
 def one_hot(labels, c=None):
@@ -57,19 +57,16 @@ solver = nengo.solvers.LstsqL2(reg=0.01)
 presentation_time = 0.1
 
 with nengo.Network(seed=3) as model:
-    u = nengo.Node(nengo.processes.PresentInput(X_test, presentation_time))
+    u = nengo.Node(PresentImages(X_test.reshape((-1, 1, 28, 28)),
+                                 presentation_time))
+    u.output.configure_display(offset=1., scale=128.)
+
     a = nengo.Ensemble(n_hid, n_vis, **ens_params)
     v = nengo.Node(size_in=n_out)
     nengo.Connection(u, a, synapse=None)
     conn = nengo.Connection(
         a, v, synapse=None,
         eval_points=X_train, function=train_targets, solver=solver)
-
-    # --- image display
-    image_shape = (1, 28, 28)
-    display_f = image_display_function(image_shape, offset=1, scale=128)
-    display_node = nengo.Node(display_f, size_in=u.size_out)
-    nengo.Connection(u, display_node, synapse=None)
 
     # --- output spa display
     vocab_names = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR',

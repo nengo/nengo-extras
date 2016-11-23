@@ -15,7 +15,7 @@ from keras.utils import np_utils
 import nengo
 from nengo_extras.keras import (
     load_model_pair, save_model_pair, SequentialNetwork, SoftLIF)
-from nengo_extras.gui import image_display_function
+from nengo_extras.gui import PresentImages
 
 filename = 'mnist_spiking_cnn'
 
@@ -88,18 +88,12 @@ presentation_time = 0.2
 
 model = nengo.Network()
 with model:
-    u = nengo.Node(nengo.processes.PresentInput(X_test, presentation_time))
+    u = nengo.Node(PresentImages(X_test, presentation_time))
     seq = SequentialNetwork(kmodel, synapse=nengo.synapses.Alpha(0.005))
     nengo.Connection(u, seq.input, synapse=None)
 
     input_p = nengo.Probe(u)
     output_p = nengo.Probe(seq.output)
-
-    # --- image display
-    image_shape = kmodel.input_shape[1:]
-    display_f = image_display_function(image_shape)
-    display_node = nengo.Node(display_f, size_in=u.size_out)
-    nengo.Connection(u, display_node, synapse=None)
 
     # --- output spa display
     vocab_names = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR',
