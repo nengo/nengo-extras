@@ -12,6 +12,7 @@ from nengo_extras.gui import image_display_function
 (X_train, y_train), (X_test, y_test), label_names = load_cifar10(label_names=True)
 X_train = X_train.reshape(-1, 3, 32, 32).astype('float32')
 X_test = X_test.reshape(-1, 3, 32, 32).astype('float32')
+n_classes = len(label_names)
 
 # crop data
 X_train = X_train[:, :, 4:-4, 4:-4]
@@ -58,11 +59,11 @@ with model:
     nengo.Connection(ccnet.output, output.input)
 
 with nengo.Simulator(model) as sim:
-    nb_presentations = 20
-    sim.run(nb_presentations * presentation_time)
+    n_presentations = 20
+    sim.run(n_presentations * presentation_time)
 
 nt = int(presentation_time / sim.dt)
-blocks = sim.data[output_p].reshape(nb_presentations, nt, nb_classes)
+blocks = sim.data[output_p].reshape(n_presentations, nt, n_classes)
 choices = np.argmax(blocks[:, -20:, :].mean(axis=1), axis=1)
-accuracy = (choices == y_test[:nb_presentations]).mean()
-print('Spiking accuracy (%d examples): %0.3f' % (nb_presentations, accuracy))
+accuracy = (choices == y_test[:n_presentations]).mean()
+print('Spiking accuracy (%d examples): %0.3f' % (n_presentations, accuracy))
