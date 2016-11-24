@@ -5,6 +5,8 @@ import keras
 import nengo
 import numpy as np
 
+import nengo_extras.deepnetworks
+
 
 class SoftLIF(keras.layers.Layer):
     def __init__(self, sigma=1., amplitude=1., tau_rc=0.02, tau_ref=0.002,
@@ -63,61 +65,52 @@ def save_model_pair(model, filepath, overwrite=False):
     model.save_weights(h5_path, overwrite=overwrite)
 
 
-class SequentialNetwork(nengo.Network):
+class SequentialNetwork(nengo_extras.deepnetworks.SequentialNetwork):
 
-    def __init__(self, model, synapse=None, spiking=True, **kwargs):
+    def __init__(self, model, synapse=None, lif_type='lif', **kwargs):
         super(SequentialNetwork, self).__init__(**kwargs)
+
         assert isinstance(model, keras.models.Sequential)
         self.model = model
         self.synapse = synapse
-        self.spiking = spiking
+        self.lif_type = lif_type
 
-        self.layers = []
-        with self:
-            self.input = nengo.Node(size_in=np.prod(model.input_shape[1:]),
-                                    label='%s_input' % model.name)
-            self.layers.append(self.input)
-            for layer in model.layers:
-                self.layers.append(self.add_layer(self.layers[-1], layer))
+        # -- build model
+        self.add_data_layer(np.prod(model.input_shape[1:]))
+        for layer in model.layers:
+            self._add_layer(layer)
 
-            self.output = self.layers[-1]
-
-    def add_layer(self, pre, layer):
+    def _add_layer(self, layer):
         assert layer.input_mask is None
         assert layer.input_shape[0] is None
 
         layer_adder = {
-            keras.layers.convolutional.Convolution2D: self._add_conv2d_layer,
-            keras.layers.convolutional.AveragePooling2D:
-            self._add_avgpool2d_layer,
-            keras.layers.convolutional.MaxPooling2D: self._add_maxpool2d_layer,
-            keras.layers.core.Activation: self._add_activation_layer,
-            keras.layers.core.Dense: self._add_dense_layer,
-            keras.layers.core.Dropout: self._add_dropout_layer,
-            keras.layers.core.Flatten: self._add_flatten_layer,
+            keras.layers.Activation: self._add_activation_layer,
+            keras.layers.Dense: self._add_dense_layer,
+            keras.layers.Dropout: self._add_dropout_layer,
+            keras.layers.Flatten: self._add_flatten_layer,
+            keras.layers.Convolution2D: self._add_conv2d_layer,
+            keras.layers.AveragePooling2D: self._add_avgpool2d_layer,
+            keras.layers.MaxPooling2D: self._add_maxpool2d_layer,
+            keras.layers.noise.GaussianNoise: self._add_gaussian_noise_layer,
             SoftLIF: self._add_softlif_layer,
         }
 
         for cls in type(layer).__mro__:
             if cls in layer_adder:
-                return layer_adder[cls](pre, layer)
+                return layer_adder[cls](layer)
 
         raise NotImplementedError("Cannot build layer type %r" %
                                   type(layer).__name__)
 
-    def _add_dense_layer(self, pre, layer):
+    def _add_dense_layer(self, layer):
         weights, biases = layer.get_weights()
-        node = nengo.Node(size_in=layer.output_dim, label=layer.name)
-        b = nengo.Node(biases, label='%s_biases' % layer.name)
-        nengo.Connection(pre, node, transform=weights.T, synapse=None)
-        nengo.Connection(b, node, synapse=None)
-        return node
+        return self.add_full_layer(weights.T, biases, name=layer.name)
 
-    def _add_conv2d_layer(self, pre, layer):
-        from .convnet import Conv2d
-
+    def _add_conv2d_layer(self, layer):
         shape_in = layer.input_shape[1:]
         filters, biases = layer.get_weights()
+        filters = filters[..., ::-1, ::-1]  # flip
         strides = layer.subsample
 
         nf, nc, ni, nj = filters.shape
@@ -128,45 +121,28 @@ class SequentialNetwork(nengo.Network):
         else:
             raise ValueError("Unrecognized border mode %r" % layer.border_mode)
 
-        conv2d = Conv2d(
-            shape_in, filters, biases=biases, strides=strides, padding=padding)
-        assert conv2d.shape_out == layer.output_shape[1:]
-        node = nengo.Node(conv2d, label=layer.name)
-        nengo.Connection(pre, node, synapse=None)
-        return node
+        return self.add_conv_layer(shape_in, filters, biases, strides=strides,
+                                   padding=padding, name=layer.name)
 
-    def _add_pool2d_layer(self, pre, layer, kind=None):
+    def _add_pool2d_layer(self, layer, kind=None):
         from .convnet import Pool2d
         shape_in = layer.input_shape[1:]
         pool_size = layer.pool_size
         strides = layer.strides
-        pool2d = Pool2d(shape_in, pool_size, strides=strides, kind=kind,
-                        mode='valid')
-        assert pool2d.shape_out == layer.output_shape[1:]
-        node = nengo.Node(pool2d, label=layer.name)
-        nengo.Connection(pre, node, synapse=None)
-        return node
+        return self.add_pool_layer(shape_in, pool_size, strides=strides,
+                                   kind=kind, mode='valid', name=layer.name)
 
-    def _add_avgpool2d_layer(self, pre, layer):
-        return self._add_pool2d_layer(pre, layer, kind='avg')
+    def _add_avgpool2d_layer(self, layer):
+        return self._add_pool2d_layer(layer, kind='avg')
 
-    def _add_maxpool2d_layer(self, pre, layer):
-        return self._add_pool2d_layer(pre, layer, kind='max')
+    def _add_maxpool2d_layer(self, layer):
+        return self._add_pool2d_layer(layer, kind='max')
 
-    def _add_softmax_layer(self, pre, layer):
-        from .convnet import softmax
-        node = nengo.Node(lambda t, x: softmax(x),
-                          size_in=np.prod(layer.input_shape[1:]),
-                          label=layer.name)
-        nengo.Connection(pre, node, synapse=None)
-        return node
-
-    def _add_activation_layer(self, pre, layer):
+    def _add_activation_layer(self, layer):
         if layer.activation is keras.activations.softmax:
-            return self._add_softmax_layer(pre, layer)
+            return self._add_softmax_layer(layer)
 
         # add normal activation layer
-        assert not self.spiking
         activation_map = {
             keras.activations.relu: nengo.neurons.RectifiedLinear(),
             keras.activations.sigmoid: nengo.neurons.Sigmoid(),
@@ -177,40 +153,39 @@ class SequentialNetwork(nengo.Network):
                              % layer.activation)
 
         n = np.prod(layer.input_shape[1:])
-        e = nengo.Ensemble(n, 1, label='%s_neurons' % layer.name,
-                           neuron_type=neuron_type)
-        e.gain = np.ones(n)
-        e.bias = np.zeros(n)
-        node = nengo.Node(size_in=n, label=layer.name)
-        nengo.Connection(pre, e.neurons, synapse=None)
-        nengo.Connection(e.neurons, node, synapse=self.synapse)
-        return node
+        return self.add_neuron_layer(
+            n, neuron_type=neuron_type, synapse=self.synapse,
+            gain=1, bias=0, name=layer.name)
 
-    def _add_softlif_layer(self, pre, layer):
+    def _add_softlif_layer(self, layer):
         from .neurons import SoftLIFRate
+
         taus = dict(tau_rc=layer.tau_rc, tau_ref=layer.tau_ref)
-        neuron_type = (nengo.LIF(**taus) if self.spiking else
-                       SoftLIFRate(sigma=layer.sigma, **taus))
+        lif_type = self.lif_type.lower()
+        if lif_type == 'lif':
+            neuron_type = nengo.LIF(**taus)
+        elif lif_type == 'lifrate':
+            neuron_type = nengo.LIFRate(**taus)
+        elif lif_type == 'softlifrate':
+            neuron_type = SoftLIFRate(sigma=layer.sigma, **taus)
+        else:
+            raise KeyError("Unrecognized LIF type %r" % self.lif_type)
+
         n = np.prod(layer.input_shape[1:])
-        e = nengo.Ensemble(n, 1, label='%s_neurons' % layer.name,
-                           neuron_type=neuron_type)
-        e.gain = np.ones(n)
-        e.bias = np.ones(n)
-        node = nengo.Node(size_in=n, label=layer.name)
-        nengo.Connection(pre, e.neurons, synapse=None)
-        nengo.Connection(
-            e.neurons, node, transform=layer.amplitude, synapse=self.synapse)
-        return node
+        return self.add_neuron_layer(
+            n, neuron_type=neuron_type, synapse=self.synapse,
+            gain=1, bias=1, amplitude=layer.amplitude, name=layer.name)
 
-    def _add_dropout_layer(self, pre, layer):
-        transform = 1. / (1 - layer.p)
-        node = nengo.Node(size_in=np.prod(layer.output_shape[1:]),
-                          label=layer.name)
-        nengo.Connection(pre, node, transform=transform, synapse=None)
-        return node
+    def _add_softmax_layer(self, layer):
+        return None  # non-neural, we can do without it
+        # return self.add_softmax_layer(
+        #     np.prod(layer.input_shape[1:]), name=layer.name)
 
-    def _add_flatten_layer(self, pre, layer):
-        node = nengo.Node(size_in=np.prod(layer.output_shape[1:]),
-                          label=layer.name)
-        nengo.Connection(pre, node, synapse=None)
-        return node
+    def _add_dropout_layer(self, layer):
+        return None  # keras scales by dropout rate, so we don't have to
+
+    def _add_flatten_layer(self, layer):
+        return None  # no computation, just reshaping, so ignore
+
+    def _add_gaussian_noise_layer(self, layer):
+        return None  # no noise during testing
