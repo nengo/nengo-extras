@@ -36,7 +36,7 @@ model = nengo.Network()
 with model:
     u = nengo.Node(nengo.processes.PresentInput(X_test, presentation_time))
     ccnet = CudaConvnetNetwork(cc_model, synapse=nengo.synapses.Alpha(0.001))
-    nengo.Connection(u, ccnet.inputs['data'], synapse=None)
+    nengo.Connection(u, ccnet.input, synapse=None)
 
     # input_p = nengo.Probe(u)
     output_p = nengo.Probe(ccnet.output)
@@ -60,8 +60,22 @@ with model:
         output = nengo.spa.State(len(vocab_names), subdimensions=10, vocab=vocab)
     nengo.Connection(ccnet.output, output.input)
 
+
+n_presentations = 100
+
+if 0:
+    # run ANN in Theano
+    os.environ['THEANO_FLAGS'] = 'device=gpu,floatX=float32'
+    Q = ccnet.theano_compute(X_test[:n_presentations])
+    choices = np.argsort(Q, axis=1)
+    top5corrects = choices[:, -5:] == Y_test[:n_presentations, None]
+    top1accuracy = top5corrects[:, -1].mean()
+    top5accuracy = np.any(top5corrects, axis=1).mean()
+    print("ANN accuracy (%d examples): %0.3f (top-1), %0.3f (top-5)" %
+          (n_presentations, top1accuracy, top5accuracy))
+
+
 with nengo_ocl.Simulator(model) as sim:
-    n_presentations = 20
     sim.run(n_presentations * presentation_time)
 
 nt = int(presentation_time / sim.dt)

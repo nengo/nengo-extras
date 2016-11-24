@@ -1,15 +1,18 @@
 from __future__ import print_function
 
 import os
+os.environ['THEANO_FLAGS'] = 'device=gpu,floatX=float32'
 
 import nengo
+import nengo_ocl
 import numpy as np
 
 import keras
 from keras.datasets import mnist
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Flatten
-from keras.layers import Convolution2D, AveragePooling2D
+from keras.layers import (
+    Dense, Dropout, Activation, Flatten, Convolution2D, AveragePooling2D)
+from keras.layers.noise import GaussianNoise
 from keras.utils import np_utils
 
 import nengo
@@ -27,13 +30,13 @@ nb_classes = 10
 (X_train, y_train), (X_test, y_test) = mnist.load_data()
 X_train = X_train.reshape(X_train.shape[0], 1, img_rows, img_cols)
 X_test = X_test.reshape(X_test.shape[0], 1, img_rows, img_cols)
-X_train = X_train.astype('float32') / 255
-X_test = X_test.astype('float32') / 255
+X_train = X_train.astype('float32')/128 - 1
+X_test = X_test.astype('float32')/128 - 1
 
 # --- Train model
 if not os.path.exists(filename + '.h5'):
     batch_size = 128
-    nb_epoch = 12
+    nb_epoch = 6
 
     # number of convolutional filters to use
     nb_filters = 32
@@ -49,11 +52,10 @@ if not os.path.exists(filename + '.h5'):
     kmodel = Sequential()
 
     softlif_params = dict(
-        sigma=0.02, amplitude=0.063, tau_rc=0.022, tau_ref=0.002)
+        sigma=0.002, amplitude=0.063, tau_rc=0.022, tau_ref=0.002)
 
-    kmodel.add(Convolution2D(nb_filters, nb_conv, nb_conv,
-                             border_mode='valid',
-                             input_shape=(1, img_rows, img_cols)))
+    kmodel.add(GaussianNoise(0.1, input_shape=(1, img_rows, img_cols)))
+    kmodel.add(Convolution2D(nb_filters, nb_conv, nb_conv, border_mode='valid'))
     kmodel.add(SoftLIF(**softlif_params))
     kmodel.add(Convolution2D(nb_filters, nb_conv, nb_conv))
     kmodel.add(SoftLIF(**softlif_params))
@@ -89,11 +91,11 @@ presentation_time = 0.2
 model = nengo.Network()
 with model:
     u = nengo.Node(nengo.processes.PresentInput(X_test, presentation_time))
-    seq = SequentialNetwork(kmodel, synapse=nengo.synapses.Alpha(0.005))
-    nengo.Connection(u, seq.input, synapse=None)
+    knet = SequentialNetwork(kmodel, synapse=nengo.synapses.Alpha(0.005))
+    nengo.Connection(u, knet.input, synapse=None)
 
     input_p = nengo.Probe(u)
-    output_p = nengo.Probe(seq.output)
+    output_p = nengo.Probe(knet.output)
 
     # --- image display
     image_shape = kmodel.input_shape[1:]
@@ -114,10 +116,20 @@ with model:
     config[nengo.Ensemble].neuron_type = nengo.Direct()
     with config:
         output = nengo.spa.State(len(vocab_names), subdimensions=10, vocab=vocab)
-    nengo.Connection(seq.output, output.input)
+    nengo.Connection(knet.output, output.input)
 
-with nengo.Simulator(model) as sim:
-    nb_presentations = 20
+
+nb_presentations = 100
+
+if 0:
+    # run ANN in Theano
+    os.environ['THEANO_FLAGS'] = 'device=gpu,floatX=float32'
+    Q = knet.theano_compute(X_test[:nb_presentations])
+    Z = np.argmax(Q, axis=-1) == y_test[:nb_presentations]
+    print("ANN accuracy (%d examples): %0.3f" % (nb_presentations, Z.mean()))
+
+
+with nengo_ocl.Simulator(model) as sim:
     sim.run(nb_presentations * presentation_time)
 
 nt = int(presentation_time / sim.dt)

@@ -125,16 +125,16 @@ class Conv2d(Process):
         local_filters = filters.ndim == 6
         biases = self.biases
 
-        nxi, nxj = shape_in[-2:]
-        nyi, nyj = shape_out[-2:]
-        nf = filters.shape[0]
+        nc, nxi, nxj = shape_in
+        nf, nyi, nyj = shape_out
         si, sj = filters.shape[-2:]
         pi, pj = self.padding
         sti, stj = self.strides
 
         def step_conv2d(t, x):
-            x = x.reshape(shape_in)
-            y = np.zeros(shape_out)
+            x = x.reshape(-1, nc, nxi, nxj)
+            n = x.shape[0]
+            y = np.zeros((n, nf, nyi, nyj), dtype=x.dtype)
 
             for i in range(nyi):
                 for j in range(nyj):
@@ -145,9 +145,10 @@ class Conv2d(Process):
                     slj = slice(max(-j0, 0), min(nxj + sj - j1, sj))
                     w = (filters[:, i, j, :, sli, slj] if local_filters else
                          filters[:, :, sli, slj])
-                    xij = x[:, max(i0, 0):min(i1, nxi),
+                    xij = x[:, :, max(i0, 0):min(i1, nxi),
                             max(j0, 0):min(j1, nxj)]
-                    y[:, i, j] = np.dot(w.reshape(nf, -1), xij.ravel())
+                    y[:, :, i, j] = np.dot(
+                        xij.reshape(n, -1), w.reshape(nf, -1).T)
 
             if biases is not None:
                 y += biases
@@ -229,18 +230,18 @@ class Pool2d(Process):
         nxi2, nxj2 = nyi * sti, nyj * stj
 
         def step_pool2d(t, x):
-            x = x.reshape(nc, nxi, nxj)
-            y = np.zeros((nc, nyi, nyj), dtype=x.dtype)
+            x = x.reshape(-1, nc, nxi, nxj)
+            y = np.zeros((x.shape[0], nc, nyi, nyj), dtype=x.dtype)
             n = np.zeros((nyi, nyj))
 
             for i in range(si):
                 for j in range(sj):
-                    xij = x[:, i:min(nxi2+i, nxi):sti, j:min(nxj2+j, nxj):stj]
+                    xij = x[:, :, i:min(nxi2+i, nxi):sti, j:min(nxj2+j, nxj):stj]
                     ni, nj = xij.shape[-2:]
                     if kind == 'max':
-                        y[:, :ni, :nj] = np.maximum(y[:, :ni, :nj], xij)
+                        y[:, :, :ni, :nj] = np.maximum(y[:, :, :ni, :nj], xij)
                     elif kind == 'avg':
-                        y[:, :ni, :nj] += xij
+                        y[:, :, :ni, :nj] += xij
                         n[:ni, :nj] += 1
                     else:
                         raise NotImplementedError(kind)
