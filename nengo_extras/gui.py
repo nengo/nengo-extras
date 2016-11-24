@@ -1,9 +1,5 @@
 from __future__ import absolute_import
 
-import nengo
-
-from .convnet import ShapeParam
-
 
 def preprocess_display(x, transpose=(1, 2, 0), scale=255., offset=0.):
     """Basic preprocessing that reshapes, transposes, and scales an image"""
@@ -15,8 +11,83 @@ def preprocess_display(x, transpose=(1, 2, 0), scale=255., offset=0.):
     return x.clip(0, 255).astype('uint8')
 
 
+def image_function(image_shape, preprocess=preprocess_display,
+                   **preprocess_args):
+    """Make a function to turn an array into a PIL Image.
+
+    Parameters
+    ----------
+    image_shape : array_like (3,)
+        The shape of the image: (channels, height, width)
+    preprocess : callable
+        Callable that takes an image and preprocesses it to be displayed.
+    preprocess_args : dict
+        Optional dictionary of keyword arguments for ``preprocess``.
+
+    Returns
+    -------
+    to_pil : callable (x)
+        A function that takes a (flattened) image array, returning a PIL Image.
+
+    Requirements
+    ------------
+    pillow (provides PIL, `pip install pillow`)
+    """
+    import PIL.Image
+    assert len(image_shape) == 3
+
+    def to_pil(x):
+        x = x.reshape(image_shape)
+        y = preprocess(x, **preprocess_args)
+        image = PIL.Image.fromarray(y)
+        return image
+
+    return to_pil
+
+
+def image_string_function(image_shape, format="PNG",
+                          preprocess=preprocess_display, **preprocess_args):
+    """Make a function to turn an array into an image string.
+
+    Parameters
+    ----------
+    image_shape : array_like (3,)
+        The shape of the image: (channels, height, width)
+    format : string
+        A format string for the ``PIL.Image.save`` function.
+    preprocess : callable
+        Callable that takes an image and preprocesses it to be displayed.
+    preprocess_args : dict
+        Optional dictionary of keyword arguments for ``preprocess``.
+
+    Returns
+    -------
+    string_function : callable (x)
+        A function that takes a (flattened) image array, and returns a
+        base64 string representation of the image of the requested format.
+
+    See also
+    --------
+    image_function
+    """
+    import base64
+    import cStringIO
+
+    to_pil = image_function(
+        image_shape, preprocess=preprocess, **preprocess_args)
+
+    def string_function(x):
+        image = to_pil(x)
+        buffer = cStringIO.StringIO()
+        image.save(buffer, format=format)
+        image_string = base64.b64encode(buffer.getvalue())
+        return image_string
+
+    return string_function
+
+
 def image_html_function(image_shape, preprocess=preprocess_display,
-                         **preprocess_args):
+                        **preprocess_args):
     """Make a function to turn an image into HTML to display as an SVG.
 
     Parameters
@@ -30,29 +101,25 @@ def image_html_function(image_shape, preprocess=preprocess_display,
 
     Returns
     -------
-    html_function : callable (t, x)
-        A function that takes time and a flattened image, and returns a string
-        that defines an SVG object in HTML to display the image.
-    """
-    import base64
-    import PIL.Image
-    import cStringIO
+    html_function : callable (x)
+        A function that takes a (flattened) image array, and returns
+        a string that defines an SVG object in HTML to display the image.
 
-    assert len(image_shape) == 3
+    See also
+    --------
+    image_function
+    """
+    string_function = image_string_function(
+        image_shape, preprocess=preprocess, **preprocess_args)
 
     def html_function(x):
-        x = x.reshape(image_shape)
-        y = preprocess(x, **preprocess_args)
-        png = PIL.Image.fromarray(y)
-        buffer = cStringIO.StringIO()
-        png.save(buffer, format="PNG")
-        img_str = base64.b64encode(buffer.getvalue())
+        image_string = string_function(x)
         return '''
             <svg width="100%%" height="100%%" viewbox="0 0 100 100">
             <image width="100%%" height="100%%"
                    xlink:href="data:image/png;base64,%s"
                    style="image-rendering: pixelated;">
-            </svg>''' % (''.join(img_str))
+            </svg>''' % (''.join(image_string))
 
     return html_function
 
