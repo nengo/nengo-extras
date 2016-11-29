@@ -12,7 +12,7 @@ def test_softlif_layer(plt):
 
     x = np.linspace(-10, 30, 256).reshape(-1, 1)
     y = model.predict(x)
-    y0 = nengo_extras.SoftLIFRate().rates(x, 1., 0.)
+    y0 = nengo_extras.SoftLIFRate().rates(x, 1., 1.)
 
     plt.plot(x, y)
     plt.plot(x, y0, 'k--')
