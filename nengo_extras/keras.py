@@ -18,9 +18,9 @@ class SoftLIF(keras.layers.Layer):
 
     def call(self, x, mask=None):
         from keras import backend as K
-        j = K.softplus((x - 1) / self.sigma) * self.sigma
-        v = self.amplitude / (self.tau_ref + self.tau_rc*K.log(1 + 1/j))
-        return K.switch(j > 0, v, 0)
+        j = K.softplus(x / self.sigma) * self.sigma
+        r = self.amplitude / (self.tau_ref + self.tau_rc*K.log(1 + 1/j))
+        return K.switch(j > 0, r, 0)
 
     def get_config(self):
         config = {'sigma': self.sigma, 'amplitude': self.amplitude,
@@ -195,7 +195,7 @@ class SequentialNetwork(nengo.Network):
         e = nengo.Ensemble(n, 1, label='%s_neurons' % layer.name,
                            neuron_type=neuron_type)
         e.gain = np.ones(n)
-        e.bias = np.zeros(n)
+        e.bias = np.ones(n)
         node = nengo.Node(size_in=n, label=layer.name)
         nengo.Connection(pre, e.neurons, synapse=None)
         nengo.Connection(
