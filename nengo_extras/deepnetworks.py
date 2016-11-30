@@ -250,6 +250,14 @@ class Layer(nengo.Network):
     def theano(self, sx):
         raise NotImplementedError()
 
+    def theano_compute(self, x, **kwargs):
+        import theano
+        import theano.tensor as tt
+        sx = tt.matrix()
+        f = theano.function([sx], self.theano(sx), **kwargs)
+        y = f(x)
+        return y
+
     def _compute_input(self, x):
         x = np.asarray(x)
         if x.ndim == 0:
