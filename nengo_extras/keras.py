@@ -189,3 +189,63 @@ class SequentialNetwork(nengo_extras.deepnetworks.SequentialNetwork):
 
     def _add_gaussian_noise_layer(self, layer):
         return None  # no noise during testing
+
+
+def LSUVinit(kmodel, X, tol=0.1, t_max=50):
+    """Layer-sequential unit-variance initialization [1]_
+
+    References
+    ----------
+    .. [1] Mishkin, D., & Matas, J. (2016). All you need is a good init.
+       In ICLR 2016 (pp. 1-13).
+    """
+    from keras.layers import Convolution2D, LocallyConnected2D, Dense
+    import keras.backend as K
+    # f = K.function([kmodel.layers[0].input, K.learning_phase()], [klayer.output])
+
+    # --- orthogonalize weights
+    def orthogonalize(X):
+        assert X.ndim == 2
+        U, s, V = np.linalg.svd(X, full_matrices=False)
+        return np.dot(U, V)
+
+    for layer in kmodel.layers:
+        weights = layer.get_weights()
+        if len(weights) == 0:
+            continue
+
+        W, b = weights
+        if isinstance(layer, Convolution2D):
+            Wv = W.reshape(W.shape[0], -1)
+        elif isinstance(layer, LocallyConnected2D):
+            Wv = W.reshape(-1, W.shape[-1])
+        else:
+            assert W.ndim == 2
+            Wv = W
+
+        Wv[:] = orthogonalize(Wv)
+        layer.set_weights((W, b))
+
+    # --- adjust variances
+    s_input = kmodel.layers[0].input
+    for layer in kmodel.layers:
+        weights = layer.get_weights()
+        if len(weights) == 0:
+            continue
+
+        W, b = weights
+        f = K.function([s_input, K.learning_phase()], [layer.output])
+        learning_phase = 0  # 0 == testing, 1 == training
+
+        for i in range(t_max):
+            Y = f([X, learning_phase])[0]
+            Ystd = Y.std()
+            print(Ystd)
+            if abs(Ystd - 1) < tol:
+                break
+
+            W /= Ystd
+            layer.set_weights((W, b))
+        else:
+            print("Layer %r did not converge after %d iterations (Ystd=%0.3e)"
+                  % (layer.name, t_max, Ystd))
