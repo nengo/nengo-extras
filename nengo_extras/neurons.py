@@ -6,7 +6,8 @@ from nengo.exceptions import ValidationError
 from nengo.params import NumberParam
 
 
-def softrelu(x, sigma=1.):
+def softplus(x, sigma=1.):
+    x = np.asarray(x)
     y = x / sigma
     z = np.array(x)
     z[y < 34.0] = sigma * np.log1p(np.exp(y[y < 34.0]))
@@ -73,14 +74,14 @@ class SoftLIFRate(nengo.neurons.LIFRate):
 
     def step_math(self, dt, J, output):
         """Compute rates in Hz for input current (incl. bias)"""
-        j = softrelu(J - 1, sigma=self.sigma)
+        j = softplus(J - 1, sigma=self.sigma)
         output[:] = 0  # faster than output[j <= 0] = 0
         output[j > 0] = lif_j(j[j > 0], self.tau_ref, self.tau_rc,
                               amplitude=self.amplitude)
 
     def derivative(self, x, gain, bias):
         y = gain * x + bias - 1
-        j = softrelu(y, sigma=self.sigma)
+        j = softplus(y, sigma=self.sigma)
         yy = y[j > 0]
         jj = j[j > 0]
         vv = lif_j(jj, self.tau_ref, self.tau_rc, amplitude=self.amplitude)
