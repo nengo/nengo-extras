@@ -121,3 +121,84 @@ def compare(image_sets, ax=None, rows=4, cols=12,
         ax.set_xlim([-0.5, img.shape[1]-0.5])
         ax.set_ylim([-0.5, img.shape[0]-0.5])
         ax.invert_yaxis()
+
+
+def pre_plot_spikes(data, sample_by_variance=None,
+                    sample=None, sample_filter_width=20,
+                    cluster=False, cluster_filter_width=2,
+                    merge=0, sample_index=None, cluster_index=None):
+    """Create plot.
+
+    Parameters
+    ----------
+    data : (t_steps, n_neurons) ndarray
+        The spiking data to process.
+    sample_by_variance : int
+        WHAT?
+    sample : ????
+        ????
+    cluster : ????
+        ????
+    cluster_filter_width : int
+        ????
+    merge : int
+        ????
+    sample_index : int or slice
+        the neurons to sample?
+    cluster_index : int or slice
+        the neurons to cluster?
+    """
+
+    try:
+        import scipy
+        import scipy.ndimage
+    except ImportError:
+        print("Requires Scipy")
+        return
+
+    if sample_index:
+        data = data[:, sample_index]
+    elif sample_by_variance is not None and sample_by_variance < len(data.T):
+        dd = scipy.ndimage.gaussian_filter1d(data.astype(float).T,
+                                             sample_filter_width, axis=1)
+        vard = np.var(dd, axis=1)
+
+        threshold = sorted(vard)[-sample_by_variance]
+        index = [k for k, v in enumerate(vard) if v >= threshold]
+        data = data[:, index]
+
+    if sample is not None and sample < len(data.T):
+        stepsize = float(len(data.T))/sample
+        data2 = []
+        for k in range(sample):
+            sub = data[:, int(k*stepsize):int((k+1)*stepsize)]
+            count = np.sum(sub, axis=0)
+            maxv = max(count)
+            for i, v in enumerate(count):
+                if v == maxv:
+                    data2.append(sub[:, i])
+                    break
+        data = np.array(data2).T
+
+    # What is this doing?
+    if cluster_index:
+        data = data[:, cluster_index]
+    elif cluster:
+        dd = scipy.ndimage.gaussian_filter1d(data.astype(float).T,
+                                             cluster_filter_width,
+                                             axis=1)
+        z = scipy.cluster.hierarchy.linkage(dd)
+        tree = scipy.cluster.hierarchy.to_tree(z)
+        order = tree.pre_order()
+        data = data[:, order]
+
+    # Merge neurons?
+    if merge > 0 and merge < len(data.T):
+        stepsize = float(len(data.T)) / merge
+        data2 = []
+        for k in range(merge):
+            v = np.sum(data[:, int(k*stepsize):int((k+1)*stepsize)], axis=1)
+            data2.append(v)
+        data = np.array(data2).T
+
+    return data
