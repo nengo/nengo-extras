@@ -10,13 +10,18 @@ import nengo_extras.deepnetworks
 
 class SoftLIF(keras.layers.Layer):
     def __init__(self, sigma=1., amplitude=1., tau_rc=0.02, tau_ref=0.002,
-                 **kwargs):
+                 noise=None, **kwargs):
         from keras import backend as K
         self.supports_masking = True
         self._amplitude = K.variable(value=amplitude)
         self._sigma = K.variable(value=sigma)
         self._tau_rc = K.variable(value=tau_rc)
         self._tau_ref = K.variable(value=tau_ref)
+
+        if noise:
+            assert noise[0] in ('gaussian',)
+        self.noise = noise
+
         super(SoftLIF, self).__init__(**kwargs)
 
     @property
@@ -54,8 +59,19 @@ class SoftLIF(keras.layers.Layer):
     def call(self, x, mask=None):
         from keras import backend as K
         j = K.softplus(x / self._sigma) * self._sigma
-        r = self._amplitude / (self._tau_ref + self._tau_rc*K.log(1 + 1/j))
-        return K.switch(j > 0, r, 0)
+        t = self._tau_ref + self._tau_rc*K.log(1 + 1/j)
+        if self.noise:
+            if self.noise[0] == 'gaussian':
+                r = K.switch(j > 0, 1 / t, 0)
+                n = K.random_normal(x.shape, std=self.noise[1])
+                rn = K.switch(x > 0, r + n, r)
+                # rn = K.switch(x > 0, K.maximum(r + n, 0), r)
+                return self._amplitude * K.in_train_phase(rn, r)
+            else:
+                raise NotImplementedError(self.noise[0])
+        else:
+            r = self._amplitude / t
+            return K.switch(j > 0, r, 0)  # needed or else nan's in loss
 
     def get_config(self):
         config = {'sigma': self.sigma, 'amplitude': self.amplitude,
