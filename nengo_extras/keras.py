@@ -124,8 +124,11 @@ class SequentialNetwork(nengo_extras.deepnetworks.SequentialNetwork):
         else:
             raise ValueError("Unrecognized border mode %r" % layer.border_mode)
 
-        return self.add_conv_layer(shape_in, filters, biases, strides=strides,
-                                   padding=padding, name=layer.name)
+        conv = self.add_conv_layer(
+            shape_in, filters, biases, strides=strides, padding=padding,
+            border='floor', name=layer.name)
+        assert conv.size_out == np.prod(layer.output_shape[1:])
+        return conv
 
     def _add_pool2d_layer(self, layer, kind=None):
         shape_in = layer.input_shape[1:]

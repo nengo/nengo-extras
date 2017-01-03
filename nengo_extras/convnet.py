@@ -42,9 +42,10 @@ class Conv2d(Process):
     padding = ShapeParam('padding', length=2)
     filters = NdarrayParam('filters', shape=('...',))
     biases = NdarrayParam('biases', shape=('...',), optional=True)
+    border = EnumParam('border', values=('floor', 'ceil'))
 
-    def __init__(self, shape_in, filters,
-                 biases=None, strides=1, padding=0):  # noqa: C901
+    def __init__(self, shape_in, filters, biases=None, strides=1, padding=0,
+                 border='ceil'):  # noqa: C901
         self.shape_in = shape_in
         self.filters = filters
         if self.filters.ndim not in [4, 6]:
@@ -61,14 +62,16 @@ class Conv2d(Process):
 
         self.strides = strides if is_iterable(strides) else [strides] * 2
         self.padding = padding if is_iterable(padding) else [padding] * 2
+        self.border = border
 
         nf = self.filters.shape[0]
         nxi, nxj = self.shape_in[1:]
         si, sj = self.filters.shape[-2:]
         pi, pj = self.padding
         sti, stj = self.strides
-        nyi = 1 + max(int(np.ceil(float(2*pi + nxi - si) / sti)), 0)
-        nyj = 1 + max(int(np.ceil(float(2*pj + nxj - sj) / stj)), 0)
+        rounder = np.ceil if self.border == 'ceil' else np.floor
+        nyi = 1 + max(int(rounder(float(2*pi + nxi - si) / sti)), 0)
+        nyj = 1 + max(int(rounder(float(2*pj + nxj - sj) / stj)), 0)
         self.shape_out = (nf, nyi, nyj)
         if self.filters.ndim == 6 and self.filters.shape[1:3] != (nyi, nyj):
             raise ValueError("Number of local filters %r must match out shape "
