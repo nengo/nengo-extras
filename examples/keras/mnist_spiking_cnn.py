@@ -20,6 +20,7 @@ from nengo_extras.keras import (
     load_model_pair, save_model_pair, SequentialNetwork, SoftLIF)
 from nengo_extras.gui import image_display_function
 
+np.random.seed(1)
 filename = 'mnist_spiking_cnn'
 
 # --- Load data
