@@ -182,7 +182,7 @@ class CudaConvnetNetwork(SequentialNetwork):
         biases = layer['biases']
         layer = self.add_conv_layer(
             (nc, nx, nx), filters, biases, strides=st, padding=p,
-            inputs=inputs, name=layer['name'])
+            border='ceil', inputs=inputs, name=layer['name'])
         assert layer.node.output.shape_out == (nf, ny, ny)
         return layer
 

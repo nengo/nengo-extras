@@ -501,12 +501,12 @@ class LocalLayer(ProcessLayer):
 
 class ConvLayer(ProcessLayer):
     def __init__(self, input_shape, filters, biases,
-                 strides=1, padding=0, **kwargs):
+                 strides=1, padding=0, border='ceil', **kwargs):
         assert filters.ndim == 4
         filters = np.array(filters)  # copy
         biases = np.array(biases)  # copy
         p = Conv2d(input_shape, filters, biases,
-                   strides=strides, padding=padding)
+                   strides=strides, padding=padding, border=border)
         super(ConvLayer, self).__init__(p, **kwargs)
 
     def theano(self, x):
@@ -525,12 +525,14 @@ class ConvLayer(ProcessLayer):
 
         nxi2 = nyi*sti + si - 2*pi - 1
         nxj2 = nyj*stj + sj - 2*pj - 1
-        if nxi2 > nxi or nxj2 > nxj:
+        if self.process.border == 'ceil' and (nxi2 > nxi or nxj2 > nxj):
             xx = tt.zeros((n, nc, nxi2, nxj2), dtype=x.dtype)
             x = tt.set_subtensor(xx[:, :, :nxi, :nxj], x)
+        else:
+            assert nxi == nxi2 and nxj == nxj2
 
         y = tt.nnet.conv2d(x, filters,
-                           input_shape=(None, nc, nxi, nxj),
+                           input_shape=(n, nc, nxi2, nxj2),
                            filter_shape=(nf, nc, si, sj),
                            border_mode=(pi, pj),
                            subsample=(sti, stj),
