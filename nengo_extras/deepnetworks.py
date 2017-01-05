@@ -1,3 +1,12 @@
+"""
+Tools for running deep networks in Nengo
+
+Notes:
+- Layers with weights make copies of said weights, both so that they are
+  independent (if the model is later updated), and so they are contiguous.
+  (Contiguity is required in Nengo when arrays are hashed during build.)
+"""
+
 from __future__ import absolute_import
 
 import numpy as np
@@ -397,12 +406,10 @@ class FullLayer(NodeLayer):
     def __init__(self, weights, biases, **kwargs):
         assert weights.ndim == 2
         assert biases.size == weights.shape[0]
+        super(FullLayer, self).__init__(size_in=weights.shape[0], **kwargs)
 
-        super(FullLayer, self).__init__(
-            size_in=weights.shape[0], **kwargs)
-
-        self.weights = weights
-        self.biases = biases
+        self.weights = np.array(weights)  # copy
+        self.biases = np.array(biases)  # copy
 
         with self:
             self.bias = nengo.Node(output=biases)
@@ -454,6 +461,8 @@ class LocalLayer(ProcessLayer):
     def __init__(self, input_shape, filters, biases,
                  strides=1, padding=0, **kwargs):
         assert filters.ndim == 6
+        filters = np.array(filters)  # copy
+        biases = np.array(biases)  # copy
         p = Conv2d(input_shape, filters, biases,
                    strides=strides, padding=padding)
         super(LocalLayer, self).__init__(p, **kwargs)
@@ -494,6 +503,8 @@ class ConvLayer(ProcessLayer):
     def __init__(self, input_shape, filters, biases,
                  strides=1, padding=0, **kwargs):
         assert filters.ndim == 4
+        filters = np.array(filters)  # copy
+        biases = np.array(biases)  # copy
         p = Conv2d(input_shape, filters, biases,
                    strides=strides, padding=padding)
         super(ConvLayer, self).__init__(p, **kwargs)
