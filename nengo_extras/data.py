@@ -1,17 +1,21 @@
 import gzip
+import io
 import os
 import re
 import tarfile
 import urllib
 
-from nengo.utils.compat import is_integer, is_iterable, pickle
+from nengo.utils.compat import is_integer, is_iterable, pickle, PY2
 import numpy as np
+
+pickle_bytes = dict() if PY2 else dict(encoding='bytes')
+urlretrieve = urllib.urlretrieve if PY2 else urllib.request.urlretrieve
 
 
 def get_file(filename, url):
     if not os.path.exists(filename):
         print("Retrieving %r" % url)
-        urllib.urlretrieve(url, filename=filename)
+        urlretrieve(url, filename=filename)
         print("Data retrieved as %r" % filename)
     return filename
 
@@ -42,7 +46,7 @@ def get_mnist_pkl_gz():
 
 def unpickle_tarfile(tar, name):
     tarextract = tar.extractfile(name)
-    return pickle.load(tarextract)
+    return pickle.load(tarextract, **pickle_bytes)
 
 
 def load_cifar10(filepath=None, n_train=5, n_test=1, label_names=False):
@@ -75,7 +79,7 @@ def load_cifar10(filepath=None, n_train=5, n_test=1, label_names=False):
     # helper for reading each batch file
     def read_tar_batch(tar, name):
         data = unpickle_tarfile(tar, name)
-        return data['data'], np.array(data['labels'])
+        return data[b'data'], np.array(data[b'labels'])
 
     filepath = os.path.expanduser(filepath)
     with tarfile.open(filepath, 'r:gz') as tar:
@@ -99,7 +103,7 @@ def load_cifar10(filepath=None, n_train=5, n_test=1, label_names=False):
 
         if label_names:
             meta = unpickle_tarfile(tar, 'cifar-10-batches-py/batches.meta')
-            names = meta['label_names']
+            names = meta[b'label_names']
 
     return (train, test) + ((names,) if label_names else ())
 
@@ -132,8 +136,8 @@ def load_cifar100(filepath=None, fine_labels=True, label_names=False):
     # helper for reading each batch file
     def read_tar_batch(tar, name):
         data = unpickle_tarfile(tar, name)
-        return data['data'], np.array(
-            data['fine_labels' if fine_labels else 'coarse_labels'])
+        return data[b'data'], np.array(
+            data[b'fine_labels' if fine_labels else b'coarse_labels'])
 
     filepath = os.path.expanduser(filepath)
     with tarfile.open(filepath, 'r:gz') as tar:
@@ -142,7 +146,7 @@ def load_cifar100(filepath=None, fine_labels=True, label_names=False):
         if label_names:
             meta = unpickle_tarfile(tar, 'cifar-100-python/meta')
             names = meta[
-                'fine_label_names' if fine_labels else 'coarse_label_names']
+                b'fine_label_names' if fine_labels else b'coarse_label_names']
 
     return (train, test) + ((names,) if label_names else ())
 
@@ -173,11 +177,7 @@ def load_ilsvrc2012(filepath=None, n_files=None):
     label_names : list
         A list of the label names.
     """
-    import PIL.Image
-    try:
-        from cStringIO import StringIO
-    except:
-        from io import StringIO
+    import PIL.Image  # ``pip install pillow``
 
     if filepath is None:
         filepath = get_ilsvrc2012_tar_gz()
@@ -185,11 +185,10 @@ def load_ilsvrc2012(filepath=None, n_files=None):
     # helper for reading each batch file
     def read_tar_batch(tar, name):
         data = unpickle_tarfile(tar, name)
-        return data['data'], data['labels']  # JPEG strings, labels
+        return data[b'data'], data[b'labels']  # JPEG strings, labels
 
-    def string_to_array(s):
-        f = StringIO(s)
-        image = PIL.Image.open(f)
+    def bytes_to_array(b):
+        image = PIL.Image.open(io.BytesIO(b))
         array = np.array(image, dtype=np.uint8).reshape(
             image.size[0], image.size[1], 3)
         array = np.transpose(array, (2, 0, 1))
@@ -215,17 +214,17 @@ def load_ilsvrc2012(filepath=None, n_files=None):
             raw_labels.extend(y)
 
         n_images = len(raw_images)
-        image_shape = string_to_array(raw_images[0]).shape
+        image_shape = bytes_to_array(raw_images[0]).shape
         images = np.zeros((n_images,) + image_shape, dtype=np.uint8)
         for i, s in enumerate(raw_images):
-            images[i] = string_to_array(s)
+            images[i] = bytes_to_array(s)
 
         labels = np.array(raw_labels)
         labels.shape = (n_images,)
 
         meta = unpickle_tarfile(tar, 'batches.meta')
-        data_mean = meta['data_mean'].reshape(image_shape)
-        label_names = meta['label_names']
+        data_mean = meta[b'data_mean'].reshape(image_shape)
+        label_names = meta[b'label_names']
 
     return images, labels, data_mean, label_names
 
@@ -256,7 +255,7 @@ def load_mnist(filepath=None, validation=False):
 
     filepath = os.path.expanduser(filepath)
     with gzip.open(filepath, 'rb') as f:
-        train_set, valid_set, test_set = pickle.load(f)
+        train_set, valid_set, test_set = pickle.load(f, **pickle_bytes)
 
     if validation:
         return train_set, valid_set, test_set

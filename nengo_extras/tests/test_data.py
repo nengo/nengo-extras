@@ -1,7 +1,40 @@
 import numpy as np
 import pytest
 
-from nengo_extras.data import one_hot_from_labels, spasafe_name, spasafe_names
+from nengo_extras.data import (
+    load_cifar10, load_cifar100, load_ilsvrc2012, load_mnist,
+    one_hot_from_labels, spasafe_name, spasafe_names)
+from nengo_extras.matplotlib import tile
+
+
+@pytest.mark.slow
+def test_load_cifar10(plt):
+    (trainX, _), (_, _) = load_cifar10(n_train=1, n_test=0)
+    trainX = trainX.reshape(-1, 3, 32, 32)
+    trainX = np.transpose(trainX, (0, 2, 3, 1))
+    tile(trainX)
+
+
+@pytest.mark.slow
+def test_load_cifar100(plt):
+    (trainX, _), (_, _) = load_cifar100()
+    trainX = trainX.reshape(-1, 3, 32, 32)
+    trainX = np.transpose(trainX, (0, 2, 3, 1))
+    tile(trainX)
+
+
+@pytest.mark.slow
+def test_load_ilsvrc2012(plt):
+    testX, _, _, _ = load_ilsvrc2012(n_files=1)
+    testX = testX.reshape(-1, 3, 256, 256)
+    testX = np.transpose(testX, (0, 2, 3, 1))
+    tile(testX)
+
+
+@pytest.mark.slow
+def test_load_mnist(plt):
+    (trainX, _), (_, _) = load_mnist()
+    tile(trainX.reshape(-1, 28, 28))
 
 
 def test_one_hot_from_labels_int(rng):
