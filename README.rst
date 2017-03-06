@@ -15,6 +15,11 @@ and others may be split off into their own separate repositories.
 
 The current contents of this repository are listed below.
 
+Additional networks
+===================
+
+- ``nengo_extras.networks.MatrixMult``
+
 Convolutional Network processes
 ===============================
 
