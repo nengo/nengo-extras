@@ -56,6 +56,37 @@ def plot_spikes(t, spikes, contrast_scale=1.0, ax=None, **kwargs):
     return spikeraster
 
 
+def cluster(t, spikes, filter_width):
+    """Change order of spike trains to have similar ones close together.
+
+    Requires SciPy.
+
+    Parameters
+    ----------
+    t : (n,) array
+        Time indices of *spike* matrix. The indices are assumed to be
+        equidistant.
+    spikes : (n, m) array
+        Spike data for *m* neurons at *n* time points.
+    filter_width : float
+        Gaussian filter width in seconds, controls the time scale the
+        clustering is sensitive to.
+
+    Returns
+    -------
+    tuple (t, selected_spikes)
+        Returns the time indices *t* and the selected spike trains *spikes*.
+    """
+
+    from scipy.cluster.hierarchy import linkage, to_tree
+    from scipy.ndimage import gaussian_filter1d
+    dt = (t[-1] - t[0]) / (len(t) - 1)
+    filtered = gaussian_filter1d(np.asfarray(spikes),
+                                 filter_width / dt, axis=0)
+    order = to_tree(linkage(filtered.T)).pre_order()
+    return t, spikes[:, order]
+
+
 def sample_by_variance(t, spikes, num, filter_width):
     """Samples the spike trains with the highest variance.
 
