@@ -87,6 +87,19 @@ def cluster(t, spikes, filter_width):
     return t, spikes[:, order]
 
 
+def merge(t, spikes, num):
+    spikes = np.asarray(spikes)
+
+    if spikes.shape[1] <= num:
+        return t, spikes
+
+    blocksize = int(np.ceil(spikes.shape[1] / num))
+    merged = np.array([
+        np.mean(spikes[:, (i * blocksize):((i + 1) * blocksize)], axis=1)
+        for i in range(num)]).T
+    return t, merged
+
+
 def sample_by_variance(t, spikes, num, filter_width):
     """Samples the spike trains with the highest variance.
 
