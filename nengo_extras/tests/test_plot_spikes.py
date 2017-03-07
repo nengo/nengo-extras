@@ -3,7 +3,8 @@ import nengo
 import numpy as np
 import pytest
 
-from nengo_extras.plot_spikes import plot_spikes, sample_by_variance
+from nengo_extras.plot_spikes import (
+    plot_spikes, sample_by_activity, sample_by_variance)
 
 
 @pytest.mark.noassertions
@@ -52,3 +53,25 @@ def test_sample_by_variance():
         t, spikes, num=20, filter_width=0.1)
     assert (t_sampled == t).all()
     assert (spikes_sampled == spikes[:, [3, 2, 1, 0]]).all()
+
+
+def test_sample_by_activity(plt):
+    dt = 0.001
+    t = np.arange(0., 1., dt) + dt
+
+    spikes = np.zeros((len(t), 4))
+    spikes[:, 1::2] = 1. / dt
+
+    t_sampled, spikes_sampled = sample_by_activity(t, spikes, num=2)
+    assert (t_sampled == t).all()
+    assert (spikes_sampled == np.ones((len(t), 2)) / dt).all()
+
+    t_sampled, spikes_sampled = sample_by_activity(
+        t, spikes, num=1, blocksize=2)
+    assert (t_sampled == t).all()
+    assert (spikes_sampled == np.ones((len(t), 1)) / dt).all()
+
+    t_sampled, spikes_sampled = sample_by_activity(
+        t, spikes, num=2, blocksize=2)
+    assert (t_sampled == t).all()
+    assert (spikes_sampled == np.ones((len(t), 2)) / dt).all()

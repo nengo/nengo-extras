@@ -59,6 +59,8 @@ def plot_spikes(t, spikes, contrast_scale=1.0, ax=None, **kwargs):
 def sample_by_variance(t, spikes, num, filter_width):
     """Samples the spike trains with the highest variance.
 
+    Requires SciPy.
+
     Parameters
     ----------
     t : (n,) array
@@ -84,3 +86,45 @@ def sample_by_variance(t, spikes, num, filter_width):
                                  filter_width / dt, axis=0)
     selected = np.argsort(np.var(filtered, axis=0))[-1:(-num - 1):-1]
     return t, spikes[:, selected]
+
+
+def sample_by_activity(t, spikes, num, blocksize=None):
+    """Samples the spike trains with the highest spiking activity.
+
+    Parameters
+    ----------
+    t : (n,) array
+        Time indices of *spike* matrix. The indices are assumed to be
+        equidistant.
+    spikes : (n, m) array
+        Spike data for *m* neurons at *n* time points.
+    num : int
+        Number of spike trains to return.
+    blocksize : int, optional
+        If not *None*, the spike trains will be divided into blocks of this
+        size and the highest activity spike trains are obtained for each block
+        individually.
+
+    Returns
+    -------
+    tuple (t, selected_spikes)
+        Returns the time indices *t* and the selected spike trains *spikes*.
+    """
+    spikes = np.asarray(spikes)
+
+    if spikes.shape[1] <= num:
+        return t, spikes
+
+    if blocksize is None:
+        blocksize = spikes.shape[1]
+
+    selected = np.empty((len(t), num))
+    n_blocks = int(np.ceil(float(spikes.shape[1]) / blocksize))
+    n_sel = int(np.ceil(float(num) / n_blocks))
+    for i in range(n_blocks):
+        block = spikes[:, (i * blocksize):((i + 1) * blocksize)]
+        activity = np.sum(block, axis=0)
+        selected[:, (i * n_sel):((i + 1) * n_sel)] = (
+            block[:, np.argsort(activity)[-1:(-n_sel - 1):-1]])
+
+    return t, selected
