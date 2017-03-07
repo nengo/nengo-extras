@@ -54,3 +54,33 @@ def plot_spikes(t, spikes, contrast_scale=1.0, ax=None, **kwargs):
     spikeraster = ax.imshow(spikes.T, **kwargs)
     spikeraster.set_clim(0., np.max(spikes) * contrast_scale)
     return spikeraster
+
+
+def sample_by_variance(t, spikes, num, filter_width):
+    """Samples the spike trains with the highest variance.
+
+    Parameters
+    ----------
+    t : (n,) array
+        Time indices of *spike* matrix. The indices are assumed to be
+        equidistant.
+    spikes : (n, m) array
+        Spike data for *m* neurons at *n* time points.
+    num : int
+        Number of spike trains to return.
+    filter_width : float
+        Gaussian filter width in seconds, controls the time scale the variance
+        calculation is sensitive to.
+
+    Returns
+    -------
+    tuple (t, selected_spikes)
+        Returns the time indices *t* and the selected spike trains *spikes*.
+    """
+
+    from scipy.ndimage import gaussian_filter1d
+    dt = (t[-1] - t[0]) / (len(t) - 1)
+    filtered = gaussian_filter1d(np.asfarray(spikes),
+                                 filter_width / dt, axis=0)
+    selected = np.argsort(np.var(filtered, axis=0))[-1:(-num - 1):-1]
+    return t, spikes[:, selected]
