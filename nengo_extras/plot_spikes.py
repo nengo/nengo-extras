@@ -1,3 +1,19 @@
+"""Creation of informative spike raster plots.
+
+This module provides the `plot_spikes` function to easily create a spike raster
+plot. Often such a plot is more informative with some preprocessing on the
+spike trains that selects those with a high variance (i.e., changes in firing
+rate) and orders them according to similarity. Such a preprocessing is provided
+by the `preprocess_spikes` function. Thus, to create a quick spike raster plot
+with such preprocessing::
+
+    plot_spikes(*preprocess_spikes(t, spikes))
+
+Functions for the individual preprocessing steps (and some alternatives) can
+also be found in this model to allow to fine-tune the preprocessing according
+to the data.
+"""
+
 from __future__ import absolute_import
 
 import matplotlib
@@ -54,6 +70,45 @@ def plot_spikes(t, spikes, contrast_scale=1.0, ax=None, **kwargs):
     spikeraster = ax.imshow(spikes.T, **kwargs)
     spikeraster.set_clim(0., np.max(spikes) * contrast_scale)
     return spikeraster
+
+
+def preprocess_spikes(
+        t, spikes, num=50, sample_size=200, sample_filter_width=0.02,
+        cluster_filter_width=0.002):
+    """Applies a default preprocessing to spike data for plotting.
+
+    This will first sample by variance, then cluster the spike trains, and
+    finally merge them. See `sample_by_variance`, `cluster`, and `merge` for
+    details.
+
+    Parameters
+    ----------
+    t : (n,) array
+        Time indices of *spike* matrix. The indices are assumed to be
+        equidistant.
+    spikes : (n, m) array
+        Spike data for *m* neurons at *n* time points.
+    num : int, optional
+        Number of spike trains to return after merging.
+    sample_size : int, optional
+        Number of spike trains to sample by variance.
+    sample_filter_width : float, optional
+        Gaussian filter width in seconds for sampling by variance.
+    cluster_filter_width : float, optional
+        Gaussian filter width in seconds for clustering.
+
+    Returns
+    -------
+    tuple (t, selected_spikes)
+        Returns the time indices *t* and the preprocessed spike trains
+        *spikes*.
+    """
+    return merge(
+        *cluster(
+            *sample_by_variance(
+                t, spikes, num=sample_size, filter_width=sample_filter_width),
+            filter_width=cluster_filter_width),
+        num=num)
 
 
 def cluster(t, spikes, filter_width):
