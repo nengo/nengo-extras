@@ -1,6 +1,7 @@
 import numpy as np
+import pytest
 
-from nengo_extras.data import one_hot_from_labels
+from nengo_extras.data import one_hot_from_labels, spasafe_name, spasafe_names
 
 
 def test_one_hot_from_labels_int(rng):
@@ -36,3 +37,21 @@ def test_one_hot_from_labels_float(rng):
 
     y = one_hot_from_labels(labels, classes=classes)
     assert np.array_equal(y, yref)
+
+
+def test_spasafe_name():
+    assert spasafe_name('UPPER') == 'UPPER'
+    assert spasafe_name('Camel') == 'Camel'
+    assert spasafe_name('lower') == 'Lower'
+    assert spasafe_name('Under_score') == 'Under_score'
+    assert spasafe_name('Weird.,:[]^!<>=&\'"symbols') == 'Weirdsymbols'
+    assert spasafe_name('  \tWhite- \t\r\nspace  \r\n') == 'White_space'
+    assert spasafe_name('multiple correction\'s') == 'Multiple_corrections'
+    assert spasafe_name('123four') == 'Four'
+    assert spasafe_name('A') == 'A'
+    with pytest.raises(ValueError):
+        spasafe_name('')
+
+
+def test_spasafe_names():
+    assert spasafe_names(['A,B', 'A', 'c\'s']) == ['A0', 'A1', 'Cs']

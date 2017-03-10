@@ -266,10 +266,44 @@ def load_mnist(filepath=None, validation=False):
         return train_set, test_set
 
 
-def spasafe_names(label_names):
-    vocab_names = [
-        (name.split(',')[0] if ',' in name else name).upper().replace(' ', '_')
-        for i, name in enumerate(label_names)]
+def spasafe_name(name, pre_comma_only=True):
+    """Make a name safe to use as a SPA semantic pointer name.
+
+    Ensure a name conforms with SPA name standards. Replaces hyphens and
+    spaces with underscores, removes all other characters, and makes the
+    first letter uppercase.
+
+    Parameters
+    ----------
+    pre_comma_only : boolean
+        Only use the part of a name before a/the first comma.
+    """
+    if len(name) == 0:
+        raise ValueError("Empty name.")
+
+    if pre_comma_only and ',' in name:
+        name = name.split(',')[0]  # part before first comma
+    name = name.strip()
+    name = re.sub(r'(\s|-|,)+', '_', name)  # repl space/hyphen/comma w undersc
+    name = re.sub('(^[^a-zA-Z]+)|[^a-zA-Z0-9_]+', '', name)  # del other chars
+    name = name[0].upper() + name[1:]  # capitalize first letter
+    return name
+
+
+def spasafe_names(label_names, pre_comma_only=True):
+    """Make names safe to use as SPA semantic pointer names.
+
+    Format a list of names to conform with SPA name standards. In addition
+    to running each name through ``spasafe_name``, this function numbers
+    duplicate names so they are unique.
+
+    Parameters
+    ----------
+    pre_comma_only : boolean
+        Only use the part of a name before a/the first comma.
+    """
+    vocab_names = [spasafe_name(name, pre_comma_only=pre_comma_only)
+                   for name in label_names]
 
     # number duplicates
     unique = set()
