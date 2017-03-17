@@ -44,7 +44,10 @@ def test_spasafe_name():
     assert spasafe_name('Camel') == 'Camel'
     assert spasafe_name('lower') == 'Lower'
     assert spasafe_name('Under_score') == 'Under_score'
-    assert spasafe_name('Weird.,:[]^!<>=&\'"symbols') == 'Weirdsymbols'
+    assert spasafe_name(
+        'Weird.,:[]^!<>=&\'"symbols', pre_comma_only=False) == 'Weird_symbols'
+    assert spasafe_name(
+        'Weird.,:[]^!<>=&\'"symbols', pre_comma_only=True) == 'Weird'
     assert spasafe_name('  \tWhite- \t\r\nspace  \r\n') == 'White_space'
     assert spasafe_name('multiple correction\'s') == 'Multiple_corrections'
     assert spasafe_name('123four') == 'Four'
