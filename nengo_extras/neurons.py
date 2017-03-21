@@ -49,20 +49,16 @@ class SoftLIFRate(nengo.neurons.LIFRate):
     """
 
     sigma = NumberParam('sigma', low=0, low_open=True)
-    amplitude = NumberParam('amplitude', low=0, low_open=True)
 
-    def __init__(self, sigma=1., amplitude=1., **lif_args):
+    def __init__(self, sigma=1., **lif_args):
         super(SoftLIFRate, self).__init__(**lif_args)
         self.sigma = sigma  # smoothing around the threshold
-        self.amplitude = amplitude  # scaling on the output rates
 
     @property
     def _argreprs(self):
         args = super(SoftLIFRate, self)._argreprs
         if self.sigma != 1.:
             args.append("sigma=%s" % self.sigma)
-        if self.amplitude != 1.:
-            args.append("amplitude=%s" % self.amplitude)
         return args
 
     def rates(self, x, gain, bias):
