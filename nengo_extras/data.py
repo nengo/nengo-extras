@@ -44,6 +44,12 @@ def get_mnist_pkl_gz():
     return get_file(filename, url)
 
 
+def get_svhn_tar_gz():
+    filename = 'svhn-py-colmajor.tar.gz'
+    url = 'https://files.figshare.com/7868377/svhn-py-colmajor.tar.gz'
+    return get_file(filename, url)
+
+
 def unpickle_tarfile(tar, name):
     tarextract = tar.extractfile(name)
     return pickle.load(tarextract, **pickle_bytes)
@@ -83,7 +89,6 @@ def load_cifar10(filepath=None, n_train=5, n_test=1, label_names=False):
 
     filepath = os.path.expanduser(filepath)
     with tarfile.open(filepath, 'r:gz') as tar:
-
         if n_train < 1:
             train = (np.array([]), np.array([]))
         else:
@@ -263,6 +268,67 @@ def load_mnist(filepath=None, validation=False):
         train_set = (np.vstack((train_set[0], valid_set[0])),
                      np.hstack((train_set[1], valid_set[1])))
         return train_set, test_set
+
+
+def load_svhn(filepath=None, n_train=9, n_test=3, data_mean=False,
+              label_names=False):
+    """Load the SVHN dataset.
+
+    Parameters
+    ----------
+    filepath : str (optional, Default: None)
+        Path to the previously downloaded 'svhn-py-colmajor.tar.gz' file.
+        If `None`, the file will be downloaded to the current directory.
+    n_train : int (optional, Default: 6)
+        The number of training batches to load (max: 6).
+    n_test : int (optional, Default: 6)
+        The number of testing batches to load (max: 1).
+    label_names : boolean (optional, Default: False)
+        Whether to provide the category label names.
+
+    Returns
+    -------
+    train_set : (n_train, n_pixels) ndarray, (n_train,) ndarray
+        A tuple of the training image array and label array.
+    test_set : (n_test, n_pixels) ndarray, (n_test,) ndarray
+        A tuple of the testing image array and label array.
+    label_names : list
+        A list of the label names.
+    """
+    shape = (3, 32, 32)
+
+    if filepath is None:
+        filepath = get_svhn_tar_gz()
+
+    def read_tar_batch(tar, name):
+        data = unpickle_tarfile(tar, name)
+        return data[b'data'], np.array(data[b'labels'])
+
+    def load_batches(tar, inds):
+        if len(inds) < 1:
+            return (np.array([]), np.array([]))
+
+        batches = ([], [])
+        for i in inds:
+            data, labels = read_tar_batch(
+                tar, 'svhn-py-colmajor/data_batch_%d' % i)
+            batches[0].append(data.T)
+            batches[1].append(labels)
+
+        return (np.vstack(batches[0]).reshape((-1,) + shape),
+                np.hstack(batches[1]))
+
+    filepath = os.path.expanduser(filepath)
+    with tarfile.open(filepath, 'r:gz') as tar:
+        train = load_batches(tar, list(range(1, n_train+1)))
+        test = load_batches(tar, list(range(10, n_test+10)))
+
+        if label_names or data_mean:
+            meta = unpickle_tarfile(tar, 'svhn-py-colmajor/batches.meta')
+        data_mean = (meta[b'data_mean'].reshape(shape),) if data_mean else ()
+        label_names = (meta[b'label_names'],) if label_names else ()
+
+    return (train, test) + data_mean + label_names
 
 
 def spasafe_name(name, pre_comma_only=True):

@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from nengo_extras.data import (
-    load_cifar10, load_cifar100, load_ilsvrc2012, load_mnist,
+    load_cifar10, load_cifar100, load_ilsvrc2012, load_mnist, load_svhn,
     one_hot_from_labels, spasafe_name, spasafe_names)
 from nengo_extras.matplotlib import tile
 
@@ -35,6 +35,14 @@ def test_load_ilsvrc2012(plt):
 def test_load_mnist(plt):
     (trainX, _), (_, _) = load_mnist()
     tile(trainX.reshape(-1, 28, 28))
+
+
+@pytest.mark.slow
+def test_load_svhn(plt):
+    (trainX, _), (_, _) = load_svhn()
+    trainX = trainX.reshape(-1, 3, 32, 32)
+    trainX = np.transpose(trainX, (0, 2, 3, 1))
+    tile(trainX)
 
 
 def test_one_hot_from_labels_int(rng):
