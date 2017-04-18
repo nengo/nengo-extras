@@ -5,14 +5,17 @@ import re
 import tarfile
 import urllib
 
+import nengo
 from nengo.utils.compat import is_integer, is_iterable, pickle, PY2
 import numpy as np
 
+data_dir = nengo.rc.get('nengo_extras', 'data_dir')
 pickle_bytes = dict() if PY2 else dict(encoding='bytes')
 urlretrieve = urllib.urlretrieve if PY2 else urllib.request.urlretrieve
 
 
 def get_file(filename, url):
+    filename = os.path.expanduser(filename)
     if not os.path.exists(filename):
         print("Retrieving %r" % url)
         urlretrieve(url, filename=filename)
@@ -21,31 +24,31 @@ def get_file(filename, url):
 
 
 def get_cifar10_tar_gz():
-    filename = 'cifar-10-python.tar.gz'
+    filename = os.path.join(data_dir, 'cifar-10-python.tar.gz')
     url = 'https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz'
     return get_file(filename, url)
 
 
 def get_cifar100_tar_gz():
-    filename = 'cifar-100-python.tar.gz'
+    filename = os.path.join(data_dir, 'cifar-100-python.tar.gz')
     url = 'https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz'
     return get_file(filename, url)
 
 
 def get_ilsvrc2012_tar_gz():
-    filename = 'ilsvrc-2012-batches-test3.tar.gz'
+    filename = os.path.join(data_dir, 'ilsvrc-2012-batches-test3.tar.gz')
     url = 'http://files.figshare.com/5370887/ilsvrc-2012-batches-test3.tar.gz'
     return get_file(filename, url)
 
 
 def get_mnist_pkl_gz():
-    filename = 'mnist.pkl.gz'
+    filename = os.path.join(data_dir, 'mnist.pkl.gz')
     url = 'http://deeplearning.net/data/mnist/mnist.pkl.gz'
     return get_file(filename, url)
 
 
 def get_svhn_tar_gz():
-    filename = 'svhn-py-colmajor.tar.gz'
+    filename = os.path.join(data_dir, 'svhn-py-colmajor.tar.gz')
     url = 'https://files.figshare.com/7868377/svhn-py-colmajor.tar.gz'
     return get_file(filename, url)
 
