@@ -7,7 +7,7 @@ import numpy as np
 
 from nengo_extras.data import load_cifar10
 from nengo_extras.cuda_convnet import CudaConvnetNetwork, load_model_pickle
-from nengo_extras.gui import image_display_function
+from nengo_extras.gui import PresentImages
 
 (X_train, y_train), (X_test, y_test), label_names = load_cifar10(label_names=True)
 X_train = X_train.reshape(-1, 3, 32, 32).astype('float32')
@@ -31,18 +31,14 @@ presentation_time = 0.2
 
 model = nengo.Network()
 with model:
-    u = nengo.Node(nengo.processes.PresentInput(X_test, presentation_time))
+    u = nengo.Node(PresentImages(X_test, presentation_time))
+    u.output.configure_display(offset=data_mean, scale=1.)
+
     ccnet = CudaConvnetNetwork(cc_model, synapse=nengo.synapses.Alpha(0.005))
     nengo.Connection(u, ccnet.inputs['data'], synapse=None)
 
     input_p = nengo.Probe(u)
     output_p = nengo.Probe(ccnet.output)
-
-    # --- image display
-    image_shape = X_test.shape[1:]
-    display_f = image_display_function(image_shape, scale=1, offset=data_mean)
-    display_node = nengo.Node(display_f, size_in=u.size_out)
-    nengo.Connection(u, display_node, synapse=None)
 
     # --- output spa display
     vocab_names = [s.upper() for s in label_names]
