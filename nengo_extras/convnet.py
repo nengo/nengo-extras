@@ -1,7 +1,7 @@
 import numpy as np
 
 from nengo.processes import Process
-from nengo.params import EnumParam, NdarrayParam, ShapeParam
+from nengo.params import EnumParam, NdarrayParam, NumberParam, ShapeParam
 from nengo.utils.compat import is_iterable, range
 
 
@@ -229,3 +229,74 @@ class Pool2d(Process):
             return y.ravel()
 
         return step_pool2d
+
+
+class PresentJitteredImages(Process):
+    images = NdarrayParam('images', shape=('...',))
+    image_shape = ShapeParam('image_shape', length=3, low=1)
+    output_shape = ShapeParam('output_shape', length=2, low=1)
+    presentation_time = NumberParam('presentation_time', low=0, low_open=True)
+    jitter_std = NumberParam('jitter_std', low=0, low_open=True, optional=True)
+    jitter_tau = NumberParam('jitter_tau', low=0, low_open=True)
+
+    def __init__(self, images, presentation_time, output_shape,
+                 jitter_std=None, jitter_tau=None, **kwargs):
+        import scipy.ndimage.interpolation  # noqa: F401
+        # ^ required for simulation, so check it here
+
+        self.images = images
+        self.presentation_time = presentation_time
+        self.image_shape = images.shape[1:]
+        self.output_shape = output_shape
+        self.jitter_std = jitter_std
+        self.jitter_tau = (presentation_time if jitter_tau is None else
+                           jitter_tau)
+
+        nc = self.image_shape[0]
+        nyi, nyj = self.output_shape
+        super(PresentJitteredImages, self).__init__(
+            default_size_in=0, default_size_out=nc*nyi*nyj, **kwargs)
+
+    def make_step(self, shape_in, shape_out, dt, rng):
+        import scipy.ndimage.interpolation
+
+        nc, nxi, nxj = self.image_shape
+        nyi, nyj = self.output_shape
+        ni, nj = nxi - nyi, nxj - nyj
+        nij = np.array([ni, nj])
+        assert shape_in == (0,)
+        assert shape_out == (nc*nyi*nyj,)
+
+        if self.jitter_std is None:
+            si, sj = ni / 4., nj / 4.
+        else:
+            si = sj = self.jitter_std
+
+        tau = self.jitter_tau
+
+        n = len(self.images)
+        images = self.images.reshape((n, nc, nxi, nxj))
+        presentation_time = float(self.presentation_time)
+
+        cij = (nij - 1) / 2.
+        dt7tau = dt / tau
+        sigma2 = np.sqrt(2.*dt/tau) * np.array([si, sj])
+        ij = cij.copy()
+
+        def step_presentjitteredimages(t):
+            # update jitter position
+            ij0 = dt7tau*(cij - ij) + sigma2*rng.normal(size=2)
+            ij[:] = (ij + ij0).clip((0, 0), (ni, nj))
+
+            # select image
+            k = int((t-dt) / presentation_time + 1e-7)
+            image = images[k % n]
+
+            # interpolate jittered sub-image
+            i, j = ij
+            image = scipy.ndimage.interpolation.shift(
+                image, (0, ni-i, nj-j))[:, -nyi:, -nyj:]
+
+            return image.ravel()
+
+        return step_presentjitteredimages
