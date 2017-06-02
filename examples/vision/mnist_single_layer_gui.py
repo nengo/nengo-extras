@@ -1,7 +1,5 @@
 """
 Single-layer NEF network applied to MNIST
-
-Uses Nengo branch https://github.com/nengo/nengo/tree/function-points
 """
 import nengo
 import numpy as np
@@ -35,11 +33,8 @@ test_targets = one_hot(y_test, 10)
 # --- set up network parameters
 n_vis = X_train.shape[1]
 n_out = train_targets.shape[1]
-# n_hid = 300
 n_hid = 1000
-# n_hid = 3000
 
-# encoders = rng.normal(size=(n_hid, 11, 11))
 encoders = Gabor().generate(n_hid, (11, 11), rng=rng)
 encoders = Mask((28, 28)).populate(encoders, rng=rng, flatten=True)
 
@@ -52,7 +47,6 @@ ens_params = dict(
     )
 
 solver = nengo.solvers.LstsqL2(reg=0.01)
-# solver = nengo.solvers.LstsqL2(reg=0.0001)
 
 presentation_time = 0.1
 
