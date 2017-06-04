@@ -18,6 +18,7 @@ class Gabor(FrozenObject):
     def __init__(self, theta=Uniform(-np.pi, np.pi), freq=Uniform(0.2, 2),
                  phase=Uniform(-np.pi, np.pi),
                  sigma_x=Choice([0.45]), sigma_y=Choice([0.45])):
+        super(Gabor, self).__init__()
         self.theta = theta
         self.freq = freq
         self.phase = phase
@@ -62,6 +63,7 @@ class Mask(FrozenObject):
     image_shape = TupleParam('image_shape', length=3)
 
     def __init__(self, image_shape):
+        super(Mask, self).__init__()
         image_shape = ((1,) + tuple(image_shape) if len(image_shape) == 2 else
                        image_shape)
         self.image_shape = image_shape

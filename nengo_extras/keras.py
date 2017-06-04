@@ -36,7 +36,10 @@ _custom_objects = {
 }
 
 
-def load_model_pair(filepath, custom_objects={}):
+def load_model_pair(filepath, custom_objects=None):
+    if custom_objects is None:
+        custom_objects = {}
+
     json_path = filepath + '.json'
     h5_path = filepath + '.h5'
 

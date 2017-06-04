@@ -205,7 +205,7 @@ def load_ilsvrc2012(filepath=None, n_files=None):
     filepath = os.path.expanduser(filepath)
     with tarfile.open(filepath, 'r:gz') as tar:
         names = tar.getnames()
-        regex = re.compile('.*/data_batch_([0-9]+\.[0-9]+)')
+        regex = re.compile(r'.*/data_batch_([0-9]+\.[0-9]+)')
         matches = [regex.match(name) for name in names]
         matches = [match for match in matches if match]
 

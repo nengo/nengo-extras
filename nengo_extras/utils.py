@@ -1,3 +1,5 @@
+import urllib
+
 from nengo.utils.compat import pickle, PY2
 
 
