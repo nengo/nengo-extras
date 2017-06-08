@@ -125,7 +125,6 @@ class SequentialNetwork(nengo_extras.deepnetworks.SequentialNetwork):
                                    padding=padding, name=layer.name)
 
     def _add_pool2d_layer(self, layer, kind=None):
-        from .convnet import Pool2d
         shape_in = layer.input_shape[1:]
         pool_size = layer.pool_size
         strides = layer.strides
@@ -199,9 +198,10 @@ def LSUVinit(kmodel, X, tol=0.1, t_max=50):
     .. [1] Mishkin, D., & Matas, J. (2016). All you need is a good init.
        In ICLR 2016 (pp. 1-13).
     """
-    from keras.layers import Convolution2D, LocallyConnected2D, Dense
+    from keras.layers import Convolution2D, LocallyConnected2D
     import keras.backend as K
-    # f = K.function([kmodel.layers[0].input, K.learning_phase()], [klayer.output])
+    # f = K.function([kmodel.layers[0].input, K.learning_phase()],
+    #                [klayer.output])
 
     # --- orthogonalize weights
     def orthogonalize(X):

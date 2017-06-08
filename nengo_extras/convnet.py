@@ -236,7 +236,8 @@ class Pool2d(Process):
 
             for i in range(si):
                 for j in range(sj):
-                    xij = x[:, :, i:min(nxi2+i, nxi):sti, j:min(nxj2+j, nxj):stj]
+                    xij = x[:, :, i:min(nxi2+i, nxi):sti,
+                            j:min(nxj2+j, nxj):stj]
                     ni, nj = xij.shape[-2:]
                     if kind == 'max':
                         y[:, :, :ni, :nj] = np.maximum(y[:, :, :ni, :nj], xij)

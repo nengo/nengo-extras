@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 
-from nengo_extras.deepnetworks import *
+from nengo_extras.deepnetworks import ConvLayer, LocalLayer, NeuronLayer
 
 
 @pytest.mark.parametrize('local', (False, True))
@@ -11,7 +11,6 @@ def test_convlayer_theano(local, rng):
     import theano
     import theano.tensor as tt
 
-    from hunse_tools.timing import tic, toc
     n = 2
     nf = 3
     nc = 4
@@ -49,6 +48,7 @@ def test_convlayer_theano(local, rng):
 
 def test_neuronlayer_softlif_theano():
     pytest.importorskip('theano')
+    pytest.importorskip('keras')
     import theano
     import theano.tensor as tt
     from nengo_extras.keras import SoftLIF as SoftLIFLayer

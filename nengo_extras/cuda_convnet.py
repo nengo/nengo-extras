@@ -4,16 +4,16 @@ import collections
 import os
 
 import nengo
-from nengo.utils.compat import pickle
 import numpy as np
 
 from .deepnetworks import SequentialNetwork
+from .utils import cmp, pickle_load
 
 
 def load_model_pickle(loadfile):
     loadfile = os.path.expanduser(loadfile)
     with open(loadfile, 'rb') as f:
-        return pickle.load(f)
+        return pickle_load(f)
 
 
 def layer_depths(layers):
@@ -80,7 +80,7 @@ class CudaConvnetNetwork(SequentialNetwork):
 
         # sort layers
         depths = layer_depths(layers)
-        assert np.unique(depths.values()).size == len(depths)
+        assert np.unique(list(depths.values())).size == len(depths)
 
         for name in sorted(layers, key=lambda n: depths[n]):
             self._add_layer(layers[name])
