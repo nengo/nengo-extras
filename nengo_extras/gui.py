@@ -1,5 +1,8 @@
 from __future__ import absolute_import
 
+import base64
+from io import BytesIO
+
 
 def preprocess_display(x, transpose=(1, 2, 0), scale=255., offset=0.):
     """Basic preprocessing that reshapes, transposes, and scales an image"""
@@ -70,17 +73,14 @@ def image_string_function(image_shape, format="PNG",
     --------
     image_function
     """
-    import base64
-    import cStringIO
-
     to_pil = image_function(
         image_shape, preprocess=preprocess, **preprocess_args)
 
     def string_function(x):
         image = to_pil(x)
-        buffer = cStringIO.StringIO()
+        buffer = BytesIO()
         image.save(buffer, format=format)
-        image_string = base64.b64encode(buffer.getvalue())
+        image_string = base64.b64encode(buffer.getvalue()).decode()
         return image_string
 
     return string_function
