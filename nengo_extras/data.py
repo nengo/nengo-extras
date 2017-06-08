@@ -3,15 +3,15 @@ import io
 import os
 import re
 import tarfile
-import urllib
 
 import nengo
-from nengo.utils.compat import is_integer, is_iterable, pickle, PY2
+from nengo.utils.compat import is_integer, is_iterable
 import numpy as np
 
+from .utils import pickle_load_bytes, urlretrieve
+
+
 data_dir = nengo.rc.get('nengo_extras', 'data_dir')
-pickle_bytes = dict() if PY2 else dict(encoding='bytes')
-urlretrieve = urllib.urlretrieve if PY2 else urllib.request.urlretrieve
 
 
 def get_file(filename, url):
@@ -55,7 +55,7 @@ def get_svhn_tar_gz():
 
 def unpickle_tarfile(tar, name):
     tarextract = tar.extractfile(name)
-    return pickle.load(tarextract, **pickle_bytes)
+    return pickle_load_bytes(tarextract)
 
 
 def load_cifar10(filepath=None, n_train=5, n_test=1, label_names=False):
@@ -263,7 +263,7 @@ def load_mnist(filepath=None, validation=False):
 
     filepath = os.path.expanduser(filepath)
     with gzip.open(filepath, 'rb') as f:
-        train_set, valid_set, test_set = pickle.load(f, **pickle_bytes)
+        train_set, valid_set, test_set = pickle_load_bytes(f)
 
     if validation:
         return train_set, valid_set, test_set
