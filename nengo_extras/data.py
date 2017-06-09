@@ -5,10 +5,10 @@ import re
 import tarfile
 
 import nengo
-from nengo.utils.compat import is_integer, is_iterable, PY2
+from nengo.utils.compat import is_integer, is_iterable
 import numpy as np
 
-from .utils import pickle_load, urlretrieve
+from .utils import pickle_load_bytes, urlretrieve
 
 
 data_dir = nengo.rc.get('nengo_extras', 'data_dir')
@@ -55,7 +55,7 @@ def get_svhn_tar_gz():
 
 def unpickle_tarfile(tar, name):
     tarextract = tar.extractfile(name)
-    return pickle_load(tarextract)
+    return pickle_load_bytes(tarextract)
 
 
 def load_cifar10(filepath=None, n_train=5, n_test=1, label_names=False):
@@ -88,7 +88,7 @@ def load_cifar10(filepath=None, n_train=5, n_test=1, label_names=False):
     # helper for reading each batch file
     def read_tar_batch(tar, name):
         data = unpickle_tarfile(tar, name)
-        return data['data'], np.array(data['labels'])
+        return data[b'data'], np.array(data[b'labels'])
 
     filepath = os.path.expanduser(filepath)
     with tarfile.open(filepath, 'r:gz') as tar:
@@ -111,7 +111,7 @@ def load_cifar10(filepath=None, n_train=5, n_test=1, label_names=False):
 
         if label_names:
             meta = unpickle_tarfile(tar, 'cifar-10-batches-py/batches.meta')
-            names = meta['label_names']
+            names = meta[b'label_names']
 
     return (train, test) + ((names,) if label_names else ())
 
@@ -144,8 +144,8 @@ def load_cifar100(filepath=None, fine_labels=True, label_names=False):
     # helper for reading each batch file
     def read_tar_batch(tar, name):
         data = unpickle_tarfile(tar, name)
-        return data['data'], np.array(
-            data['fine_labels' if fine_labels else 'coarse_labels'])
+        return data[b'data'], np.array(
+            data[b'fine_labels' if fine_labels else b'coarse_labels'])
 
     filepath = os.path.expanduser(filepath)
     with tarfile.open(filepath, 'r:gz') as tar:
@@ -154,7 +154,7 @@ def load_cifar100(filepath=None, fine_labels=True, label_names=False):
         if label_names:
             meta = unpickle_tarfile(tar, 'cifar-100-python/meta')
             names = meta[
-                'fine_label_names' if fine_labels else 'coarse_label_names']
+                b'fine_label_names' if fine_labels else b'coarse_label_names']
 
     return (train, test) + ((names,) if label_names else ())
 
@@ -193,11 +193,10 @@ def load_ilsvrc2012(filepath=None, n_files=None):
     # helper for reading each batch file
     def read_tar_batch(tar, name):
         data = unpickle_tarfile(tar, name)
-        return data['data'], data['labels']  # JPEG strings, labels
+        return data[b'data'], data[b'labels']  # JPEG strings, labels
 
     def bytes_to_array(b):
-        buffer = io.BytesIO(b if PY2 else b.encode('latin1'))
-        image = PIL.Image.open(buffer)
+        image = PIL.Image.open(io.BytesIO(b))
         array = np.array(image, dtype=np.uint8).reshape(
             image.size[0], image.size[1], 3)
         array = np.transpose(array, (2, 0, 1))
@@ -232,8 +231,8 @@ def load_ilsvrc2012(filepath=None, n_files=None):
         labels.shape = (n_images,)
 
         meta = unpickle_tarfile(tar, 'batches.meta')
-        data_mean = meta['data_mean'].reshape(image_shape)
-        label_names = meta['label_names']
+        data_mean = meta[b'data_mean'].reshape(image_shape)
+        label_names = meta[b'label_names']
 
     return images, labels, data_mean, label_names
 
@@ -264,7 +263,7 @@ def load_mnist(filepath=None, validation=False):
 
     filepath = os.path.expanduser(filepath)
     with gzip.open(filepath, 'rb') as f:
-        train_set, valid_set, test_set = pickle_load(f)
+        train_set, valid_set, test_set = pickle_load_bytes(f)
 
     if validation:
         return train_set, valid_set, test_set
@@ -306,7 +305,7 @@ def load_svhn(filepath=None, n_train=9, n_test=3, data_mean=False,
 
     def read_tar_batch(tar, name):
         data = unpickle_tarfile(tar, name)
-        return data['data'], np.array(data['labels'])
+        return data[b'data'], np.array(data[b'labels'])
 
     def load_batches(tar, inds):
         if len(inds) < 1:
@@ -329,8 +328,8 @@ def load_svhn(filepath=None, n_train=9, n_test=3, data_mean=False,
 
         if label_names or data_mean:
             meta = unpickle_tarfile(tar, 'svhn-py-colmajor/batches.meta')
-        data_mean = (meta['data_mean'].reshape(shape),) if data_mean else ()
-        label_names = (meta['label_names'],) if label_names else ()
+        data_mean = (meta[b'data_mean'].reshape(shape),) if data_mean else ()
+        label_names = (meta[b'label_names'],) if label_names else ()
 
     return (train, test) + data_mean + label_names
 
