@@ -11,7 +11,7 @@ import keras
 from keras.datasets import mnist
 from keras.models import Sequential
 from keras.layers import (
-    Dense, Dropout, Activation, Flatten, Convolution2D, AveragePooling2D)
+    Dense, Dropout, Activation, Flatten, Conv2D, AveragePooling2D)
 from keras.layers.noise import GaussianNoise
 from keras.utils import np_utils
 
@@ -56,9 +56,9 @@ if not os.path.exists(filename + '.h5'):
         sigma=0.002, amplitude=0.063, tau_rc=0.022, tau_ref=0.002)
 
     kmodel.add(GaussianNoise(0.1, input_shape=(1, img_rows, img_cols)))
-    kmodel.add(Convolution2D(nb_filters, nb_conv, nb_conv, border_mode='valid'))
+    kmodel.add(Conv2D(nb_filters, nb_conv, data_format="channels_first"))
     kmodel.add(SoftLIF(**softlif_params))
-    kmodel.add(Convolution2D(nb_filters, nb_conv, nb_conv))
+    kmodel.add(Conv2D(nb_filters, nb_conv, data_format="channels_first"))
     kmodel.add(SoftLIF(**softlif_params))
     kmodel.add(AveragePooling2D(pool_size=(nb_pool, nb_pool)))
     kmodel.add(Dropout(0.25))
@@ -74,7 +74,7 @@ if not os.path.exists(filename + '.h5'):
                    optimizer='adadelta',
                    metrics=['accuracy'])
 
-    kmodel.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
+    kmodel.fit(X_train, Y_train, batch_size=batch_size, epochs=nb_epoch,
                verbose=1, validation_data=(X_test, Y_test))
     score = kmodel.evaluate(X_test, Y_test, verbose=0)
     print('Test score:', score[0])
