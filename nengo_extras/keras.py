@@ -21,12 +21,9 @@ class SoftLIF(keras.layers.Layer):
     def call(self, x, mask=None):
         from keras import backend as K
         j = K.softplus(x / self.sigma) * self.sigma
+        j += 1e-10
         r = self.amplitude / (self.tau_ref + self.tau_rc*K.log(1 + 1/j))
-        if K.backend() == "theano":
-            return K.switch(j > 0, r, 0)
-        elif K.backend() == "tensorflow":
-            import tensorflow as tf
-            return tf.where(j > 0, r, tf.zeros_like(r))
+        return r
 
     def get_config(self):
         config = {'sigma': self.sigma, 'amplitude': self.amplitude,

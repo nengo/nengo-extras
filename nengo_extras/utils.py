@@ -1,9 +1,9 @@
-import urllib
-
 from nengo.utils.compat import pickle, PY2
 
-
-urlretrieve = urllib.urlretrieve if PY2 else urllib.request.urlretrieve
+if PY2:
+    from urllib import urlretrieve
+else:
+    from urllib.request import urlretrieve
 
 
 if PY2:
