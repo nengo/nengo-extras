@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 import nengo
+from nengo.exceptions import ValidationError
 from nengo.neurons import RectifiedLinear
 from nengo.utils.numpy import rms
 
@@ -74,3 +75,9 @@ def test_delta_rule(Simulator, seed, rng, plt):
     m = t > t_train
     rms_error = rms(y[m] - x[m]) / rms(x[m])
     assert rms_error < 0.3
+
+
+def test_delta_rule_function_param_size():
+    fn = lambda j: j[:-1]
+    with pytest.raises(ValidationError):
+        rule = DeltaRule(post_fn=fn)

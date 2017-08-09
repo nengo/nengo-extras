@@ -11,16 +11,21 @@ from nengo.synapses import Lowpass
 
 
 class DeltaRuleFunctionParam(FunctionParam):
-    def function_args(self, instance, function):
-        return (np.zeros(8),)
+    function_test_size = 8  # arbitrary size to test function
 
-    def validate(self, instance, function_info):
-        super(DeltaRuleFunctionParam, self).validate(instance, function_info)
+    def function_args(self, instance, function):
+        return (np.zeros(self.function_test_size),)
+
+    def coerce(self, instance, function):
+        function_info = super(DeltaRuleFunctionParam, self).coerce(instance, function)
+
         function, size = function_info
-        if function is not None and size != 8:
+        if function is not None and size != self.function_test_size:
             raise ValidationError(
                 "Function '%s' input and output sizes must be equal" %
                 function, attr=self.name, obj=instance)
+
+        return function_info
 
 
 class DeltaRule(LearningRuleType):
