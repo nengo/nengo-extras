@@ -6,7 +6,7 @@ from nengo.builder import Builder, Signal
 from nengo.builder.operator import DotInc, ElementwiseInc, Reset, SimPyFunc
 from nengo.exceptions import ValidationError
 from nengo.learning_rules import LearningRuleType
-from nengo.params import FunctionParam, NumberParam
+from nengo.params import EnumParam, FunctionParam, NumberParam
 from nengo.synapses import Lowpass
 
 
@@ -65,15 +65,17 @@ class DeltaRule(LearningRuleType):
     pre_tau = NumberParam('pre_tau', low=0, low_open=True)
     post_tau = NumberParam('post_tau', low=0, low_open=True, optional=True)
     post_fn = DeltaRuleFunctionParam('post_fn', optional=True)
+    post_target = EnumParam('post_target', values=('in', 'out'))
 
     def __init__(self, learning_rate=1e-4, pre_tau=0.005,
-                 post_fn=None, post_tau=None):
+                 post_fn=None, post_tau=None, post_target='in'):
         if learning_rate >= 1.0:
             warnings.warn("This learning rate is very high, and can result "
                           "in floating point errors from too much current.")
         self.pre_tau = pre_tau
         self.post_tau = post_tau
         self.post_fn = post_fn
+        self.post_target = post_target
         super(DeltaRule, self).__init__(learning_rate, size_in='post')
 
     @property
@@ -87,6 +89,8 @@ class DeltaRule(LearningRuleType):
             args.append("post_fn=%s" % self.post_fn.function)
         if self.post_tau is not None:
             args.append("post_tau=%f" % self.post_tau)
+        if self.post_target != 'in':
+            args.append("post_target=%s" % self.post_target)
 
         return args
 
@@ -103,8 +107,9 @@ def build_delta_rule(model, delta_rule, rule):
     # Multiply by post_fn output if necessary
     post_fn = delta_rule.post_fn.function
     post_tau = delta_rule.post_tau
+    post_target = delta_rule.post_target
     if post_fn is not None:
-        post_sig = model.sig[conn.post_obj]['in']
+        post_sig = model.sig[conn.post_obj][post_target]
         post_synapse = Lowpass(post_tau) if post_tau is not None else None
         post_input = (post_sig if post_synapse is None else
                       model.build(post_synapse, post_sig))
