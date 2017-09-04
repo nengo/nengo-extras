@@ -57,7 +57,7 @@ def tile(images, ax=None, rows=9, cols=12,
         img[i*m:(i+1)*m, j*n:(j+1)*n, :] = images[k]
 
     ax_img = imshow(img, ax=ax, **show_params)
-    ax = ax_img.get_axes()
+    ax = ax_img.axes
 
     if grid:
         for i in range(1, rows):
@@ -108,7 +108,7 @@ def compare(image_sets, ax=None, rows=4, cols=12,
                 image_sets[q][k, :].reshape(m, n, nc)
 
     ax_img = imshow(img, ax=ax, **show_params)
-    ax = ax_img.get_axes()
+    ax = ax_img.axes
 
     if grid:
         for i in range(1, rows):

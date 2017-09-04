@@ -81,8 +81,8 @@ def cyclic_vector(d, k, n=None, rng=np.random):
     if d < 3:
         raise ValueError("'d' must be at least 3 (got %d)" % d)
 
-    d2 = (d - 1) / 2
-    nn = 1 if n is None else n
+    d2 = (d - 1) // 2
+    nn = 1 if n is None else int(n)
 
     # Pick roots r such that r**k == 1
     roots = np.exp(2.j * np.pi / k * np.arange(k))
