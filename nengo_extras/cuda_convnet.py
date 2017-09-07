@@ -198,7 +198,7 @@ class CudaConvnetNetwork(SequentialNetwork):
 
         filters = layer['weights'][0].reshape(ny, ny, nc, s, s, nf)
         filters = np.rollaxis(filters, axis=-1, start=0)
-        biases = layer['biases'][0].reshape(1, 1, 1)
+        biases = layer['biases'].reshape(nf, ny, ny)
         return self.add_local_layer(
             (nc, nx, nx), filters, biases, strides=st, padding=p,
             inputs=inputs, name=layer['name'])

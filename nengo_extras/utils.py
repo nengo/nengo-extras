@@ -11,8 +11,9 @@ if PY2:
 else:
     from io import StringIO  # noqa: F401
 
-    def cmp(a, b):
-        return (a > b) - (a < b)
+
+def cmp(a, b):  # same as python2's builtin cmp, not available in python3
+    return (a > b) - (a < b)
 
 
 def pickle_load(file, *args, **kwargs):

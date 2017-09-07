@@ -69,7 +69,7 @@ if 0:
     os.environ['THEANO_FLAGS'] = 'device=gpu,floatX=float32'
     Q = ccnet.theano_compute(X_test[:n_presentations])
     Z = np.argmax(Q, axis=-1) == y_test[:n_presentations]
-    print("ANN accuracy (%d examples): %0.3f" % (n_presentations, Z.mean()))
+    print("ANN accuracy (%d examples): %0.4f" % (n_presentations, Z.mean()))
 
 
 with nengo_ocl.Simulator(model) as sim:
