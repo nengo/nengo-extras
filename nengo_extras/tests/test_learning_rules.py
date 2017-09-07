@@ -3,7 +3,6 @@ import pytest
 
 import nengo
 from nengo.exceptions import ValidationError
-from nengo.neurons import RectifiedLinear
 from nengo.utils.numpy import rms
 
 from nengo_extras.learning_rules import DeltaRule
@@ -80,4 +79,4 @@ def test_delta_rule(Simulator, seed, rng, plt):
 def test_delta_rule_function_param_size():
     fn = lambda j: j[:-1]
     with pytest.raises(ValidationError):
-        rule = DeltaRule(post_fn=fn)
+        DeltaRule(post_fn=fn)

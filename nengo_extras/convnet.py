@@ -1,9 +1,7 @@
 import numpy as np
 
-from nengo.exceptions import ValidationError
 from nengo.processes import Process
-from nengo.params import (EnumParam, NdarrayParam, Parameter, ShapeParam,
-                          TupleParam, Unconfigurable)
+from nengo.params import EnumParam, NdarrayParam, ShapeParam
 from nengo.utils.compat import is_iterable, range
 
 

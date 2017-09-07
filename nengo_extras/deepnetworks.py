@@ -163,7 +163,7 @@ class SequentialNetwork(Network):
 
 #         self.inputs = {}  # name -> input object
 #         self.outputs = {}  # name -> output object
-#         self.layer_inputs = {}  # dictionary of each layer and its input layers
+#         self.layer_inputs = {}  # mapping layer to its input layers
 #         self.layers_by_name = {}
 
 #     @property
@@ -549,7 +549,7 @@ class PoolLayer(ProcessLayer):
 
     def theano(self, x):
         import theano.tensor as tt
-        import theano.tensor.signal.pool  # noqa: 401
+        import theano.tensor.signal.pool  # noqa: F401
 
         pool_size = self.process.pool_size
         strides = self.process.strides

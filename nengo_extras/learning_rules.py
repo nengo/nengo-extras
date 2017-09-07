@@ -17,7 +17,8 @@ class DeltaRuleFunctionParam(FunctionParam):
         return (np.zeros(self.function_test_size),)
 
     def coerce(self, instance, function):
-        function_info = super(DeltaRuleFunctionParam, self).coerce(instance, function)
+        function_info = super(DeltaRuleFunctionParam, self).coerce(
+            instance, function)
 
         function, size = function_info
         if function is not None and size != self.function_test_size:
