@@ -10,19 +10,68 @@ import nengo_extras.deepnetworks
 
 class SoftLIF(keras.layers.Layer):
     def __init__(self, sigma=1., amplitude=1., tau_rc=0.02, tau_ref=0.002,
-                 **kwargs):
+                 noise=None, **kwargs):
+        from keras import backend as K
         self.supports_masking = True
-        self.sigma = sigma
-        self.amplitude = amplitude
-        self.tau_rc = tau_rc
-        self.tau_ref = tau_ref
+        self._amplitude = K.variable(value=amplitude)
+        self._sigma = K.variable(value=sigma)
+        self._tau_rc = K.variable(value=tau_rc)
+        self._tau_ref = K.variable(value=tau_ref)
+
+        if noise:
+            assert noise[0] in ('gaussian',)
+        self.noise = noise
+
         super(SoftLIF, self).__init__(**kwargs)
+
+    @property
+    def amplitude(self):
+        return self._amplitude.get_value()
+
+    @amplitude.setter
+    def amplitude(self, value):
+        self._amplitude.set_value(np.asarray(value, dtype=self._amplitude.dtype))
+
+    @property
+    def sigma(self):
+        return self._sigma.get_value()
+
+    @sigma.setter
+    def sigma(self, value):
+        self._sigma.set_value(np.asarray(value, dtype=self._sigma.dtype))
+
+    @property
+    def tau_rc(self):
+        return self._tau_rc.get_value()
+
+    @tau_rc.setter
+    def tau_rc(self, value):
+        self._tau_rc.set_value(np.asarray(value, dtype=self._tau_rc.dtype))
+
+    @property
+    def tau_ref(self):
+        return self._tau_ref.get_value()
+
+    @tau_ref.setter
+    def tau_ref(self, value):
+        self._tau_ref.set_value(np.asarray(value, dtype=self._tau_ref.dtype))
 
     def call(self, x, mask=None):
         from keras import backend as K
-        j = K.softplus(x / self.sigma) * self.sigma
-        r = self.amplitude / (self.tau_ref + self.tau_rc*K.log(1 + 1/j))
-        return K.switch(j > 0, r, 0)
+        j = K.softplus(x / self._sigma) * self._sigma
+        t = self._tau_ref + self._tau_rc*K.log(1 + 1/j)
+        if self.noise:
+            if self.noise[0] == 'gaussian':
+                r = K.switch(j > 0, 1 / t, 0)
+                n = K.random_normal(x.shape, std=self.noise[1])
+                rn = K.switch(x > 0, r + n, r)
+                # rn = K.switch(x > 0, K.maximum(r + n, 0), r)
+                return self._amplitude * K.in_train_phase(rn, r)
+            else:
+                raise NotImplementedError(self.noise[0])
+        else:
+            r = self._amplitude / t
+            return K.switch(j > 0, r, 0)  # needed or else nan's in loss
 
     def get_config(self):
         config = {'sigma': self.sigma, 'amplitude': self.amplitude,
@@ -90,6 +139,7 @@ class SequentialNetwork(nengo_extras.deepnetworks.SequentialNetwork):
             keras.layers.Dropout: self._add_dropout_layer,
             keras.layers.Flatten: self._add_flatten_layer,
             keras.layers.Convolution2D: self._add_conv2d_layer,
+            keras.layers.LocallyConnected2D: self._add_local2d_layer,
             keras.layers.AveragePooling2D: self._add_avgpool2d_layer,
             keras.layers.MaxPooling2D: self._add_maxpool2d_layer,
             keras.layers.noise.GaussianNoise: self._add_gaussian_noise_layer,
@@ -108,6 +158,7 @@ class SequentialNetwork(nengo_extras.deepnetworks.SequentialNetwork):
         return self.add_full_layer(weights.T, biases, name=layer.name)
 
     def _add_conv2d_layer(self, layer):
+        assert layer.activation is keras.activations.linear
         shape_in = layer.input_shape[1:]
         filters, biases = layer.get_weights()
         filters = filters[..., ::-1, ::-1]  # flip
@@ -121,8 +172,15 @@ class SequentialNetwork(nengo_extras.deepnetworks.SequentialNetwork):
         else:
             raise ValueError("Unrecognized border mode %r" % layer.border_mode)
 
-        return self.add_conv_layer(shape_in, filters, biases, strides=strides,
-                                   padding=padding, name=layer.name)
+        conv = self.add_conv_layer(
+            shape_in, filters, biases, strides=strides, padding=padding,
+            border='floor', name=layer.name)
+        assert conv.size_out == np.prod(layer.output_shape[1:])
+        return conv
+
+    def _add_local2d_layer(self, layer):
+        raise NotImplementedError()
+        assert layer.activation is keras.activations.linear
 
     def _add_pool2d_layer(self, layer, kind=None):
         shape_in = layer.input_shape[1:]
