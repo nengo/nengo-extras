@@ -11,10 +11,7 @@ from nengo_extras.data import load_ilsvrc2012, spasafe_names
 from nengo_extras.cuda_convnet import CudaConvnetNetwork, load_model_pickle
 from nengo_extras.gui import image_display_function
 
-# retrieve from https://figshare.com/s/cdde71007405eb11a88f
-filename = 'ilsvrc-2012-batches-test3.tar.gz'
-X_test, Y_test, data_mean, label_names = load_ilsvrc2012(filename, n_files=1)
-
+X_test, Y_test, data_mean, label_names = load_ilsvrc2012(n_files=1)
 X_test = X_test.astype('float32')
 
 # crop data
