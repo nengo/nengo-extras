@@ -8,8 +8,10 @@ urlretrieve = urllib.urlretrieve if PY2 else urllib.request.urlretrieve
 
 if PY2:
     from cStringIO import StringIO  # noqa: F401
+    import Queue as queue  # noqa: F401
 else:
     from io import StringIO  # noqa: F401
+    import queue  # noqa: F401
 
 
 def cmp(a, b):  # same as python2's builtin cmp, not available in python3
