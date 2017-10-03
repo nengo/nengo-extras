@@ -24,11 +24,11 @@ class SimThread(threading.Thread):
 
 def test_send_recv_chain(Simulator, plt, seed, rng):
     # Model that sends data
-    udp_send = sockets.UDPSocket(dest_port=54321, send_dim=1)
+    udp_send = sockets.UDPSendSocket(dest_port=54321, send_dims=1)
     m_send = nengo.Network(label='Send', seed=seed)
     with m_send:
         input = nengo.Node(output=lambda t: np.sin(10 * t))
-        socket_node = nengo.Node(size_in=1, output=udp_send.run)
+        socket_node = nengo.Node(size_in=1, output=udp_send)
 
         nengo.Connection(input, socket_node, synapse=None)
         p_s = nengo.Probe(input, synapse=None)
@@ -36,22 +36,23 @@ def test_send_recv_chain(Simulator, plt, seed, rng):
 
     # Model that receives data from previous model, feeds data back to itself,
     # and sends that data out again
-    udp_both = sockets.UDPSocket(dest_port=54322, local_port=54321,
-                                 send_dim=1, recv_dim=1, socket_timeout=1)
+    udp_both = sockets.UDPSendReceiveSocket(
+        dest_port=54322, local_port=54321,
+        send_dims=1, recv_dims=1, socket_timeout=1)
     m_both = nengo.Network(label='Both', seed=seed)
     with m_both:
-        socket_node = nengo.Node(size_in=1, output=udp_both.run)
+        socket_node = nengo.Node(size_in=1, output=udp_both)
 
         nengo.Connection(socket_node, socket_node, synapse=0)
         p_b = nengo.Probe(socket_node, synapse=None)
     sim_both = Simulator(m_both)
 
     # Model that receives data from previous model
-    udp_recv = sockets.UDPSocket(local_port=54322, recv_dim=1,
-                                 socket_timeout=1)
+    udp_recv = sockets.UDPReceiveSocket(
+        local_port=54322, recv_dims=1, socket_timeout=1)
     m_recv = nengo.Network(label='Recv', seed=seed)
     with m_recv:
-        socket_node = nengo.Node(output=udp_recv.run)
+        socket_node = nengo.Node(output=udp_recv)
         p_r = nengo.Probe(socket_node, synapse=None)
     sim_recv = Simulator(m_recv)
 
@@ -68,11 +69,6 @@ def test_send_recv_chain(Simulator, plt, seed, rng):
     sim_thread_send.join()
     sim_thread_both.join()
     sim_thread_recv.join()
-
-    # Cleanup sockets
-    udp_send.close()
-    udp_both.close()
-    udp_recv.close()
 
     # Do plots
     plt.subplot(3, 1, 1)
@@ -93,12 +89,13 @@ def test_send_recv_chain(Simulator, plt, seed, rng):
 
 
 def test_time_sync(Simulator, plt, seed, rng):
-    udp1 = sockets.UDPSocket(dest_port=54322, local_port=54321,
-                             send_dim=1, recv_dim=2, socket_timeout=1)
+    udp1 = sockets.UDPSendReceiveSocket(
+        dest_port=54322, local_port=54321,
+        send_dims=1, recv_dims=2, socket_timeout=1)
     m1 = nengo.Network(label='One', seed=seed)
     with m1:
         input = nengo.Node(output=lambda t: np.sin(10 * t))
-        socket_node = nengo.Node(size_in=1, output=udp1.run)
+        socket_node = nengo.Node(size_in=1, output=udp1)
 
         nengo.Connection(input, socket_node, synapse=None)
         p_i1 = nengo.Probe(input, synapse=None)
@@ -106,12 +103,13 @@ def test_time_sync(Simulator, plt, seed, rng):
     sim1 = Simulator(m1)
 
     # Model that receives data from previous model
-    udp2 = sockets.UDPSocket(dest_port=54321, local_port=54322,
-                             send_dim=2, recv_dim=1, socket_timeout=1)
+    udp2 = sockets.UDPSendReceiveSocket(
+        dest_port=54321, local_port=54322,
+        send_dims=2, recv_dims=1, socket_timeout=1)
     m2 = nengo.Network(label='Two', seed=seed)
     with m2:
         input = nengo.Node(output=lambda t: [np.cos(10 * t), t])
-        socket_node = nengo.Node(size_in=2, output=udp2.run)
+        socket_node = nengo.Node(size_in=2, output=udp2)
 
         nengo.Connection(input, socket_node, synapse=None)
         p_i2 = nengo.Probe(input, synapse=None)
@@ -126,9 +124,6 @@ def test_time_sync(Simulator, plt, seed, rng):
     sim_thread1.join()
     sim_thread2.join()
 
-    # Cleanup sockets
-    udp1.close()
-    udp2.close()
 
     # Do plots
     plt.subplot(4, 1, 1)
