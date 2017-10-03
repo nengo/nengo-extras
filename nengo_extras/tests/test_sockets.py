@@ -124,7 +124,6 @@ def test_time_sync(Simulator, plt, seed, rng):
     sim_thread1.join()
     sim_thread2.join()
 
-
     # Do plots
     plt.subplot(4, 1, 1)
     plt.plot(sim1.trange(), sim1.data[p_i1])
