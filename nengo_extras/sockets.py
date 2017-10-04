@@ -43,9 +43,6 @@ class SocketCloseThread(threading.Thread):
         self.timeout = timeout_min
         self.stopped = False
 
-    def delay(self):
-        self.timeout = self.timeout_max
-
     def keepalive(self):
         self.last_active = default_timer()
         # Decay timeout toward min if we're being kept alive
