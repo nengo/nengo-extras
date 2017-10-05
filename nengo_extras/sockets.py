@@ -10,7 +10,7 @@ from nengo.exceptions import ValidationError
 
 
 class _UDPSocket(object):
-    def __init__(self, host, port, dims, byte_order, recv_timeout=0):
+    def __init__(self, host, port, dims, byte_order, timeout=0):
         self.host = host
         self.port = port
         self.dims = dims
@@ -21,7 +21,7 @@ class _UDPSocket(object):
         if byte_order not in "<>=":
             raise ValidationError("Must be one of '<', '>', '=', 'little', "
                                   "'big'.", attr="byte_order")
-        self.recv_timeout = recv_timeout
+        self.timeout = timeout
 
         # + 1 is for time
         self.value = np.zeros(dims + 1, dtype="%sf8" % byte_order)
