@@ -2,67 +2,11 @@ from __future__ import absolute_import
 
 import errno
 import socket
-import threading
 import time
-import warnings
-from timeit import default_timer
 
 import nengo
 import numpy as np
 from nengo.exceptions import ValidationError
-
-
-class SocketCloseThread(threading.Thread):
-    """Checks for inactivity, and closes if not kept alive.
-
-    A class using this thread should call the ``keepalive`` method regularly
-    to ensure that the thread does not time out.
-
-    The timeout value starts at the maximum, and decays every time the
-    ``keepalive`` method is called.
-
-    Parameters
-    ----------
-    timeout_min : float
-        The minimum number of seconds before the thread times out.
-    timeout_max : float
-        The maximum number of seconds before the thread times out.
-    close_func : function
-        The function to call when the thread times out.
-    """
-
-    def __init__(self, timeout_min, timeout_max, close_func):
-        super(SocketCloseThread, self).__init__()
-        self.daemon = True
-
-        self.timeout_min = timeout_min
-        self.timeout_max = timeout_max
-        self.close_func = close_func
-
-        self.last_active = default_timer()
-        self.timeout = timeout_min
-        self.stopped = False
-
-    def keepalive(self):
-        self.last_active = default_timer()
-        # Decay timeout toward min if we're being kept alive
-        self.timeout = max(self.timeout_min, self.timeout * 0.9)
-
-    def reset_timeout(self):
-        self.timeout = self.timeout_max
-
-    def run(self):
-        # Keep checking if the socket class is still being used.
-        while default_timer() - self.last_active < self.timeout:
-            time.sleep(self.timeout * 0.5)
-        # If the socket class is idle, terminate the sockets
-        self.close_func()
-
-    def stop(self):
-        if not self.stopped:
-            self.stopped = True
-            self.last_active = 0
-            self.join()
 
 
 class _UDPSocket(object):
@@ -70,7 +14,7 @@ class _UDPSocket(object):
     MIN_BACKOFF = 0.1
     MAX_BACKOFF = 10
 
-    def __init__(self, host, port, dims, byte_order, timeout=(0, 0)):
+    def __init__(self, host, port, dims, byte_order, recv_timeout=0):
         self.host = host
         self.port = port
         self.dims = dims
@@ -81,13 +25,12 @@ class _UDPSocket(object):
         if byte_order not in "<>=":
             raise ValidationError("Must be one of '<', '>', '=', 'little', "
                                   "'big'.", attr="byte_order")
-        self.timeout = timeout  # (0, 0) means no timeout
+        self.recv_timeout = recv_timeout
         self.backoff = self.MIN_BACKOFF  # Used for reopening connections
 
         # + 1 is for time
         self.value = np.zeros(dims + 1, dtype="%sf8" % byte_order)
         self._socket = None
-        self._thread = None
 
     @property
     def closed(self):
@@ -102,9 +45,6 @@ class _UDPSocket(object):
             self._socket.shutdown(socket.SHUT_RDWR)
             self._socket.close()
             self._socket = None
-        if self._thread is not None:
-            self._thread.stop()
-            self._thread = None
 
     def keepalive(self):
         self.thread.keepalive()
@@ -112,23 +52,15 @@ class _UDPSocket(object):
     def open(self):
         assert self.closed, "Socket already open"
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        if self.timeout != (0, 0):
-            self._socket.settimeout(self.timeout[1])
+        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if self.timeout != 0:
+            self._socket.settimeout(self.timeout)
         self._socket.bind((self.host, self.port))
-
-        if self.timeout != (0, 0):
-            # Start the auto close thread
-            self._thread = SocketCloseThread(
-                *self.timeout, close_func=self.close)
-            self._thread.start()
 
     def recv(self):
         self.socket.recv_into(self.value.data)
         # Decay backoff if we get here without erroring
         self.backoff = max(self.MIN_BACKOFF, self.backoff * 0.5)
-
-    def reset_timeout(self):
-        self.thread.reset_timeout()
 
     def reopen(self):
         self.close()
@@ -150,7 +82,7 @@ class _UDPSocket(object):
 class SocketStep(object):
 
     def __init__(self, send=None, recv=None,
-                 thread_timeout=1, dt_remote=0, ignore_timestamp=False):
+                 dt_remote=0, ignore_timestamp=False):
         self.send_socket = send
         self.recv_socket = recv
         self.dt_remote = dt_remote
@@ -212,19 +144,11 @@ class SocketStep(object):
                 if self.recv_socket.t >= t or self.ignore_timestamp:
                     break
             except (socket.error, AttributeError) as err:
-                # A socket error has occurred, usually a timeout.
-                # Reset the socket's timeout so we don't close it yet.
-                self.recv_socket.reset_timeout()
-
                 # Then assume the packet is lost and continue.
                 if isinstance(err, socket.timeout):
                     return
-
-                # If the connection was reset or closed by the thread,
-                # make the connection again and try to get the next value.
-                warnings.warn("UDPSocket error at t=%g: %s" % (t, err))
-                if hasattr(err, 'errno') and err.errno == errno.ECONNRESET:
-                    self.recv_socket.reopen()
+                else:
+                    raise
 
         # If we get here, then we've got a value from the socket
         if self.ignore_timestamp or t <= self.recv_socket.t < t + self.dt:
@@ -261,8 +185,6 @@ class UDPReceiveSocket(nengo.Process):
         '=' uses the system default.
     socket_timeout : float, optional (Default: 30)
         How long a socket waits before throwing an inactivity exception.
-    thread_timeout : float, optional (Default: 1)
-        How long a recv socket can be inactive before being closed.
 
     Examples
     --------
@@ -276,16 +198,15 @@ class UDPReceiveSocket(nengo.Process):
     Other Nengo model elements can then be connected to the node.
     """
     def __init__(self, recv_dims, local_port, local_addr='127.0.0.1',
-                 byte_order="=", socket_timeout=30, thread_timeout=1):
+                 byte_order="=", socket_timeout=30):
         self.recv = _UDPSocket(local_addr, local_port, recv_dims, byte_order,
-                               timeout=(thread_timeout, socket_timeout))
-        self.thread_timeout = thread_timeout
+                               recv_timeout=socket_timeout)
         super(UDPReceiveSocket, self).__init__(
             default_size_out=self.recv.dims, default_size_in=0)
 
     def make_step(self, shape_in, shape_out, dt, rng):
         assert shape_out == (self.recv.dims,)
-        return SocketStep(recv=self.recv, thread_timeout=self.thread_timeout)
+        return SocketStep(recv=self.recv)
 
 
 class UDPSendSocket(nengo.Process):
@@ -356,8 +277,6 @@ class UDPSendReceiveSocket(nengo.Process):
         '=' uses the system default.
     socket_timeout : float, optional (Default: 30)
         How long a socket waits before throwing an inactivity exception.
-    thread_timeout : float, optional (Default: 1)
-        How long a recv socket can be inactive before being closed.
 
     Examples
     --------
@@ -391,14 +310,13 @@ class UDPSendReceiveSocket(nengo.Process):
     def __init__(self, recv_dims, send_dims, local_port, dest_port,
                  local_addr='127.0.0.1', dest_addr='127.0.0.1',
                  dt_remote=0, ignore_timestamp=False,
-                 byte_order="=", socket_timeout=30, thread_timeout=1):
+                 byte_order="=", socket_timeout=30):
         self.recv = _UDPSocket(local_addr, local_port, recv_dims, byte_order,
-                               timeout=(thread_timeout, socket_timeout))
+                               recv_timeout=socket_timeout)
         self.send = _UDPSocket(dest_addr, dest_port, send_dims, byte_order)
         self.dt_remote = dt_remote
         self.ignore_timestamp = ignore_timestamp
         self.byte_order = byte_order
-        self.thread_timeout = thread_timeout
         super(UDPSendReceiveSocket, self).__init__(
             default_size_in=self.send.dims, default_size_out=self.recv.dims)
 
@@ -408,5 +326,4 @@ class UDPSendReceiveSocket(nengo.Process):
         return SocketStep(send=self.send,
                           recv=self.recv,
                           ignore_timestamp=self.ignore_timestamp,
-                          thread_timeout=self.thread_timeout,
                           dt_remote=self.dt_remote)
