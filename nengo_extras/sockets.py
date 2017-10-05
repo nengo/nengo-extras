@@ -37,7 +37,6 @@ class _UDPSocket(object):
 
     def close(self):
         if self._socket is not None:
-            self._socket.shutdown(socket.SHUT_RDWR)
             self._socket.close()
             self._socket = None
 
