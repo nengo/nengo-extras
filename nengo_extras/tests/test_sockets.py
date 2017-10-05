@@ -1,7 +1,9 @@
 import threading
-import numpy as np
+import sys
 
 import nengo
+import numpy as np
+
 from nengo_extras import sockets
 
 
@@ -12,14 +14,23 @@ class SimThread(threading.Thread):
         self.sim_time = sim_time
         self.lock = lock
         self.wait = wait
+        self.exc_info = None
 
     def run(self):
-        if self.lock is not None:
-            if self.wait:
-                self.lock.wait()
-            else:
-                self.lock.set()
-        self.sim.run(self.sim_time)
+        try:
+            if self.lock is not None:
+                if self.wait:
+                    self.lock.wait()
+                else:
+                    self.lock.set()
+            self.sim.run(self.sim_time)
+        except Exception:
+            self.exc_info = sys.exc_info()
+
+    def join(self):
+        super(SimThread, self).join()
+        if self.exc_info is not None:
+            raise self.exc_info[1].with_traceback(self.exc_info[2])
 
 
 def test_send_recv_chain(Simulator, plt, seed, rng):
