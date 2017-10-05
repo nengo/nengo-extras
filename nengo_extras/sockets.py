@@ -49,10 +49,10 @@ class _UDPSocket(object):
         self._socket.bind((self.host, self.port))
 
     def recv(self):
-        self.socket.recv_into(self.value.data)
+        self._socket.recv_into(self.value.data)
 
     def send(self):
-        self.socket.send(self.value.tobytes())
+        self._socket.sendto(self.value.tobytes(), (self.host, self.port))
 
 
 class SocketStep(object):
