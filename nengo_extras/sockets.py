@@ -170,16 +170,21 @@ class UDPReceiveSocket(nengo.Process):
 
     Other Nengo model elements can then be connected to the node.
     """
-    def __init__(self, recv_dims, local_port, local_addr='127.0.0.1',
-                 byte_order="=", socket_timeout=30):
-        self.recv = _UDPSocket(local_addr, local_port, recv_dims, byte_order,
-                               recv_timeout=socket_timeout)
-        super(UDPReceiveSocket, self).__init__(
-            default_size_out=self.recv.dims, default_size_in=0)
+    # NOTE ignore timestamp?
+    def __init__(self, local_port, local_addr='127.0.0.1',
+                 byte_order="=", recv_timeout=30):
+        super(UDPReceiveSocket, self).__init__(default_size_in=0)
+        self.local_port = local_port
+        self.local_addr = local_addr
+        self.byte_order = byte_order
+        self.recv_timeout = recv_timeout
 
     def make_step(self, shape_in, shape_out, dt, rng):
-        assert shape_out == (self.recv.dims,)
-        return SocketStep(recv=self.recv)
+        assert len(shape_out) == 1
+        recv = _UDPSocket(
+            self.local_addr, self.local_port, shape_out[0], self.byte_order,
+            recv_timeout=self.recv_timeout)
+        return SocketStep(recv=recv)
 
 
 class UDPSendSocket(nengo.Process):
@@ -209,15 +214,17 @@ class UDPSendSocket(nengo.Process):
 
     Other Nengo model elements can then be connected to the node.
     """
-    def __init__(self, send_dims, dest_port,
-                 dest_addr='127.0.0.1', byte_order="="):
-        self.send = _UDPSocket(dest_addr, dest_port, send_dims, byte_order)
-        super(UDPSendSocket, self).__init__(
-            default_size_in=self.send.dims, default_size_out=0)
+    def __init__(self, dest_port, dest_addr='127.0.0.1', byte_order="="):
+        super(UDPSendSocket, self).__init__(default_size_out=0)
+        self.dest_port = dest_port
+        self.dest_addr = dest_addr
+        self.byte_order = byte_order
 
     def make_step(self, shape_in, shape_out, dt, rng):
-        assert shape_in == (self.send.dims,)
-        return SocketStep(send=self.send)
+        assert len(shape_in) == 1
+        send = _UDPSocket(
+            self.dest_addr, self.dest_port, shape_in[0], self.byte_order)
+        return SocketStep(send=send)
 
 
 class UDPSendReceiveSocket(nengo.Process):
@@ -280,23 +287,29 @@ class UDPSendReceiveSocket(nengo.Process):
 
     The nodes can then be connected to other Nengo model elements.
     """
-    def __init__(self, recv_dims, send_dims, local_port, dest_port,
+    def __init__(self, local_port, dest_port,
                  local_addr='127.0.0.1', dest_addr='127.0.0.1',
-                 dt_remote=0, ignore_timestamp=False,
-                 byte_order="=", socket_timeout=30):
-        self.recv = _UDPSocket(local_addr, local_port, recv_dims, byte_order,
-                               recv_timeout=socket_timeout)
-        self.send = _UDPSocket(dest_addr, dest_port, send_dims, byte_order)
+                 dt_remote=0., ignore_timestamp=False,
+                 byte_order="=", recv_timeout=1.):
+        super(UDPSendReceiveSocket, self).__init__()
+        self.local_port = local_port
+        self.dest_port = dest_port
+        self.local_addr = local_addr
+        self.dest_addr = dest_addr
         self.dt_remote = dt_remote
         self.ignore_timestamp = ignore_timestamp
         self.byte_order = byte_order
-        super(UDPSendReceiveSocket, self).__init__(
-            default_size_in=self.send.dims, default_size_out=self.recv.dims)
+        self.recv_timeout = recv_timeout
 
     def make_step(self, shape_in, shape_out, dt, rng):
-        assert shape_in == (self.send.dims,)
-        assert shape_out == (self.recv.dims,)
-        return SocketStep(send=self.send,
-                          recv=self.recv,
-                          ignore_timestamp=self.ignore_timestamp,
-                          dt_remote=self.dt_remote)
+        assert len(shape_in) == 1
+        assert len(shape_out) == 1
+        recv = _UDPSocket(
+            self.local_addr, self.local_port, shape_in[0], self.byte_order,
+            recv_timeout=self.recv_timeout)
+        send = _UDPSocket(
+            self.dest_addr, self.dest_port, shape_out[0], self.byte_order)
+        return SocketStep(
+            send=send, recv=recv,
+            ignore_timestamp=self.ignore_timestamp,
+            dt_remote=self.dt_remote)
