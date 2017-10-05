@@ -10,10 +10,6 @@ from nengo.exceptions import ValidationError
 
 
 class _UDPSocket(object):
-
-    MIN_BACKOFF = 0.1
-    MAX_BACKOFF = 10
-
     def __init__(self, host, port, dims, byte_order, recv_timeout=0):
         self.host = host
         self.port = port
@@ -26,7 +22,6 @@ class _UDPSocket(object):
             raise ValidationError("Must be one of '<', '>', '=', 'little', "
                                   "'big'.", attr="byte_order")
         self.recv_timeout = recv_timeout
-        self.backoff = self.MIN_BACKOFF  # Used for reopening connections
 
         # + 1 is for time
         self.value = np.zeros(dims + 1, dtype="%sf8" % byte_order)
@@ -46,9 +41,6 @@ class _UDPSocket(object):
             self._socket.close()
             self._socket = None
 
-    def keepalive(self):
-        self.thread.keepalive()
-
     def open(self):
         assert self.closed, "Socket already open"
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -59,24 +51,9 @@ class _UDPSocket(object):
 
     def recv(self):
         self.socket.recv_into(self.value.data)
-        # Decay backoff if we get here without erroring
-        self.backoff = max(self.MIN_BACKOFF, self.backoff * 0.5)
-
-    def reopen(self):
-        self.close()
-        while self.closed:
-            time.sleep(self.backoff)
-            try:
-                self.open()
-            except socket.error:
-                self.close()  # Make sure socket is shut down
-                # Raise backoff time and retry
-                self.backoff = min(self.MAX_BACKOFF, self.backoff * 2)
 
     def send(self):
         self.socket.send(self.value.tobytes())
-        # Decay backoff if we get here without erroring
-        self.backoff = max(self.MIN_BACKOFF, self.backoff * 0.5)
 
 
 class SocketStep(object):
@@ -126,8 +103,6 @@ class SocketStep(object):
             self.recv_socket.close()
 
     def recv(self, t):
-        self.recv_socket.keepalive()
-
         # First, check if the last value we received is valid.
         if t <= self.recv_socket.t < t + self.dt:
             # If so, use it
@@ -157,8 +132,6 @@ class SocketStep(object):
         # Otherwise, the next value will be used on the next timestep instead
 
     def send(self, t, x):
-        self.send_socket.keepalive()
-
         # Calculate if it is time to send the next packet.
         # Ideal time to send is the last sent time + dt_remote, and we
         # want to find out if current or next local time step is closest.
