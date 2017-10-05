@@ -184,6 +184,7 @@ class UDPReceiveSocket(nengo.Process):
         recv = _UDPSocket(
             self.local_addr, self.local_port, shape_out[0], self.byte_order,
             recv_timeout=self.recv_timeout)
+        recv.open()
         return SocketStep(recv=recv)
 
 
@@ -224,6 +225,7 @@ class UDPSendSocket(nengo.Process):
         assert len(shape_in) == 1
         send = _UDPSocket(
             self.dest_addr, self.dest_port, shape_in[0], self.byte_order)
+        send.open()
         return SocketStep(send=send)
 
 
@@ -307,8 +309,10 @@ class UDPSendReceiveSocket(nengo.Process):
         recv = _UDPSocket(
             self.local_addr, self.local_port, shape_in[0], self.byte_order,
             recv_timeout=self.recv_timeout)
+        recv.open()
         send = _UDPSocket(
             self.dest_addr, self.dest_port, shape_out[0], self.byte_order)
+        send.open()
         return SocketStep(
             send=send, recv=recv,
             ignore_timestamp=self.ignore_timestamp,
