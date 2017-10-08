@@ -75,6 +75,7 @@ class _SendUDPSocket(_AbstractUDPSocket):
 
 
 class SocketStep(object):
+    """Handles the step for socket processes."""
 
     def __init__(self, dt, send=None, recv=None,
                  remote_dt=None, loss_limit=None, ignore_timestamp=False):
@@ -155,12 +156,23 @@ class SocketStep(object):
         # Calculate if it is time to send the next packet.
         # Ideal time to send is the last sent time + remote_dt, and we
         # want to find out if current or next local time step is closest.
-        if np.isnan(self.send_socket.t) or (t + self.dt / 2.) >= (self.send_socket.t + self.remote_dt):
+        if (np.isnan(self.send_socket.t) or
+                (t + self.dt / 2.) >= (self.send_socket.t + self.remote_dt)):
             self.send_socket.send(t, x)
 
 
 class UDPReceiveSocket(nengo.Process):
     """A process for receiving data from a UDP socket in a Nengo model.
+
+    The *size_out* attributes of the `nengo.Node` using this
+    process determines the dimensions of the received data.
+
+    The incoming UDP packets are expected to start with the timestep followed
+    by the values for that timestep. Each value should be encoded as 8-byte
+    floating point number.
+
+    A packet will be used if its timestep is within within a window with the
+    width of *remote_dt* centered around the current time.
 
     Parameters
     ----------
@@ -219,6 +231,13 @@ class UDPReceiveSocket(nengo.Process):
 class UDPSendSocket(nengo.Process):
     """A process for sending data from a Nengo model through a UDP socket.
 
+    The *size_in* attributes of the `nengo.Node` using this
+    process determines the dimensions of the sent data.
+
+    The outgoing UDP packets are will start with the timestep followed
+    by the values for that timestep. Each value will be encoded as 8-byte
+    floating point number.
+
     Parameters
     ----------
     remote_addr : tuple
@@ -261,6 +280,13 @@ class UDPSendReceiveSocket(nengo.Process):
 
     The *size_in* and *size_out* attributes of the `nengo.Node` using this
     process determines the dimensions of the sent and received data.
+
+    The incoming UDP packets are expected to start with the timestep followed
+    by the values for that timestep. Each value should be encoded as 8-byte
+    floating point number. The outgoing packets follow the same format.
+
+    A received packet will be used if its timestep is within within a window
+    with the width of *remote_dt* centered around the current time.
 
     Parameters
     ----------
