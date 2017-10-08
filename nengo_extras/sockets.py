@@ -139,10 +139,10 @@ class SocketStep(object):
             self._update_value()
 
         # Wait for packet that is not timestamped in the past
-        while self.recv_socket.t < t:
+        while self.recv_socket.t < t - self.dt / 2.:
             self.recv_socket.recv()
             # Use value if more recent and not in the future
-            if self.value_t < self.recv_socket.t < t + self.dt:
+            if self.value_t < self.recv_socket.t < t + self.dt / 2.:
                 self._update_value()
 
     def _update_value(self):
@@ -153,7 +153,7 @@ class SocketStep(object):
         # Calculate if it is time to send the next packet.
         # Ideal time to send is the last sent time + dt_remote, and we
         # want to find out if current or next local time step is closest.
-        if np.isnan(self.send_socket.t) or (t + self.dt * 0.5) >= (self.send_socket.t + self.dt_remote):
+        if np.isnan(self.send_socket.t) or (t + self.dt / 2.) >= (self.send_socket.t + self.dt_remote):
             self.send_socket.send(t, x)
 
 
