@@ -9,6 +9,14 @@ import pytest
 from nengo_extras import sockets
 
 
+# FIXME remove hard coded ports
+# As the specified ports might already be use on a system, tests could fail
+# unexpectedly. By specifying a port of 0, a free port can be chosen
+# automatically, but this requires a route to obtain the value of
+# socket.getsockname(). As it is unlikely that the exact ports are already in
+# use, this is not a high priority problem.
+
+
 class UDPSocketMock(sockets._AbstractUDPSocket):
     def __init__(self, dims):
         super(UDPSocketMock, self).__init__(None, dims, '=')

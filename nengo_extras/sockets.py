@@ -9,6 +9,20 @@ import numpy as np
 from nengo.exceptions import ValidationError
 
 
+# FIXME close sockets when simulator is closed, remove SO_REUSEPORT
+# Currently Nengo does not provide a mechanism for this, thus we allow to
+# reuse ports currently to avoid problems with addresses already in use (that
+# would especially occur in the GUI).
+
+# TODO better handling of shuffled packets
+# If packets get shuffled during transmission, we only keep the first packet
+# with a future timestamp and drop all packets with an earlier timestamp if they
+# arrive after that packet. Those might still be usable if the current
+# simulation time does not exceed the timestamp of those packages. This could
+# probably be solved with a priority queue (Python module heapq) to insert
+# future packages.
+
+
 class _AbstractUDPSocket(object):
     def __init__(self, addr, dims, byte_order):
         self.addr = addr
@@ -108,6 +122,10 @@ class SocketStep(object):
         if t <= 0.:  # Nengo calling this function to figure out output size
             return self.value
 
+        # Send must happen before receive to avoid deadlock situations, i.e.
+        # if both ends tried to receive first, both would block. Even with
+        # a timeout, the timestamps would not align to the expected timestamps
+        # anymore.
         if self.send_socket is not None:
             assert x is not None, "A sender must receive input"
             self.send(t, x)
@@ -145,7 +163,7 @@ class SocketStep(object):
         while self.recv_socket.t <= t - self.remote_dt / 2.:
             self.recv_socket.recv()
 
-        # Use value if more recent and not in the future
+        # Use value if not in the future
         if self.recv_socket.t <= t + self.remote_dt / 2.:
             self._update_value()
 
