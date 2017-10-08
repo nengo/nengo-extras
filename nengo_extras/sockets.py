@@ -120,6 +120,11 @@ class SocketStep(object):
             self.recv_socket.close()
 
     def recv(self, t):
+        if self.ignore_timestamp:
+            self.recv_socket.recv()
+            self.value = self.recv_socket.x
+            return
+
         # First, check if the last value we received is valid.
         if t <= self.recv_socket.t < t + self.dt:
             # If so, use it
@@ -133,7 +138,7 @@ class SocketStep(object):
         while True:
             try:
                 self.recv_socket.recv()
-                if self.recv_socket.t >= t or self.ignore_timestamp:
+                if self.recv_socket.t >= t:
                     break
             except socket.error as err:
                 # Then assume the packet is lost and continue.
@@ -143,7 +148,7 @@ class SocketStep(object):
                     raise
 
         # If we get here, then we've got a value from the socket
-        if self.ignore_timestamp or t <= self.recv_socket.t < t + self.dt:
+        if t <= self.recv_socket.t < t + self.dt:
             # The next value is valid; use it
             self.value = self.recv_socket.x
         # Otherwise, the next value will be used on the next timestep instead
