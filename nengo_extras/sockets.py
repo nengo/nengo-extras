@@ -9,10 +9,9 @@ import numpy as np
 from nengo.exceptions import ValidationError
 
 
-class _UDPSocket(object):
-    def __init__(self, host, port, dims, byte_order, bind=False, timeout=0):
-        self.host = host
-        self.port = port
+class _AbstractUDPSocket(object):
+    def __init__(self, addr, dims, byte_order):
+        self.addr = addr
         self.dims = dims
         if byte_order == "little":
             byte_order = "<"
@@ -21,40 +20,57 @@ class _UDPSocket(object):
         if byte_order not in "<>=":
             raise ValidationError("Must be one of '<', '>', '=', 'little', "
                                   "'big'.", attr="byte_order")
-        self.bind = bind
-        self.timeout = timeout
+        self.byte_order = byte_order
 
-        # + 1 is for time
-        self.value = np.zeros(dims + 1, dtype="%sf8" % byte_order)
+        self._buffer = np.zeros(dims + 1, dtype="%sf8" % byte_order)
         self._socket = None
+
+    @property
+    def t(self):
+        return self._buffer[0]
+
+    @property
+    def x(self):
+        return self._buffer[1:]
 
     @property
     def closed(self):
         return self._socket is None
 
-    @property
-    def t(self):
-        return self.value[0]
+    def open(self):
+        raise NotImplementedError()
 
     def close(self):
-        if self._socket is not None:
+        if not self.closed:
             self._socket.close()
             self._socket = None
 
+
+class _RecvUDPSocket(_AbstractUDPSocket):
+    def __init__(self, addr, dims, byte_order, timeout=None):
+        super(_RecvUDPSocket, self).__init__(addr, dims, byte_order)
+        self.timeout = timeout
+
     def open(self):
-        assert self.closed, "Socket already open"
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-        if self.timeout != 0:
+        if self.timeout is not None:
             self._socket.settimeout(self.timeout)
-        if self.bind:
-            self._socket.bind((self.host, self.port))
+        self._socket.bind(self.addr)
 
     def recv(self):
-        self._socket.recv_into(self.value.data)
+        self._socket.recv_into(self._buffer.data)
 
-    def send(self):
-        self._socket.sendto(self.value.tobytes(), (self.host, self.port))
+
+class _SendUDPSocket(_AbstractUDPSocket):
+    def open(self):
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
+    def send(self, t, x):
+        self._buffer[0] = t
+        self._buffer[1:] = x
+        self._socket.sendto(self._buffer.tobytes(), self.addr)
 
 
 class SocketStep(object):
@@ -107,7 +123,7 @@ class SocketStep(object):
         # First, check if the last value we received is valid.
         if t <= self.recv_socket.t < t + self.dt:
             # If so, use it
-            self.value = self.recv_socket.value[1:]
+            self.value = self.recv_socket.x
             return
         elif self.recv_socket.t >= t + self.dt:
             # If it's still too far in the future, wait
@@ -129,7 +145,7 @@ class SocketStep(object):
         # If we get here, then we've got a value from the socket
         if self.ignore_timestamp or t <= self.recv_socket.t < t + self.dt:
             # The next value is valid; use it
-            self.value = self.recv_socket.value[1:]
+            self.value = self.recv_socket.x
         # Otherwise, the next value will be used on the next timestep instead
 
     def send(self, t, x):
@@ -137,9 +153,7 @@ class SocketStep(object):
         # Ideal time to send is the last sent time + dt_remote, and we
         # want to find out if current or next local time step is closest.
         if (t + self.dt * 0.5) >= (self.send_socket.t + self.dt_remote):
-            self.send_socket.value[0] = t
-            self.send_socket.value[1:] = x
-            self.send_socket.send()
+            self.send_socket.send(t, x)
 
 
 class UDPReceiveSocket(nengo.Process):
@@ -173,7 +187,7 @@ class UDPReceiveSocket(nengo.Process):
     """
     # NOTE ignore timestamp?
     def __init__(self, local_port, local_addr='127.0.0.1',
-                 byte_order="=", bind=True, recv_timeout=30):
+                 byte_order="=", recv_timeout=30):
         super(UDPReceiveSocket, self).__init__(default_size_in=0)
         self.local_port = local_port
         self.local_addr = local_addr
@@ -182,9 +196,8 @@ class UDPReceiveSocket(nengo.Process):
 
     def make_step(self, shape_in, shape_out, dt, rng):
         assert len(shape_out) == 1
-        recv = _UDPSocket(
-            self.local_addr, self.local_port, shape_out[0], self.byte_order,
-            bind=True,
+        recv = _RecvUDPSocket(
+            (self.local_addr, self.local_port), shape_out[0], self.byte_order,
             timeout=self.recv_timeout)
         recv.open()
         return SocketStep(recv=recv)
@@ -225,8 +238,8 @@ class UDPSendSocket(nengo.Process):
 
     def make_step(self, shape_in, shape_out, dt, rng):
         assert len(shape_in) == 1
-        send = _UDPSocket(
-            self.dest_addr, self.dest_port, shape_in[0], self.byte_order)
+        send = _SendUDPSocket(
+            (self.dest_addr, self.dest_port), shape_in[0], self.byte_order)
         send.open()
         return SocketStep(send=send)
 
@@ -308,13 +321,12 @@ class UDPSendReceiveSocket(nengo.Process):
     def make_step(self, shape_in, shape_out, dt, rng):
         assert len(shape_in) == 1
         assert len(shape_out) == 1
-        recv = _UDPSocket(
-            self.local_addr, self.local_port, shape_out[0], self.byte_order,
-            bind=True,
+        recv = _RecvUDPSocket(
+            (self.local_addr, self.local_port), shape_out[0], self.byte_order,
             timeout=self.recv_timeout)
         recv.open()
-        send = _UDPSocket(
-            self.dest_addr, self.dest_port, shape_in[0], self.byte_order)
+        send = _SendUDPSocket(
+            (self.dest_addr, self.dest_port), shape_in[0], self.byte_order)
         send.open()
         return SocketStep(
             send=send, recv=recv,
