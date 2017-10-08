@@ -205,7 +205,7 @@ class UDPReceiveSocket(nengo.Process):
     ignore_timestamp : boolean, optional (Default: False)
         If True, uses the most recently received value from the recv socket,
         even if that value comes at an earlier or later timestep.
-    recv_timeout : float, optional (Default: 0.)
+    recv_timeout : float, optional (Default: 0.1)
         Maximum time to wait for new data each timestep.
     loss_limit: float, optional (Default: None)
         If not *None*, the maximum number of consecutive timeouts on receive
@@ -227,7 +227,7 @@ class UDPReceiveSocket(nengo.Process):
     Other Nengo model elements can then be connected to the node.
     """
     def __init__(self, listen_addr, remote_dt=None, ignore_timestamp=False,
-                 recv_timeout=30, loss_limit=0, byte_order='='):
+                 recv_timeout=0.1, loss_limit=0, byte_order='='):
         super(UDPReceiveSocket, self).__init__(default_size_in=0)
         self.listen_addr = listen_addr
         self.remote_dt = remote_dt
@@ -321,7 +321,7 @@ class UDPSendReceiveSocket(nengo.Process):
     ignore_timestamp : boolean, optional (Default: False)
         If True, uses the most recently received value from the recv socket,
         even if that value comes at an earlier or later timestep.
-    recv_timeout : float, optional (Default: 0.)
+    recv_timeout : float, optional (Default: 0.1)
         Maximum time to wait for new data each timestep.
     loss_limit: float, optional (Default: None)
         If not *None*, the maximum number of consecutive timeouts on receive
@@ -361,7 +361,7 @@ class UDPSendReceiveSocket(nengo.Process):
     """
     def __init__(
             self, listen_addr, remote_addr, remote_dt=None,
-            ignore_timestamp=False, recv_timeout=0., loss_limit=None,
+            ignore_timestamp=False, recv_timeout=0.1, loss_limit=None,
             byte_order='='):
         super(UDPSendReceiveSocket, self).__init__()
         self.listen_addr = listen_addr

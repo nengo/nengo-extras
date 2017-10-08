@@ -84,8 +84,7 @@ def test_send_recv_chain(Simulator, plt, seed, rng):
     # and sends that data out again
     udp_both = sockets.UDPSendReceiveSocket(
         listen_addr=('127.0.0.1', 54321),
-        remote_addr=('127.0.0.1', 54322),
-        recv_timeout=1)
+        remote_addr=('127.0.0.1', 54322))
     m_both = nengo.Network(label='Both', seed=seed)
     with m_both:
         socket_node = nengo.Node(size_in=1, size_out=1, output=udp_both)
@@ -95,7 +94,7 @@ def test_send_recv_chain(Simulator, plt, seed, rng):
     sim_both = Simulator(m_both)
 
     # Model that receives data from previous model
-    udp_recv = sockets.UDPReceiveSocket(('127.0.0.1', 54322), recv_timeout=1)
+    udp_recv = sockets.UDPReceiveSocket(('127.0.0.1', 54322))
     m_recv = nengo.Network(label='Recv', seed=seed)
     with m_recv:
         socket_node = nengo.Node(output=udp_recv, size_out=1)
@@ -137,8 +136,7 @@ def test_send_recv_chain(Simulator, plt, seed, rng):
 def test_time_sync(Simulator, plt, seed, rng):
     udp1 = sockets.UDPSendReceiveSocket(
         listen_addr=('127.0.0.1', 54321),
-        remote_addr=('127.0.0.1', 54322),
-        recv_timeout=1)
+        remote_addr=('127.0.0.1', 54322))
     m1 = nengo.Network(label='One', seed=seed)
     with m1:
         input = nengo.Node(output=lambda t: np.sin(10 * t))
@@ -152,8 +150,7 @@ def test_time_sync(Simulator, plt, seed, rng):
     # Model that receives data from previous model
     udp2 = sockets.UDPSendReceiveSocket(
         listen_addr=('127.0.0.1', 54322),
-        remote_addr=('127.0.0.1', 54321),
-        recv_timeout=1)
+        remote_addr=('127.0.0.1', 54321))
     m2 = nengo.Network(label='Two', seed=seed)
     with m2:
         input = nengo.Node(output=lambda t: [np.cos(10 * t), t])
