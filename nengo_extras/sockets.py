@@ -77,7 +77,7 @@ class _SendUDPSocket(_AbstractUDPSocket):
 class SocketStep(object):
 
     def __init__(self, send=None, recv=None,
-                 dt_remote=0, loss_limit=None, ignore_timestamp=False):
+                 dt_remote=None, loss_limit=None, ignore_timestamp=False):
         self.send_socket = send
         self.recv_socket = recv
         self.dt_remote = dt_remote
@@ -104,6 +104,8 @@ class SocketStep(object):
         self.dt = t - self.last_t
         # An update can be sent, at most, every self.dt.
         # If remote dt is smaller use self.dt to check.
+        if self.dt_remote is None:
+            self.dt_remote = self.dt
         self.dt_remote = max(self.dt_remote, self.dt)
         self.last_t = t
 

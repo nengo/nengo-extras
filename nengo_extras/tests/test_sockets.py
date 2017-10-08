@@ -1,3 +1,4 @@
+from socket import timeout
 import threading
 import sys
 
@@ -5,6 +6,29 @@ import nengo
 import numpy as np
 
 from nengo_extras import sockets
+
+
+class UDPSocketMock(sockets._AbstractUDPSocket):
+    def __init__(self, dims):
+        super(UDPSocketMock, self).__init__(None, dims, '=')
+        self._socket = None
+
+    def open(self):
+        self._socket = []
+
+    def close(self):
+        self._socket = None
+
+    def recv(self):
+        if len(self._socket) <= 0:
+            raise timeout
+        self._buffer[:] = self._socket.pop()
+
+    def send(self):
+        self._socket.insert(0, np.array(self._buffer))
+
+    def append_data(self, data):
+        self._socket.insert(0, np.array(data))
 
 
 class SimThread(threading.Thread):
@@ -153,3 +177,70 @@ def test_time_sync(Simulator, plt, seed, rng):
                        atol=0.0001, rtol=0.0001)
     assert np.allclose(sim2.data[p_i2], sim1.data[p_s1],
                        atol=0.0001, rtol=0.0001)
+
+
+def test_misordered_packets():
+    s = UDPSocketMock(dims=1)
+    s.open()
+    step = sockets.SocketStep(recv=s)
+
+    s.append_data([0.001, 0.])
+    s.append_data([0.004, 1.])
+    s.append_data([0.002, 2.])
+    s.append_data([0.003, 3.])
+    s.append_data([0.005, 4.])
+
+    step(0.000)  # To allow dt calculation
+    assert step(0.001) == 0.
+    assert step(0.002) == 0.  # return old value, because new one is in future
+    assert step(0.003) == 0.
+    assert step(0.004) == 1.  # caught up, now skipping packets from past
+    assert step(0.005) == 4.
+
+
+def test_more_packets_then_timesteps():
+    s = UDPSocketMock(dims=1)
+    s.open()
+    step = sockets.SocketStep(recv=s)
+
+    s.append_data([0.001, 0.])
+    s.append_data([0.002, 1.])
+    s.append_data([0.003, 2.])
+    s.append_data([0.004, 3.])
+    s.append_data([0.005, 4.])
+
+    step(0.000)  # To allow dt calculation
+    assert step(0.002) == 0.
+    assert step(0.004) == 2.
+    assert step(0.006) == 4.
+
+
+def test_less_packets_then_timesteps():
+    s = UDPSocketMock(dims=1)
+    s.open()
+    step = sockets.SocketStep(recv=s)
+
+    s.append_data([0.002, 1.])
+    s.append_data([0.004, 2.])
+    s.append_data([0.006, 3.])
+
+    step(0.000)  # To allow dt calculation
+    assert step(0.001) == 1.
+    assert step(0.002) == 1.
+    assert step(0.003) == 1.
+    assert step(0.004) == 2.
+    assert step(0.005) == 2.
+    assert step(0.006) == 3.
+
+
+def test_jittered_timesteps():
+    s = UDPSocketMock(dims=1)
+    s.open()
+    step = sockets.SocketStep(recv=s)
+
+    s.append_data([0.0009, 1.])
+    s.append_data([0.0021, 2.])
+
+    step(0.000)  # To allow dt calculation
+    assert step(0.001) == 1.
+    assert step(0.002) == 2.
