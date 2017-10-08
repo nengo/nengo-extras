@@ -4,6 +4,7 @@ import sys
 
 import nengo
 import numpy as np
+import pytest
 
 from nengo_extras import sockets
 
@@ -21,10 +22,12 @@ class UDPSocketMock(sockets._AbstractUDPSocket):
 
     def recv(self):
         if len(self._socket) <= 0:
-            raise timeout
+            raise timeout()
         self._buffer[:] = self._socket.pop()
 
-    def send(self):
+    def send(self, t, x):
+        self._buffer[0] = t
+        self._buffer[1:] = x
         self._socket.insert(0, np.array(self._buffer))
 
     def append_data(self, data):
@@ -210,9 +213,8 @@ def test_more_packets_then_timesteps():
     s.append_data([0.005, 4.])
 
     step(0.000)  # To allow dt calculation
-    assert step(0.002) == 0.
-    assert step(0.004) == 2.
-    assert step(0.006) == 4.
+    assert step(0.002) == 1.
+    assert step(0.004) == 3.
 
 
 def test_less_packets_then_timesteps():
@@ -244,3 +246,52 @@ def test_jittered_timesteps():
     step(0.000)  # To allow dt calculation
     assert step(0.001) == 1.
     assert step(0.002) == 2.
+
+
+def test_ignore_timestamp():
+    s = UDPSocketMock(dims=1)
+    s.open()
+    step = sockets.SocketStep(recv=s, ignore_timestamp=True)
+
+    s.append_data([0.0001, 1.])
+    s.append_data([0.0002, 2.])
+    s.append_data([1.0000, 3.])
+
+    step(0.000)  # To allow dt calculation
+    assert step(0.001) == 1.
+    assert step(0.002) == 2.
+    assert step(0.003) == 3.
+
+
+def test_adjusts_recv_to_remote_dt():
+    s = UDPSocketMock(dims=1)
+    s.open()
+    step = sockets.SocketStep(recv=s, dt_remote=0.002)
+
+
+    step(0.000)  # To allow dt calculation
+    s.append_data([0.002, 1.])
+    assert step(0.001) == 1.
+    assert step(0.002) == 1.
+
+    assert step(0.003) == 1.
+    assert step.n_lost == 1
+
+    s.append_data([0.004, 2.])
+    assert step(0.003) == 2.
+    assert step(0.004) == 2.
+    assert step.n_lost == 0
+
+
+def test_adjusts_send_to_remote_dt():
+    s = UDPSocketMock(dims=1)
+    s.open()
+    step = sockets.SocketStep(send=s, dt_remote=0.002)
+
+    x = [0.]
+    step(0.000, x)  # To allow dt calculation
+    step(0.001, x)  # skip send
+    step(0.002, x)
+    step(0.003, x)  # skip send
+    step(0.004, x)
+    assert len(s._socket) == 2

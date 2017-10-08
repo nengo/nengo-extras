@@ -108,6 +108,9 @@ class SocketStep(object):
         self.dt_remote = max(self.dt_remote, self.dt)
         self.last_t = t
 
+        if t <= 0.:  # Nengo calling this function to figure out output size
+            return self.value
+
         if self.send_socket is not None:
             assert x is not None, "A sender must receive input"
             self.send(t, x)
@@ -115,6 +118,7 @@ class SocketStep(object):
                 self.loss_limit is None or self.n_lost <= self.loss_limit):
             try:
                     self.recv(t)
+                    self.n_lost = 0
             except socket.timeout:  # packet lost
                 self.n_lost += 1
         return self.value
@@ -141,11 +145,11 @@ class SocketStep(object):
 
         # Wait for packet that is not timestamped in the past
         # (also skips receiving if we do not expect a new remote package yet)
-        while self.recv_socket.t < t - self.dt_remote / 2.:
+        while self.recv_socket.t <= t - self.dt_remote / 2.:
             self.recv_socket.recv()
 
         # Use value if more recent and not in the future
-        if self.recv_socket.t < t + self.dt_remote / 2.:
+        if self.recv_socket.t <= t + self.dt_remote / 2.:
             self._update_value()
 
     def _update_value(self):
