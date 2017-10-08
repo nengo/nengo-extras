@@ -87,7 +87,6 @@ class SocketStep(object):
         # State used by the step function
         self.dt = 0.0
         self.last_t = 0.0
-        self.value_t = None
         self.value = np.zeros(0 if self.recv_socket is None
                               else self.recv_socket.dims)
         self.n_lost = 0
@@ -136,7 +135,7 @@ class SocketStep(object):
             return
 
         # Receive initial packet
-        if self.value_t is None:
+        if np.isnan(self.recv_socket.t):
             self.recv_socket.recv()
             self._update_value()
 
@@ -144,13 +143,13 @@ class SocketStep(object):
         # (also skips receiving if we do not expect a new remote package yet)
         while self.recv_socket.t < t - self.dt_remote / 2.:
             self.recv_socket.recv()
-            # Use value if more recent and not in the future
-            if self.value_t < self.recv_socket.t < t + self.dt_remote / 2.:
-                self._update_value()
+
+        # Use value if more recent and not in the future
+        if self.recv_socket.t < t + self.dt_remote / 2.:
+            self._update_value()
 
     def _update_value(self):
-        self.value_t = self.recv_socket.t
-        self.value = self.recv_socket.x
+        self.value = np.array(self.recv_socket.x)  # need to copy value
 
     def send(self, t, x):
         # Calculate if it is time to send the next packet.
