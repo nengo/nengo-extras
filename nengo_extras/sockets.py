@@ -135,7 +135,7 @@ class SocketStep(object):
                 self.recv_socket.recv()
                 if self.recv_socket.t >= t or self.ignore_timestamp:
                     break
-            except (socket.error, AttributeError) as err:
+            except socket.error as err:
                 # Then assume the packet is lost and continue.
                 if isinstance(err, socket.timeout):
                     return
