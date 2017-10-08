@@ -22,7 +22,8 @@ class _AbstractUDPSocket(object):
                                   "'big'.", attr="byte_order")
         self.byte_order = byte_order
 
-        self._buffer = np.zeros(dims + 1, dtype="%sf8" % byte_order)
+        self._buffer = np.empty(dims + 1, dtype="%sf8" % byte_order)
+        self._buffer[0] = np.nan
         self._socket = None
 
     @property
@@ -85,6 +86,7 @@ class SocketStep(object):
         # State used by the step function
         self.dt = 0.0
         self.last_t = 0.0
+        self.value_t = None
         self.value = np.zeros(0 if self.recv_socket is None
                               else self.recv_socket.dims)
 
@@ -107,7 +109,10 @@ class SocketStep(object):
             assert x is not None, "A sender must receive input"
             self.send(t, x)
         if self.recv_socket is not None:
-            self.recv(t)
+            try:
+                self.recv(t)
+            except socket.timeout:  # packet lost
+                pass
         return self.value
 
     def __del__(self):
@@ -122,42 +127,30 @@ class SocketStep(object):
     def recv(self, t):
         if self.ignore_timestamp:
             self.recv_socket.recv()
-            self.value = self.recv_socket.x
+            self._update_value()
             return
 
-        # First, check if the last value we received is valid.
-        if t <= self.recv_socket.t < t + self.dt:
-            # If so, use it
-            self.value = self.recv_socket.x
-            return
-        elif self.recv_socket.t >= t + self.dt:
-            # If it's still too far in the future, wait
-            return
+        # Receive initial packet
+        if self.value_t is None:
+            self.recv_socket.recv()
+            self._update_value()
 
-        # Otherwise, get the next value
-        while True:
-            try:
-                self.recv_socket.recv()
-                if self.recv_socket.t >= t:
-                    break
-            except socket.error as err:
-                # Then assume the packet is lost and continue.
-                if isinstance(err, socket.timeout):
-                    return
-                else:
-                    raise
+        # Wait for packet that is not timestamped in the past
+        while self.recv_socket.t < t:
+            self.recv_socket.recv()
+            # Use value if more recent and not in the future
+            if self.value_t < self.recv_socket.t < t + self.dt:
+                self._update_value()
 
-        # If we get here, then we've got a value from the socket
-        if t <= self.recv_socket.t < t + self.dt:
-            # The next value is valid; use it
-            self.value = self.recv_socket.x
-        # Otherwise, the next value will be used on the next timestep instead
+    def _update_value(self):
+        self.value_t = self.recv_socket.t
+        self.value = self.recv_socket.x
 
     def send(self, t, x):
         # Calculate if it is time to send the next packet.
         # Ideal time to send is the last sent time + dt_remote, and we
         # want to find out if current or next local time step is closest.
-        if (t + self.dt * 0.5) >= (self.send_socket.t + self.dt_remote):
+        if np.isnan(self.send_socket.t) or (t + self.dt * 0.5) >= (self.send_socket.t + self.dt_remote):
             self.send_socket.send(t, x)
 
 
