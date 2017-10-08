@@ -189,7 +189,7 @@ def test_time_sync(Simulator, plt, seed, rng):
 def test_misordered_packets():
     s = UDPSocketMock(dims=1)
     s.open()
-    step = sockets.SocketStep(recv=s)
+    step = sockets.SocketStep(dt=0.001, recv=s)
 
     s.append_data([0.001, 0.])
     s.append_data([0.004, 1.])
@@ -208,7 +208,7 @@ def test_misordered_packets():
 def test_more_packets_then_timesteps():
     s = UDPSocketMock(dims=1)
     s.open()
-    step = sockets.SocketStep(recv=s)
+    step = sockets.SocketStep(dt=0.002, recv=s)
 
     s.append_data([0.001, 0.])
     s.append_data([0.002, 1.])
@@ -224,7 +224,7 @@ def test_more_packets_then_timesteps():
 def test_less_packets_then_timesteps():
     s = UDPSocketMock(dims=1)
     s.open()
-    step = sockets.SocketStep(recv=s)
+    step = sockets.SocketStep(dt=0.001, recv=s)
 
     s.append_data([0.002, 1.])
     s.append_data([0.004, 2.])
@@ -242,7 +242,7 @@ def test_less_packets_then_timesteps():
 def test_jittered_timesteps():
     s = UDPSocketMock(dims=1)
     s.open()
-    step = sockets.SocketStep(recv=s)
+    step = sockets.SocketStep(dt=0.001, recv=s)
 
     s.append_data([0.0009, 1.])
     s.append_data([0.0021, 2.])
@@ -255,7 +255,7 @@ def test_jittered_timesteps():
 def test_ignore_timestamp():
     s = UDPSocketMock(dims=1)
     s.open()
-    step = sockets.SocketStep(recv=s, ignore_timestamp=True)
+    step = sockets.SocketStep(dt=0.001, recv=s, ignore_timestamp=True)
 
     s.append_data([0.0001, 1.])
     s.append_data([0.0002, 2.])
@@ -270,7 +270,7 @@ def test_ignore_timestamp():
 def test_adjusts_recv_to_remote_dt():
     s = UDPSocketMock(dims=1)
     s.open()
-    step = sockets.SocketStep(recv=s, remote_dt=0.002)
+    step = sockets.SocketStep(dt=0.001, recv=s, remote_dt=0.002)
 
 
     step(0.000)  # To allow dt calculation
@@ -290,7 +290,7 @@ def test_adjusts_recv_to_remote_dt():
 def test_adjusts_send_to_remote_dt():
     s = UDPSocketMock(dims=1)
     s.open()
-    step = sockets.SocketStep(send=s, remote_dt=0.002)
+    step = sockets.SocketStep(dt=0.001, send=s, remote_dt=0.002)
 
     x = [0.]
     step(0.000, x)  # To allow dt calculation

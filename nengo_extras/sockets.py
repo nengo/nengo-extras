@@ -76,7 +76,7 @@ class _SendUDPSocket(_AbstractUDPSocket):
 
 class SocketStep(object):
 
-    def __init__(self, send=None, recv=None,
+    def __init__(self, dt, send=None, recv=None,
                  remote_dt=None, loss_limit=None, ignore_timestamp=False):
         self.send_socket = send
         self.recv_socket = recv
@@ -84,12 +84,17 @@ class SocketStep(object):
         self.loss_limit = loss_limit
         self.ignore_timestamp = ignore_timestamp
 
+        self.dt = dt
+        if remote_dt is None:
+            remote_dt = dt
+        # Cannot run faster than local dt
+        self.remote_dt = max(remote_dt, dt)
+
+        self.n_lost = 0
+
         # State used by the step function
-        self.dt = 0.0
-        self.last_t = 0.0
         self.value = np.zeros(0 if self.recv_socket is None
                               else self.recv_socket.dims)
-        self.n_lost = 0
 
     def __call__(self, t, x=None):
         """The step function run on each timestep.
@@ -99,15 +104,6 @@ class SocketStep(object):
         is sent when the current local timestep is closer to the remote
         time step than the next local timestep.
         """
-
-        self.dt = t - self.last_t
-        # An update can be sent, at most, every self.dt.
-        # If remote dt is smaller use self.dt to check.
-        if self.remote_dt is None:
-            self.remote_dt = self.dt
-        self.remote_dt = max(self.remote_dt, self.dt)
-        self.last_t = t
-
         if t <= 0.:  # Nengo calling this function to figure out output size
             return self.value
 
@@ -216,7 +212,8 @@ class UDPReceiveSocket(nengo.Process):
             timeout=self.recv_timeout)
         recv.open()
         return SocketStep(
-            recv=recv, remote_dt=self.remote_dt, loss_limit=self.loss_limit)
+            dt=dt, recv=recv, remote_dt=self.remote_dt,
+            loss_limit=self.loss_limit)
 
 
 class UDPSendSocket(nengo.Process):
@@ -256,7 +253,7 @@ class UDPSendSocket(nengo.Process):
         assert len(shape_in) == 1
         send = _SendUDPSocket(self.remote_addr, shape_in[0], self.byte_order)
         send.open()
-        return SocketStep(send=send, remote_dt=self.remote_dt)
+        return SocketStep(dt=dt, send=send, remote_dt=self.remote_dt)
 
 
 class UDPSendReceiveSocket(nengo.Process):
@@ -342,6 +339,7 @@ class UDPSendReceiveSocket(nengo.Process):
         send = _SendUDPSocket(self.remote_addr, shape_in[0], self.byte_order)
         send.open()
         return SocketStep(
+            dt=dt,
             send=send, recv=recv,
             ignore_timestamp=self.ignore_timestamp,
             remote_dt=self.remote_dt,
