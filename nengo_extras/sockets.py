@@ -139,10 +139,11 @@ class SocketStep(object):
             self._update_value()
 
         # Wait for packet that is not timestamped in the past
-        while self.recv_socket.t < t - self.dt / 2.:
+        # (also skips receiving if we do not expect a new remote package yet)
+        while self.recv_socket.t < t - self.dt_remote / 2.:
             self.recv_socket.recv()
             # Use value if more recent and not in the future
-            if self.value_t < self.recv_socket.t < t + self.dt / 2.:
+            if self.value_t < self.recv_socket.t < t + self.dt_remote / 2.:
                 self._update_value()
 
     def _update_value(self):
