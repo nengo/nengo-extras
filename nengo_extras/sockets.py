@@ -77,10 +77,10 @@ class _SendUDPSocket(_AbstractUDPSocket):
 class SocketStep(object):
 
     def __init__(self, send=None, recv=None,
-                 dt_remote=None, loss_limit=None, ignore_timestamp=False):
+                 remote_dt=None, loss_limit=None, ignore_timestamp=False):
         self.send_socket = send
         self.recv_socket = recv
-        self.dt_remote = dt_remote
+        self.remote_dt = remote_dt
         self.loss_limit = loss_limit
         self.ignore_timestamp = ignore_timestamp
 
@@ -103,9 +103,9 @@ class SocketStep(object):
         self.dt = t - self.last_t
         # An update can be sent, at most, every self.dt.
         # If remote dt is smaller use self.dt to check.
-        if self.dt_remote is None:
-            self.dt_remote = self.dt
-        self.dt_remote = max(self.dt_remote, self.dt)
+        if self.remote_dt is None:
+            self.remote_dt = self.dt
+        self.remote_dt = max(self.remote_dt, self.dt)
         self.last_t = t
 
         if t <= 0.:  # Nengo calling this function to figure out output size
@@ -145,11 +145,11 @@ class SocketStep(object):
 
         # Wait for packet that is not timestamped in the past
         # (also skips receiving if we do not expect a new remote package yet)
-        while self.recv_socket.t <= t - self.dt_remote / 2.:
+        while self.recv_socket.t <= t - self.remote_dt / 2.:
             self.recv_socket.recv()
 
         # Use value if more recent and not in the future
-        if self.recv_socket.t <= t + self.dt_remote / 2.:
+        if self.recv_socket.t <= t + self.remote_dt / 2.:
             self._update_value()
 
     def _update_value(self):
@@ -157,9 +157,9 @@ class SocketStep(object):
 
     def send(self, t, x):
         # Calculate if it is time to send the next packet.
-        # Ideal time to send is the last sent time + dt_remote, and we
+        # Ideal time to send is the last sent time + remote_dt, and we
         # want to find out if current or next local time step is closest.
-        if np.isnan(self.send_socket.t) or (t + self.dt / 2.) >= (self.send_socket.t + self.dt_remote):
+        if np.isnan(self.send_socket.t) or (t + self.dt / 2.) >= (self.send_socket.t + self.remote_dt):
             self.send_socket.send(t, x)
 
 
@@ -168,47 +168,55 @@ class UDPReceiveSocket(nengo.Process):
 
     Parameters
     ----------
-    recv_dims : int
-        Dimensionality of the vector data being received.
-    local_port : int
-        The local port data is received over.
-    local_addr : str, optional (Default: '127.0.0.1')
-        The local IP address data is received over.
+    listen_addr : tuple
+        A tuple *(listen_interface, port)* denoting the local address to listen
+        on for incoming data.
+    remote_dt : float, optional (Default: None)
+        The timestep of the remote simulation. Attempts to send and receive
+        data will be throttled to match this value if it exceeds the local
+        *dt*. If not given, it is assumed that the remote *dt* matches the
+        local *dt* (which is determined automatically).
+    ignore_timestamp : boolean, optional (Default: False)
+        If True, uses the most recently received value from the recv socket,
+        even if that value comes at an earlier or later timestep.
+    recv_timeout : float, optional (Default: 0.)
+        Maximum time to wait for new data each timestep.
+    loss_limit: float, optional (Default: None)
+        If not *None*, the maximum number of consecutive timeouts on receive
+        attempts before no further attempts are made and the last received
+        value will be used for the rest of the simulation.
     byte_order : str, optional (Default: '=')
         Specify 'big' or 'little' endian data format.
         Possible values: 'big', '>', 'little', '<', '='.
         '=' uses the system default.
-    socket_timeout : float, optional (Default: 30)
-        How long a socket waits before throwing an inactivity exception.
 
     Examples
     --------
     To receive data on a machine with IP address 10.10.21.1,
     we add the following socket to the model::
 
-        socket_recv = UDPReceiveSocket(
-            recv_dims=recv_dims, local_addr='10.10.21.1', local_port=5001)
+        socket_recv = UDPReceiveSocket(('10.10.21.1', 5001))
         node_recv = nengo.Node(socket_recv, size_out=recv_dims)
 
     Other Nengo model elements can then be connected to the node.
     """
-    # NOTE ignore timestamp?
-    def __init__(self, local_port, local_addr='127.0.0.1',
-                 byte_order="=", recv_timeout=30, loss_limit=0):
+    def __init__(self, listen_addr, remote_dt=None, ignore_timestamp=False,
+                 recv_timeout=30, loss_limit=0, byte_order='='):
         super(UDPReceiveSocket, self).__init__(default_size_in=0)
-        self.local_port = local_port
-        self.local_addr = local_addr
-        self.byte_order = byte_order
+        self.listen_addr = listen_addr
+        self.remote_dt = remote_dt
         self.recv_timeout = recv_timeout
         self.loss_limit = loss_limit
+        self.byte_order = byte_order
 
     def make_step(self, shape_in, shape_out, dt, rng):
         assert len(shape_out) == 1
         recv = _RecvUDPSocket(
-            (self.local_addr, self.local_port), shape_out[0], self.byte_order,
+            self.listen_addr, shape_out[0], self.byte_order,
             timeout=self.recv_timeout)
         recv.open()
-        return SocketStep(recv=recv, loss_limit=self.loss_limit)
+        return SocketStep(
+            recv=recv, remote_dt=self.remote_dt, loss_limit=self.loss_limit)
 
 
 class UDPSendSocket(nengo.Process):
@@ -216,12 +224,13 @@ class UDPSendSocket(nengo.Process):
 
     Parameters
     ----------
-    send_dims : int
-        Dimensionality of the vector data being sent.
-    dest_port: int
-        The local or remote port data is sent to.
-    dest_addr : str, optional (Default: '127.0.0.1')
-        The local or remote IP address data is sent to.
+    remote_addr : tuple
+        A tuple *(host, port)* denoting the remote address to send data to
+    remote_dt : float, optional (Default: None)
+        The timestep of the remote simulation. Attempts to send and receive
+        data will be throttled to match this value if it exceeds the local
+        *dt*. If not given, it is assumed that the remote *dt* matches the
+        local *dt* (which is determined automatically).
     byte_order : str, optional (Default: '=')
         Specify 'big' or 'little' endian data format.
         Possible values: 'big', '>', 'little', '<', '='.
@@ -232,56 +241,55 @@ class UDPSendSocket(nengo.Process):
     To send data from a model to a machine with IP address 10.10.21.25,
     we add the following socket to the model::
 
-        socket_send = UDPSendSocket(
-            send_dims=send_dims, dest_addr='10.10.21.25', dest_port=5002)
+        socket_send = UDPSendSocket(('10.10.21.25', 5002))
         node_send = nengo.Node(socket_send, size_in=send_dims)
 
     Other Nengo model elements can then be connected to the node.
     """
-    def __init__(self, dest_port, dest_addr='127.0.0.1', byte_order="="):
+    def __init__(self, remote_addr, remote_dt=None, byte_order="="):
         super(UDPSendSocket, self).__init__(default_size_out=0)
-        self.dest_port = dest_port
-        self.dest_addr = dest_addr
+        self.remote_addr = remote_addr
+        self.remote_dt = remote_dt
         self.byte_order = byte_order
 
     def make_step(self, shape_in, shape_out, dt, rng):
         assert len(shape_in) == 1
-        send = _SendUDPSocket(
-            (self.dest_addr, self.dest_port), shape_in[0], self.byte_order)
+        send = _SendUDPSocket(self.remote_addr, shape_in[0], self.byte_order)
         send.open()
-        return SocketStep(send=send)
+        return SocketStep(send=send, remote_dt=self.remote_dt)
 
 
 class UDPSendReceiveSocket(nengo.Process):
     """A process for UDP communication to and from a Nengo model.
 
+    The *size_in* and *size_out* attributes of the `nengo.Node` using this
+    process determines the dimensions of the sent and received data.
+
     Parameters
     ----------
-    recv_dims : int
-        Dimensionality of the vector data being received.
-    send_dims : int
-        Dimensionality of the vector data being sent.
-    local_port : int
-        The local port data is received over.
-    dest_port: int
-        The local or remote port data is sent to.
-    local_addr : str, optional (Default: '127.0.0.1')
-        The local IP address data is received over.
-    dest_addr : str, optional (Default: '127.0.0.1')
-        The local or remote IP address data is sent to.
-    dt_remote : float, optional (Default: 0)
-        The time step of the remote simulation, only relevant for send and
-        receive nodes. Used to regulate how often data is sent to the remote
-        machine, handling cases where simulation time steps are not the same.
+    listen_addr : tuple
+        A tuple *(listen_interface, port)* denoting the local address to listen
+        on for incoming data.
+    remote_addr : tuple
+        A tuple *(host, port)* denoting the remote address to send data to
+    remote_dt : float, optional (Default: None)
+        The timestep of the remote simulation. Attempts to send and receive
+        data will be throttled to match this value if it exceeds the local
+        *dt*. If not given, it is assumed that the remote *dt* matches the
+        local *dt* (which is determined automatically).
     ignore_timestamp : boolean, optional (Default: False)
         If True, uses the most recently received value from the recv socket,
         even if that value comes at an earlier or later timestep.
+    recv_timeout : float, optional (Default: 0.)
+        Maximum time to wait for new data each timestep.
+    loss_limit: float, optional (Default: None)
+        If not *None*, the maximum number of consecutive timeouts on receive
+        attempts before no further attempts are made and the last received
+        value will be used for the rest of the simulation.
     byte_order : str, optional (Default: '=')
         Specify 'big' or 'little' endian data format.
         Possible values: 'big', '>', 'little', '<', '='.
         '=' uses the system default.
-    socket_timeout : float, optional (Default: 30)
-        How long a socket waits before throwing an inactivity exception.
 
     Examples
     --------
@@ -291,9 +299,8 @@ class UDPSendReceiveSocket(nengo.Process):
     model on machine A::
 
         socket_send_recv_A = UDPSendReceiveSocket(
-            send_dims=A_output_dims, recv_dims=B_output_dims,
-            local_addr='10.10.21.1', local_port=5001,
-            dest_addr='10.10.21.25', dest_port=5002)
+            listen_addr=('10.10.21.1', 5001),
+            remote_addr=('10.10.21.25', 5002))
         node_send_recv_A = nengo.Node(
             socket_send_recv_A,
             size_in=A_output_dims,
@@ -302,9 +309,8 @@ class UDPSendReceiveSocket(nengo.Process):
     and the following socket on machine B::
 
         socket_send_recv_B = UDPSocket(
-            send_dim=B_output_dims, recv_dim=A_output_dims,
-            local_addr='10.10.21.25', local_port=5002,
-            dest_addr='10.10.21.1', dest_port=5001)
+            listen_addr=('10.10.21.25', 5002),
+            remote_addr=('10.10.21.1', 5001))
         node_send_recv_B = nengo.Node(
             socket_send_recv_B,
             size_in=B_output_dims,  # input to this node is data to send
@@ -312,33 +318,31 @@ class UDPSendReceiveSocket(nengo.Process):
 
     The nodes can then be connected to other Nengo model elements.
     """
-    def __init__(self, local_port, dest_port,
-                 local_addr='127.0.0.1', dest_addr='127.0.0.1',
-                 dt_remote=0., ignore_timestamp=False,
-                 byte_order="=", recv_timeout=1., loss_limit=0):
+    def __init__(
+            self, listen_addr, remote_addr, remote_dt=None,
+            ignore_timestamp=False, recv_timeout=0., loss_limit=None,
+            byte_order='='):
         super(UDPSendReceiveSocket, self).__init__()
-        self.local_port = local_port
-        self.dest_port = dest_port
-        self.local_addr = local_addr
-        self.dest_addr = dest_addr
-        self.dt_remote = dt_remote
+        self.listen_addr = listen_addr
+        self.remote_addr = remote_addr
+        self.remote_dt = remote_dt
         self.ignore_timestamp = ignore_timestamp
-        self.byte_order = byte_order
         self.recv_timeout = recv_timeout
         self.loss_limit = loss_limit
+        self.byte_order = byte_order
+
 
     def make_step(self, shape_in, shape_out, dt, rng):
         assert len(shape_in) == 1
         assert len(shape_out) == 1
         recv = _RecvUDPSocket(
-            (self.local_addr, self.local_port), shape_out[0], self.byte_order,
+            self.listen_addr, shape_out[0], self.byte_order,
             timeout=self.recv_timeout)
         recv.open()
-        send = _SendUDPSocket(
-            (self.dest_addr, self.dest_port), shape_in[0], self.byte_order)
+        send = _SendUDPSocket(self.remote_addr, shape_in[0], self.byte_order)
         send.open()
         return SocketStep(
             send=send, recv=recv,
             ignore_timestamp=self.ignore_timestamp,
-            dt_remote=self.dt_remote,
+            remote_dt=self.remote_dt,
             loss_limit=self.loss_limit)
