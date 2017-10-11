@@ -4,7 +4,8 @@ import xml.etree.ElementTree as et
 import nengo
 import pytest
 
-from nengo_extras.gexf import DispatchTable, GexfConverter, HierarchicalLabeler
+from nengo_extras.gexf import (
+    CollapsingGexfConverter, DispatchTable, GexfConverter, HierarchicalLabeler)
 
 
 def test_can_dispatch_table_defaults():
@@ -372,4 +373,64 @@ def test_gexf_converter_hierarchical():
 
     actual = et.tostring(GexfConverter(
         hierarchical=True).convert(model).getroot()).decode("utf-8")
+    assert re.match(expected, actual), actual
+
+
+def test_collapsing_gexf_converter():
+    with nengo.Network() as model:
+        model.ea = nengo.networks.EnsembleArray(10, 10)
+
+    expected = (
+        '<gexf version="1.3" '
+        'xmlns="http://www.gexf.net/1.3draft" '
+        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        'xsi:schemaLocation="http://www.gexf.net/1.3draft '
+        'http://www.gexf.net/1.3draft/gexf.xsd">'
+        '<meta lastmodifieddate="\\d+-\\d{2}-\\d{2}">'
+        '<creator>nengo_extras.gexf.CollapsingGexfConverter</creator>'
+        '</meta>'
+        '<graph defaultedgetype="directed">'
+        '<attributes class="node">'
+        '<attribute id="0" title="type" type="string" />'
+        '<attribute id="1" title="net" type="long" />'
+        '<attribute id="2" title="net_label" type="string" />'
+        '<attribute id="3" title="size_in" type="integer" />'
+        '<attribute id="4" title="size_out" type="integer" />'
+        '<attribute id="5" title="radius" type="float" />'
+        '<attribute id="6" title="n_neurons" type="integer">'
+        '<default>0</default>'
+        '</attribute>'
+        '<attribute id="7" title="neuron_type" type="string" />'
+        '</attributes>'
+        '<attributes class="edge">'
+        '<attribute id="0" title="pre_type" type="string" />'
+        '<attribute id="1" title="post_type" type="string" />'
+        '<attribute id="2" title="synapse" type="string" />'
+        '<attribute id="3" title="tau" type="float" />'
+        '<attribute id="4" title="function" type="string" />'
+        '<attribute id="5" title="transform" type="string" />'
+        '<attribute id="6" title="scalar_transform" type="float">'
+        '<default>1.0</default>'
+        '</attribute>'
+        '<attribute id="7" title="learning_rule_type" type="string" />'
+        '</attributes>'
+        '<nodes>'
+        '<node id="\\d+" label="ea">'
+        '<attvalues>'
+        '<attvalue for="0" value="'
+        'nengo.networks.ensemblearray.EnsembleArray" />'
+        '<attvalue for="1" value="\\d+" />'
+        '<attvalue for="2" value="model" />'
+        '<attvalue for="6" value="100" />'
+        '</attvalues>'
+        '</node>'
+        '</nodes>'
+        '<edges>'
+        '.*'
+        '</edges>'
+        '</graph>'
+        '</gexf>$')
+
+    actual = et.tostring(
+        CollapsingGexfConverter().convert(model).getroot()).decode("utf-8")
     assert re.match(expected, actual), actual

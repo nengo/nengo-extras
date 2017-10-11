@@ -6,6 +6,10 @@ import weakref
 import xml.etree.ElementTree as et
 
 import nengo
+try:
+    import nengo_spa as spa
+except ImportError:
+    spa = None
 import numpy as np
 
 
@@ -323,7 +327,10 @@ class GexfConverter(object):
         graph.append(self.dispatch(model))
 
         edges = et.SubElement(graph, 'edges')
-        edges.extend([self.dispatch(c) for c in model.all_connections])
+        for c in model.all_connections:
+            elem = self.dispatch(c)
+            if elem is not None:
+                edges.append(elem)
 
         return et.ElementTree(gexf)
 
@@ -493,3 +500,74 @@ class GexfConverter(object):
     def get_typename(cls, obj):
         tp = type(obj)
         return tp.__module__ + '.' + tp.__name__
+
+
+class CollapsingGexfConverter(GexfConverter):
+    """Converts Nengo models into GEXF files with some collapsed networks.
+
+    See `GexfConverter` for general information on conversion to GEXF files.
+    This class will collapse certain networks to a single node in the
+    conversion.
+
+    Parameters
+    ----------
+    to_collapse : sequence, optional
+        Network types to collapse, if not given the networks listed in
+        `NENGO_NETS` and `SPA_NETS` will be collapsed. Note that `SPA_NETS`
+        currently only contains networks from *nengo_spa*, but not the
+        *spa* module in core *nengo*.
+    labeler : optional
+        Object with a `get_labels` method that returns a dictionary mapping
+        model objects to labels. If not given, a new `InspectiveLabeler`
+        will be used.
+    hierarchical : bool, optional (default: False)
+        Whether to include information of the network hierarchy in the file.
+        Support for hierarchical graphs was removed in Gephi 0.9 and
+        hierarchical networks will be automatically flattened which leaves an
+        unconnected node for every network.
+    """
+    dispatch = DispatchTable(GexfConverter.dispatch)
+
+    NENGO_NETS = (
+        nengo.networks.CircularConvolution,
+        nengo.networks.EnsembleArray,
+        nengo.networks.Product)
+    if spa is None:
+        SPA_NETS = ()
+    else:
+        SPA_NETS = (
+            spa.networks.CircularConvolution,
+            spa.AssociativeMemory,
+            spa.Bind,
+            spa.Compare,
+            spa.Product,
+            spa.Scalar,
+            spa.State,
+            spa.Transcode)
+
+    def __init__(self, to_collapse=None, labeler=None, hierarchical=False):
+        super(CollapsingGexfConverter, self).__init__(
+            labeler=labeler, hierarchical=hierarchical)
+
+        if to_collapse is None:
+            to_collapse = self.NENGO_NETS + self.SPA_NETS
+
+        for cls in to_collapse:
+            self.dispatch.register(cls, self.convert_collapsed)
+
+        self.obj2collapsed = weakref.WeakKeyDictionary()
+
+    def convert_collapsed(self, net):
+        """Used to convert a network into a collapsed graph node."""
+        nodes = et.Element('nodes')
+        nodes.append(self.make_node(
+            net, type=self.get_typename(net), net=id(self._net),
+            net_label=self._labels.get(self._net, None),
+            n_neurons=net.n_neurons))
+        self.obj2collapsed.update({
+            child: net for child in net.all_objects})
+        return nodes
+
+    def get_node_obj(self, obj):
+        obj = super(CollapsingGexfConverter, self).get_node_obj(obj)
+        return self.obj2collapsed.get(obj, obj)
