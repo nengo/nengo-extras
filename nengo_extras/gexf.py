@@ -1,6 +1,9 @@
 """Export to GEXF for visualization of networks in Gephi."""
 
+from collections import Mapping, Sequence
 import weakref
+
+import nengo
 
 
 class DispatchTable(object):
@@ -94,3 +97,76 @@ class DispatchTable(object):
         if inst is None:
             return self
         return self.InstDispatch(self, inst, owner)
+
+
+class HierarchicalLabeler(object):
+    """Obtains labels for objects in a Nengo network.
+
+    The names will include the network hierarchy.
+
+    Usage example::
+
+        labels = HierarchicalLabeler().get_labels(model)
+    """
+
+    dispatch = DispatchTable()
+
+    def __init__(self):
+        self._names = None
+
+    @dispatch.register(Sequence)
+    def get_labels_from_sequence(self, seq):
+        base_name = self._names[seq]
+        for i, obj in enumerate(seq):
+            self._handle_found_name(obj, '{base_name}[{i}]'.format(
+                base_name=base_name, i=i))
+
+    @dispatch.register(Mapping)
+    def get_labels_from_mapping(self, mapping):
+        base_name = self._names[mapping]
+        for k in mapping:
+            obj = mapping[k]
+            self._handle_found_name(obj, '{base_name}[{k}]'.format(
+                base_name=base_name, k=k))
+
+    @dispatch.register(object)
+    def get_labels_from_object(self, obj):
+        pass
+
+    @dispatch.register(nengo.Network)
+    def get_labels_from_network(self, net):
+        if net in self._names:
+            base_name = self._names[net] + '.'
+        else:
+            base_name = ''
+
+        check_last = {
+            'ensembles', 'nodes', 'connections', 'networks', 'probes'}
+        check_never = {
+            'all_ensembles', 'all_nodes', 'all_connections', 'all_networks',
+            'all_objects', 'all_probes'}
+
+        for name in dir(net):
+            if (not name.startswith('_') and
+                    name not in check_last | check_never):
+                try:
+                    attr = getattr(net, name)
+                except AttributeError:
+                    pass
+                else:
+                    self._handle_found_name(attr, base_name + name)
+
+        for name in check_last:
+            attr = getattr(net, name)
+            self._handle_found_name(attr, base_name + name)
+
+    def _handle_found_name(self, obj, name):
+        if (isinstance(obj, (nengo.base.NengoObject, nengo.Network)) and
+                obj not in self._names):
+            self._names[obj] = name
+            self.dispatch(obj)
+
+    def get_labels(self, model):
+        self._names = weakref.WeakKeyDictionary()
+        self.dispatch(model)
+        return self._names

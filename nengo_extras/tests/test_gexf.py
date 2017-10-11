@@ -1,6 +1,7 @@
+import nengo
 import pytest
 
-from nengo_extras.gexf import DispatchTable
+from nengo_extras.gexf import DispatchTable, HierarchicalLabeler
 
 
 def test_can_dispatch_table_defaults():
@@ -149,3 +150,19 @@ def test_dispatch_errors():
 
     with pytest.raises(NotImplementedError):
         Test().dispatch(object())
+
+
+def test_hierarchical_labeler():
+    with nengo.Network() as model:
+        model.ens = nengo.Ensemble(10, 1)
+        with nengo.Network() as model.subnet:
+            model.subnet.node = nengo.Node(1.)
+            model.subnet.attr = nengo.Ensemble(10, 1)
+
+    labels = HierarchicalLabeler().get_labels(model)
+    assert dict(labels) == {
+        model.ens: 'ens',
+        model.subnet: 'subnet',
+        model.subnet.node: 'subnet.node',
+        model.subnet.attr: 'subnet.attr',
+    }
