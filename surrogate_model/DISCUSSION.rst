@@ -7,7 +7,7 @@ This note is to update/discuss the progress of the project
 Allen 10/11/2017
 =============
 
-The core functionalities have been implemented by Jamie we have a working prototype! I think there are 3 types of further work to be done.
+The core functionalities have been implemented by Jamie and we have a working prototype! I think there are 3 types of further work to be done.
 
     1. Filling in the pieces - implementing more interpolation methods, and extending algorithm for higher dimension
 
