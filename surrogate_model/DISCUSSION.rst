@@ -17,5 +17,6 @@ The core functionalities have been implemented by Jamie we have a working protot
 
 My immediate work will be on (1), to get myself comfortable with the idea. We should concurrently do (2) so there's less code to rewrite. (3) will be easier once (1) is done. I predict the most work might be in (2) (as always is when writing code)
 
+Goal for this next week: Get most (1) done (at least just the algorithm), Begin (2) and figure out what we need.
 
 
