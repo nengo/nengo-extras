@@ -15,10 +15,10 @@ The core functionalities have been implemented by Jamie we have a working protot
 
     3. Reach for the stars (?) - there are many optimizations guidelines that Bryan suggests, which will probably be experimental. (mostly found in section 5.1 of the paper - GPU, handling higher dimension, etc).
 
-My immediate work will be on (1), to get myself comfortable with the idea. We should concurrently do (2) so there's less code to rewrite. (3) will be easier once (1) is done. I predict the most work might be in (2) (as always is when writing code)
+My immediate work will be on (1), to get myself comfortable with the idea. We should concurrently do (2) so there's less code to rewrite. (3) will be more clean once we've worked on (1). I predict the most work might be in (2) (as always is when writing code)
 
 Goal for this next week
 ------------------------
-Get most of (1) done (the skeleton is built so I just have to fill in the algorithms), Begin (2) and figure out what we need to do.
+Get most of (1) done (the skeleton is built so we just have to fill in the algorithms), Begin (2) and figure out what we need to do.
 
 
