@@ -1,7 +1,10 @@
+import re
+import xml.etree.ElementTree as et
+
 import nengo
 import pytest
 
-from nengo_extras.gexf import DispatchTable, HierarchicalLabeler
+from nengo_extras.gexf import DispatchTable, GexfConverter, HierarchicalLabeler
 
 
 def test_can_dispatch_table_defaults():
@@ -166,3 +169,207 @@ def test_hierarchical_labeler():
         model.subnet.node: 'subnet.node',
         model.subnet.attr: 'subnet.attr',
     }
+
+
+def test_gexf_converter():
+    with nengo.Network() as model:
+        model.ens = nengo.Ensemble(10, 1)
+        with nengo.Network() as model.subnet:
+            model.subnet.node = nengo.Node(1.)
+            model.subnet.attr = nengo.Ensemble(10, 1)
+        nengo.Connection(model.subnet.node, model.ens)
+        nengo.Probe(model.ens)
+
+    expected = (
+        '<gexf version="1.3" '
+        'xmlns="http://www.gexf.net/1.3draft" '
+        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        'xsi:schemaLocation="http://www.gexf.net/1.3draft '
+        'http://www.gexf.net/1.3draft/gexf.xsd">'
+        '<meta lastmodifieddate="\\d+-\\d{2}-\\d{2}">'
+        '<creator>nengo_extras.gexf.GexfConverter</creator>'
+        '</meta>'
+        '<graph defaultedgetype="directed">'
+        '<attributes class="node">'
+        '<attribute id="0" title="type" type="string" />'
+        '<attribute id="1" title="net" type="long" />'
+        '<attribute id="2" title="net_label" type="string" />'
+        '<attribute id="3" title="size_in" type="integer" />'
+        '<attribute id="4" title="size_out" type="integer" />'
+        '<attribute id="5" title="radius" type="float" />'
+        '<attribute id="6" title="n_neurons" type="integer">'
+        '<default>0</default>'
+        '</attribute>'
+        '<attribute id="7" title="neuron_type" type="string" />'
+        '</attributes>'
+        '<attributes class="edge">'
+        '<attribute id="0" title="pre_type" type="string" />'
+        '<attribute id="1" title="post_type" type="string" />'
+        '<attribute id="2" title="synapse" type="string" />'
+        '<attribute id="3" title="tau" type="float" />'
+        '<attribute id="4" title="function" type="string" />'
+        '<attribute id="5" title="transform" type="string" />'
+        '<attribute id="6" title="scalar_transform" type="float">'
+        '<default>1.0</default>'
+        '</attribute>'
+        '<attribute id="7" title="learning_rule_type" type="string" />'
+        '</attributes>'
+        '<nodes>'
+        '<node id="\\d+" label="ens">'
+        '<attvalues>'
+        '<attvalue for="0" value="nengo.ensemble.Ensemble" />'
+        '<attvalue for="1" value="\\d+" />'
+        '<attvalue for="2" value="model" />'
+        '<attvalue for="3" value="1" />'
+        '<attvalue for="4" value="1" />'
+        '<attvalue for="5" value="1.0" />'
+        '<attvalue for="6" value="10" />'
+        '<attvalue for="7" value="LIF\\(\\)" />'
+        '</attvalues>'
+        '</node>'
+        '<node id="\\d+" label="subnet.attr">'
+        '<attvalues>'
+        '<attvalue for="0" value="nengo.ensemble.Ensemble" />'
+        '<attvalue for="1" value="\\d+" />'
+        '<attvalue for="2" value="subnet" />'
+        '<attvalue for="3" value="1" />'
+        '<attvalue for="4" value="1" />'
+        '<attvalue for="5" value="1.0" />'
+        '<attvalue for="6" value="10" />'
+        '<attvalue for="7" value="LIF\\(\\)" />'
+        '</attvalues>'
+        '</node>'
+        '<node id="\\d+" label="subnet.node">'
+        '<attvalues>'
+        '<attvalue for="0" value="nengo.node.Node" />'
+        '<attvalue for="1" value="\\d+" />'
+        '<attvalue for="2" value="subnet" />'
+        '<attvalue for="3" value="0" />'
+        '<attvalue for="4" value="1" />'
+        '</attvalues>'
+        '</node>'
+        '</nodes>'
+        '<edges>'
+        '<edge id="\\d+" source="\\d+" target="\\d+">'
+        '<attvalues>'
+        '<attvalue for="0" value="nengo.node.Node" />'
+        '<attvalue for="1" value="nengo.ensemble.Ensemble" />'
+        '<attvalue for="2" value="Lowpass\\(0.005\\)" />'
+        '<attvalue for="3" value="0.005" />'
+        '<attvalue for="5" value="1.0" />'
+        '</attvalues>'
+        '</edge>'
+        '</edges>'
+        '</graph>'
+        '</gexf>$')
+
+    actual = et.tostring(
+        GexfConverter().convert(model).getroot()).decode("utf-8")
+    assert re.match(expected, actual), actual
+
+
+def test_gexf_converter_hierarchical():
+    with nengo.Network() as model:
+        model.ens = nengo.Ensemble(10, 1)
+        with nengo.Network() as model.subnet:
+            model.subnet.node = nengo.Node(1.)
+            model.subnet.attr = nengo.Ensemble(10, 1)
+        nengo.Connection(model.subnet.node, model.ens)
+        nengo.Probe(model.ens)
+
+    expected = (
+        '<gexf version="1.3" '
+        'xmlns="http://www.gexf.net/1.3draft" '
+        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        'xsi:schemaLocation="http://www.gexf.net/1.3draft '
+        'http://www.gexf.net/1.3draft/gexf.xsd">'
+        '<meta lastmodifieddate="\\d+-\\d{2}-\\d{2}">'
+        '<creator>nengo_extras.gexf.GexfConverter</creator>'
+        '</meta>'
+        '<graph defaultedgetype="directed">'
+        '<attributes class="node">'
+        '<attribute id="0" title="type" type="string" />'
+        '<attribute id="1" title="net" type="long" />'
+        '<attribute id="2" title="net_label" type="string" />'
+        '<attribute id="3" title="size_in" type="integer" />'
+        '<attribute id="4" title="size_out" type="integer" />'
+        '<attribute id="5" title="radius" type="float" />'
+        '<attribute id="6" title="n_neurons" type="integer">'
+        '<default>0</default>'
+        '</attribute>'
+        '<attribute id="7" title="neuron_type" type="string" />'
+        '</attributes>'
+        '<attributes class="edge">'
+        '<attribute id="0" title="pre_type" type="string" />'
+        '<attribute id="1" title="post_type" type="string" />'
+        '<attribute id="2" title="synapse" type="string" />'
+        '<attribute id="3" title="tau" type="float" />'
+        '<attribute id="4" title="function" type="string" />'
+        '<attribute id="5" title="transform" type="string" />'
+        '<attribute id="6" title="scalar_transform" type="float">'
+        '<default>1.0</default>'
+        '</attribute>'
+        '<attribute id="7" title="learning_rule_type" type="string" />'
+        '</attributes>'
+        '<nodes>'
+        '<node id="\\d+" label="ens">'
+        '<attvalues>'
+        '<attvalue for="0" value="nengo.ensemble.Ensemble" />'
+        '<attvalue for="1" value="\\d+" />'
+        '<attvalue for="2" value="model" />'
+        '<attvalue for="3" value="1" />'
+        '<attvalue for="4" value="1" />'
+        '<attvalue for="5" value="1.0" />'
+        '<attvalue for="6" value="10" />'
+        '<attvalue for="7" value="LIF\\(\\)" />'
+        '</attvalues>'
+        '</node>'
+        '<node id="\\d+" label="subnet">'
+        '<attvalues>'
+        '<attvalue for="0" value="nengo.network.Network" />'
+        '<attvalue for="1" value="\\d+" />'
+        '<attvalue for="2" value="model" />'
+        '<attvalue for="6" value="10" />'
+        '</attvalues>'
+        '<nodes>'
+        '<node id="\\d+" label="subnet.attr">'
+        '<attvalues>'
+        '<attvalue for="0" value="nengo.ensemble.Ensemble" />'
+        '<attvalue for="1" value="\\d+" />'
+        '<attvalue for="2" value="subnet" />'
+        '<attvalue for="3" value="1" />'
+        '<attvalue for="4" value="1" />'
+        '<attvalue for="5" value="1.0" />'
+        '<attvalue for="6" value="10" />'
+        '<attvalue for="7" value="LIF\\(\\)" />'
+        '</attvalues>'
+        '</node>'
+        '<node id="\\d+" label="subnet.node">'
+        '<attvalues>'
+        '<attvalue for="0" value="nengo.node.Node" />'
+        '<attvalue for="1" value="\\d+" />'
+        '<attvalue for="2" value="subnet" />'
+        '<attvalue for="3" value="0" />'
+        '<attvalue for="4" value="1" />'
+        '</attvalues>'
+        '</node>'
+        '</nodes>'
+        '</node>'
+        '</nodes>'
+        '<edges>'
+        '<edge id="\\d+" source="\\d+" target="\\d+">'
+        '<attvalues>'
+        '<attvalue for="0" value="nengo.node.Node" />'
+        '<attvalue for="1" value="nengo.ensemble.Ensemble" />'
+        '<attvalue for="2" value="Lowpass\\(0.005\\)" />'
+        '<attvalue for="3" value="0.005" />'
+        '<attvalue for="5" value="1.0" />'
+        '</attvalues>'
+        '</edge>'
+        '</edges>'
+        '</graph>'
+        '</gexf>$')
+
+    actual = et.tostring(GexfConverter(
+        hierarchical=True).convert(model).getroot()).decode("utf-8")
+    assert re.match(expected, actual), actual
