@@ -63,6 +63,9 @@ class _UDPSocket(object):
     def bind(self):
         self._socket.bind(self.addr)
 
+    def settimeout(self, timeout):
+        self._socket.settimeout(timeout)
+
     def recv(self):
         self._socket.recv_into(self._buffer.data)
 

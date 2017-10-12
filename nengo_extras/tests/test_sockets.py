@@ -17,13 +17,16 @@ from nengo_extras import sockets
 # use, this is not a high priority problem.
 
 
-class UDPSocketMock(sockets._AbstractUDPSocket):
+class UDPSocketMock(sockets._UDPSocket):
     def __init__(self, dims):
         super(UDPSocketMock, self).__init__(None, dims, '=')
         self._socket = None
 
     def open(self):
         self._socket = []
+
+    def settimeout(self, timeout):
+        pass
 
     def close(self):
         self._socket = None
