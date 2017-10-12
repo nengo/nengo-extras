@@ -20,6 +20,8 @@ import numpy as np
 # probably be solved with a priority queue (Python module heapq) to insert
 # future packages.
 
+# TODO IPv6 support?
+
 
 class ConnectionTimeout(RuntimeError):
     pass
