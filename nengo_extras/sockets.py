@@ -23,7 +23,11 @@ from nengo.exceptions import ValidationError
 # future packages.
 
 
-class _AbstractUDPSocket(object):
+class ConnectionTimeout(RuntimeError):
+    pass
+
+
+class _UDPSocket(object):
     def __init__(self, addr, dims, byte_order):
         self.addr = addr
         self.dims = dims
@@ -53,7 +57,19 @@ class _AbstractUDPSocket(object):
         return self._socket is None
 
     def open(self):
-        raise NotImplementedError()
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
+    def bind(self):
+        self._socket.bind(self.addr)
+
+    def recv(self):
+        self._socket.recv_into(self._buffer.data)
+
+    def send(self, t, x):
+        self._buffer[0] = t
+        self._buffer[1:] = x
+        self._socket.sendto(self._buffer.tobytes(), self.addr)
 
     def close(self):
         if not self.closed:
@@ -61,41 +77,17 @@ class _AbstractUDPSocket(object):
             self._socket = None
 
 
-class _RecvUDPSocket(_AbstractUDPSocket):
-    def __init__(self, addr, dims, byte_order, timeout=None):
-        super(_RecvUDPSocket, self).__init__(addr, dims, byte_order)
-        self.timeout = timeout
-
-    def open(self):
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-        if self.timeout is not None:
-            self._socket.settimeout(self.timeout)
-        self._socket.bind(self.addr)
-
-    def recv(self):
-        self._socket.recv_into(self._buffer.data)
-
-
-class _SendUDPSocket(_AbstractUDPSocket):
-    def open(self):
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-
-    def send(self, t, x):
-        self._buffer[0] = t
-        self._buffer[1:] = x
-        self._socket.sendto(self._buffer.tobytes(), self.addr)
-
-
 class SocketStep(object):
     """Handles the step for socket processes."""
 
     def __init__(self, dt, send=None, recv=None,
-                 remote_dt=None, loss_limit=None, ignore_timestamp=False):
+                 remote_dt=None, connection_timeout=None, recv_timeout=None,
+                 loss_limit=None, ignore_timestamp=False):
         self.send_socket = send
         self.recv_socket = recv
         self.remote_dt = remote_dt
+        self.connection_timeout = connection_timeout
+        self.recv_timeout = recv_timeout
         self.loss_limit = loss_limit
         self.ignore_timestamp = ignore_timestamp
 
@@ -155,7 +147,14 @@ class SocketStep(object):
 
         # Receive initial packet
         if np.isnan(self.recv_socket.t):
-            self.recv_socket.recv()
+            self.recv_socket.settimeout(self.connection_timeout)
+            try:
+                self.recv_socket.recv()
+            except socket.timeout:
+                raise ConnectionTimeout(
+                    "Did not receive initial packet within connection "
+                    "timeout.")
+            self.recv_socket.settimeout(self.recv_timeout)
             self._update_value()
 
         # Wait for packet that is not timestamped in the past
@@ -205,6 +204,9 @@ class UDPReceiveSocket(nengo.Process):
     ignore_timestamp : boolean, optional (Default: False)
         If True, uses the most recently received value from the recv socket,
         even if that value comes at an earlier or later timestep.
+    connection_timeout : float, optional (Default: 300.)
+        Initial timeout when waiting to receive the initial package
+        establishing the connection.
     recv_timeout : float, optional (Default: 0.1)
         Maximum time to wait for new data each timestep.
     loss_limit: float, optional (Default: None)
@@ -227,22 +229,25 @@ class UDPReceiveSocket(nengo.Process):
     Other Nengo model elements can then be connected to the node.
     """
     def __init__(self, listen_addr, remote_dt=None, ignore_timestamp=False,
-                 recv_timeout=0.1, loss_limit=0, byte_order='='):
+                 connection_timeout=300., recv_timeout=0.1, loss_limit=0,
+                 byte_order='='):
         super(UDPReceiveSocket, self).__init__(default_size_in=0)
         self.listen_addr = listen_addr
         self.remote_dt = remote_dt
+        self.connection_timeout = connection_timeout
         self.recv_timeout = recv_timeout
         self.loss_limit = loss_limit
         self.byte_order = byte_order
 
     def make_step(self, shape_in, shape_out, dt, rng):
         assert len(shape_out) == 1
-        recv = _RecvUDPSocket(
-            self.listen_addr, shape_out[0], self.byte_order,
-            timeout=self.recv_timeout)
+        recv = _UDPSocket(self.listen_addr, shape_out[0], self.byte_order)
         recv.open()
+        recv.bind()
         return SocketStep(
             dt=dt, recv=recv, remote_dt=self.remote_dt,
+            connection_timeout=self.connection_timeout,
+            recv_timeout=self.recv_timeout,
             loss_limit=self.loss_limit)
 
 
@@ -288,7 +293,7 @@ class UDPSendSocket(nengo.Process):
 
     def make_step(self, shape_in, shape_out, dt, rng):
         assert len(shape_in) == 1
-        send = _SendUDPSocket(self.remote_addr, shape_in[0], self.byte_order)
+        send = _UDPSocket(self.remote_addr, shape_in[0], self.byte_order)
         send.open()
         return SocketStep(dt=dt, send=send, remote_dt=self.remote_dt)
 
@@ -321,6 +326,9 @@ class UDPSendReceiveSocket(nengo.Process):
     ignore_timestamp : boolean, optional (Default: False)
         If True, uses the most recently received value from the recv socket,
         even if that value comes at an earlier or later timestep.
+    connection_timeout : float, optional (Default: 300.)
+        Initial timeout when waiting to receive the initial package
+        establishing the connection.
     recv_timeout : float, optional (Default: 0.1)
         Maximum time to wait for new data each timestep.
     loss_limit: float, optional (Default: None)
@@ -361,13 +369,14 @@ class UDPSendReceiveSocket(nengo.Process):
     """
     def __init__(
             self, listen_addr, remote_addr, remote_dt=None,
-            ignore_timestamp=False, recv_timeout=0.1, loss_limit=None,
-            byte_order='='):
+            ignore_timestamp=False, connection_timeout=300.,
+            recv_timeout=0.1, loss_limit=None, byte_order='='):
         super(UDPSendReceiveSocket, self).__init__()
         self.listen_addr = listen_addr
         self.remote_addr = remote_addr
         self.remote_dt = remote_dt
         self.ignore_timestamp = ignore_timestamp
+        self.connection_timeout = connection_timeout
         self.recv_timeout = recv_timeout
         self.loss_limit = loss_limit
         self.byte_order = byte_order
@@ -376,15 +385,15 @@ class UDPSendReceiveSocket(nengo.Process):
     def make_step(self, shape_in, shape_out, dt, rng):
         assert len(shape_in) == 1
         assert len(shape_out) == 1
-        recv = _RecvUDPSocket(
-            self.listen_addr, shape_out[0], self.byte_order,
-            timeout=self.recv_timeout)
+        recv = _UDPSocket(self.listen_addr, shape_out[0], self.byte_order)
         recv.open()
-        send = _SendUDPSocket(self.remote_addr, shape_in[0], self.byte_order)
+        recv.bind()
+        send = _UDPSocket(self.remote_addr, shape_in[0], self.byte_order)
         send.open()
         return SocketStep(
             dt=dt,
             send=send, recv=recv,
             ignore_timestamp=self.ignore_timestamp,
             remote_dt=self.remote_dt,
+            connection_timeout=self.connection_timeout,
             loss_limit=self.loss_limit)
