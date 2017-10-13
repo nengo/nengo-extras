@@ -142,10 +142,11 @@ class SocketStep(object):
     the first local timestep that overlaps more than 50% with the next remote
     timestep interval should receive a new packet. Expressed as an equation, if
     :math:`t' + dt'/2 <= t` (where :math:`t'` is the last received timestamp),
-    a new packet should be received. Note that this is equivalent to the right
+    a new packet should be received. Note that this is equivalent to the left
     inequality obtained in the first case, so we don't need special handling
-    for this case. Also, the left inequality applies. If the received value
-    does not fulfil :math:`t' - dt'/2 <= t`, it is a value that corresponds to
+    for this case. Also, the right inequality applies. If the received value
+    does not fulfil :math:`t' - dt'/2 <= t` (where :math:`t'` is now the
+    timestep of the newly received packet), it is a value that corresponds to
     timesteps that are still in the future and should not be used yet.
 
     When sending data, we could send a packet every timestep, but this would
