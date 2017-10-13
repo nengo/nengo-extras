@@ -225,8 +225,8 @@ def test_more_packets_then_timesteps():
     s.append_data([0.005, 4.])
 
     step(0.000)  # To allow dt calculation
-    assert step(0.002) == 1.
-    assert step(0.004) == 3.
+    assert step(0.002) == 0.
+    assert step(0.004) == 2.
 
 
 def test_less_packets_then_timesteps():
@@ -287,11 +287,11 @@ def test_adjusts_recv_to_remote_dt():
     assert step(0.002) == 1.
 
     assert step(0.003) == 1.
+    assert step(0.004) == 1.
     assert step.n_lost == 1
 
     s.append_data([0.004, 2.])
-    assert step(0.003) == 2.
-    assert step(0.004) == 2.
+    assert step(0.005) == 2.
     assert step.n_lost == 0
 
 

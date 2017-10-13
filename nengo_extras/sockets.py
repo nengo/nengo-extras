@@ -124,7 +124,7 @@ class SocketStep(object):
     sending frequency to the local :math:`dt`).
 
     The logic described in text here, can be expressed as an inequality for
-    when to use a packet: :math:`t - dt/2 < t' <= t + dt/2`. In the `recv`
+    when to use a packet: :math:`t - dt/2 <= t' < t + dt/2`. In the `recv`
     method this inequality is split up into two parts. The left part is handled
     by the while loop (because it is a while and not an if condition, the logic
     of the condition gets inverted). The right inequality is handled by the
@@ -141,11 +141,11 @@ class SocketStep(object):
     value for timestep 1; 4, 5 the value for 2; 6, 7, 8 the value for 3. Thus,
     the first local timestep that overlaps more than 50% with the next remote
     timestep interval should receive a new packet. Expressed as an equation, if
-    :math:`t' + dt'/2 <= t` (where :math:`t'` is the last received timestamp),
+    :math:`t' + dt'/2 < t` (where :math:`t'` is the last received timestamp),
     a new packet should be received. Note that this is equivalent to the left
     inequality obtained in the first case, so we don't need special handling
     for this case. Also, the right inequality applies. If the received value
-    does not fulfil :math:`t' - dt'/2 <= t` (where :math:`t'` is now the
+    does not fulfil :math:`t' - dt'/2 < t` (where :math:`t'` is now the
     timestep of the newly received packet), it is a value that corresponds to
     timesteps that are still in the future and should not be used yet.
 
@@ -236,11 +236,11 @@ class SocketStep(object):
 
         # Wait for packet that is not timestamped in the past
         # (also skips receiving if we do not expect a new remote package yet)
-        while self.recv_socket.t <= t - self.remote_dt / 2.:
+        while self.recv_socket.t < t - self.remote_dt / 2.:
             self.recv_socket.recv()
 
         # Use value if not in the future
-        if self.recv_socket.t <= t + self.remote_dt / 2.:
+        if self.recv_socket.t < t + self.remote_dt / 2.:
             self._update_value()
 
     def _update_value(self):
