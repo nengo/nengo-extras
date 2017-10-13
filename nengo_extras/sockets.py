@@ -81,7 +81,80 @@ class _UDPSocket(object):
 
 
 class SocketStep(object):
-    """Handles the step for socket processes."""
+    r"""Handles the step for socket processes.
+
+    One critical thing in this is to align local and remote timesteps if the
+    timestep width (dt) differs. To figure out, the right thing to do we have
+    to consider two cases:
+
+    1. Remote dt is smaller or equal than local dt.
+    2. Remote dt is larger than local dt.
+
+    But first, some notation: the local timestamp of the current step is
+    denoted with :math:`t`, the local timestep width with :math:`dt`. For the
+    corresponding remote variable :math:`t'` and :math:`dt'` are used. The
+    :math:`t'` is the value read from a remote
+
+    It is also helpful to visualize the timeline with a little diagram:
+
+    .. code-block:: none
+
+          1    2    3    4    5    6    7    8    timestep indices
+        [ | ][ | ][ | ][ | ][ | ][ | ][ | ][ | ]
+        [     |     ][     |     ][     |     ][
+              1            2            3         timestep indices
+
+    Each timestep can be represented as an interval ``[ | ]``. The ``|``
+    denotes the middle of the interval and corresponds to :math:`t` and
+    :math:`t'` respectively. The width of each ``[ | ]`` corresponds to
+    :math:`dt` (or :math:`dt'`).
+
+    Let us consider the first case. The bottom row in the diagram denotes the
+    local end in this case. Sending packets is simple: we can just send
+    a packet in each timestep because the remote end would be able to process
+    even more data.
+
+    For receiving packets, we have multiple options as we are potentially
+    getting more packets then timesteps. We could average over multiple
+    packets, use the packet closest to the timestep interval mean, or use the
+    first packet that falls into the local timestep interval. In the code here,
+    we are using that last option because it does not require knowledge of the
+    timestep between sent packages on the remote end (depending on the
+    implementation it might just send a package every timestep or adjust the
+    sending frequency to the local :math:`dt`).
+
+    The logic described in text here, can be expressed as an inequality for
+    when to use a packet: :math:`t - dt/2 < t' <= t + dt/2`. In the `recv`
+    method this inequality is split up into two parts. The left part is handled
+    by the while loop (because it is a while and not an if condition, the logic
+    of the condition gets inverted). The right inequality is handled by the
+    following if condition. Note, that we set :math:`dt' = dt` if
+    :math:`dt' <= dt` and thus we can use :math:`dt'` instead of :math:`dt`
+    which allows us to use exactly the same code for the second case discussed
+    next.
+
+    In the second case the top row in the diagram corresponds to the remote
+    end.  When receiving data, each local timestep should use the remote value
+    from the remote timestep with the largest overlap in the interval (because
+    that value will be most representative for the given local timestep). So
+    given the picture above, local timesteps 1, 2, 3 should use the remote
+    value for timestep 1; 4, 5 the value for 2; 6, 7, 8 the value for 3. Thus,
+    the first local timestep that overlaps more than 50% with the next remote
+    timestep interval should receive a new packet. Expressed as an equation, if
+    :math:`t' + dt'/2 <= t` (where :math:`t'` is the last received timestamp),
+    a new packet should be received. Note that this is equivalent to the right
+    inequality obtained in the first case, so we don't need special handling
+    for this case. Also, the left inequality applies. If the received value
+    does not fulfil :math:`t' - dt'/2 <= t`, it is a value that corresponds to
+    timesteps that are still in the future and should not be used yet.
+
+    When sending data, we could send a packet every timestep, but this would
+    flood the remote end with packets that it does not use (at least currently
+    where only a single value is used and no averaging is done). So, we want
+    to send the next packet at the :math:`t` closest to :math:`t' + dt'` (where
+    :math:`t'` is the timestamp of the last sent packet). Expressed as an
+    equation a packet should be send when :math:`t' + dt' <= t + dt/2`.
+    """
 
     def __init__(self, dt, send=None, recv=None,
                  remote_dt=None, connection_timeout=None, recv_timeout=None,
