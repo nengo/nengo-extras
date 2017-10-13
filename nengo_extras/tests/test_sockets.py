@@ -1,4 +1,4 @@
-from socket import timeout
+import socket
 import threading
 import sys
 
@@ -31,10 +31,13 @@ class UDPSocketMock(sockets._UDPSocket):
     def close(self):
         self._socket = None
 
-    def recv(self):
+    def recv(self, timeout):
         if len(self._socket) <= 0:
-            raise timeout()
+            raise socket.timeout()
         self._buffer[:] = self._socket.pop()
+
+    def recv_with_adaptive_timeout(self):
+        return self.recv(None)
 
     def send(self, t, x):
         self._buffer[0] = t

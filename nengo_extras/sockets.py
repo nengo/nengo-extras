@@ -28,7 +28,7 @@ class ConnectionTimeout(RuntimeError):
 
 
 class _UDPSocket(object):
-    def __init__(self, addr, dims, byte_order):
+    def __init__(self, addr, dims, byte_order, timeout=None):
         self.addr = addr
         self.dims = dims
         if byte_order == "little":
@@ -39,6 +39,11 @@ class _UDPSocket(object):
             raise ValidationError("Must be one of '<', '>', '=', 'little', "
                                   "'big'.", attr="byte_order")
         self.byte_order = byte_order
+        if np.isscalar(timeout):
+            self.timeout = (timeout, timeout)
+        else:
+            self.timeout = timeout
+        self.current_timeout = None
 
         self._buffer = np.empty(dims + 1, dtype="%sf8" % byte_order)
         self._buffer[0] = np.nan
@@ -59,15 +64,30 @@ class _UDPSocket(object):
     def open(self):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        if self.timeout is not None:
+            self.current_timeout = max(self.timeout)
+        else:
+            self.current_timeout = None
 
     def bind(self):
         self._socket.bind(self.addr)
 
-    def settimeout(self, timeout):
+    def recv(self, timeout):
         self._socket.settimeout(timeout)
-
-    def recv(self):
         self._socket.recv_into(self._buffer.data)
+
+    def recv_with_adaptive_timeout(self):
+        self._socket.settimeout(self.current_timeout)
+        try:
+            self._socket.recv_into(self._buffer.data)
+            if self.current_timeout is not None:
+                self.current_timeout = max(
+                    min(self.timeout), 0.9 * self.current_timeout)
+        except socket.timeout:
+            # TODO is a slow increase in timeout better than a complete reset?
+            if self.current_timeout is not None:
+                self.current_timeout = max(self.timeout)
+            raise
 
     def send(self, t, x):
         self._buffer[0] = t
@@ -218,33 +238,33 @@ class SocketStep(object):
 
     def recv(self, t):
         if self.ignore_timestamp:
-            self.recv_socket.recv()
+            self.recv_socket.recv_with_adaptive_timeout()
             self._update_value()
             return
 
         # Receive initial packet
         if np.isnan(self.recv_socket.t):
-            self.recv_socket.settimeout(self.connection_timeout)
             try:
-                self.recv_socket.recv()
+                self.recv_socket.recv(self.connection_timeout)
             except socket.timeout:
                 raise ConnectionTimeout(
                     "Did not receive initial packet within connection "
                     "timeout.")
-            self.recv_socket.settimeout(self.recv_timeout)
             self._update_value()
 
         # Wait for packet that is not timestamped in the past
         # (also skips receiving if we do not expect a new remote package yet)
         while self.recv_socket.t < t - self.remote_dt / 2.:
-            self.recv_socket.recv()
+            self.recv_socket.recv_with_adaptive_timeout()
 
         # Use value if not in the future
         if self.recv_socket.t < t + self.remote_dt / 2.:
             self._update_value()
 
     def _update_value(self):
-        self.value = np.array(self.recv_socket.x)  # need to copy value
+        # Value needs to be copied, otherwise it might be overwritten
+        # prematurely by a packet for a future timestep.
+        self.value = np.array(self.recv_socket.x)
 
     def send(self, t, x):
         # Calculate if it is time to send the next packet.
@@ -284,8 +304,11 @@ class UDPReceiveSocket(nengo.Process):
     connection_timeout : float, optional (Default: 300.)
         Initial timeout when waiting to receive the initial package
         establishing the connection.
-    recv_timeout : float, optional (Default: 0.1)
-        Maximum time to wait for new data each timestep.
+    recv_timeout : 2-tuple or float or None, optional (Default: 0.1)
+        Timout for socket receive operations in each timestep. If *None*, there
+        is no timeout (block until package is received). A float denotes a
+        fixed timeout. A 2-tuple gives a minimum and maximum timeout and the
+        timeout will be adjusted adaptively between these two values.
     loss_limit: float, optional (Default: None)
         If not *None*, the maximum number of consecutive timeouts on receive
         attempts before no further attempts are made and the last received
@@ -406,8 +429,11 @@ class UDPSendReceiveSocket(nengo.Process):
     connection_timeout : float, optional (Default: 300.)
         Initial timeout when waiting to receive the initial package
         establishing the connection.
-    recv_timeout : float, optional (Default: 0.1)
-        Maximum time to wait for new data each timestep.
+    recv_timeout : 2-tuple or float or None, optional (Default: 0.1)
+        Timout for socket receive operations in each timestep. If *None*, there
+        is no timeout (block until package is received). A float denotes a
+        fixed timeout. A 2-tuple gives a minimum and maximum timeout and the
+        timeout will be adjusted adaptively between these two values.
     loss_limit: float, optional (Default: None)
         If not *None*, the maximum number of consecutive timeouts on receive
         attempts before no further attempts are made and the last received
