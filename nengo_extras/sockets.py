@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import socket
+import sys
 
 import nengo
 from nengo.exceptions import ValidationError
@@ -63,7 +64,14 @@ class _UDPSocket(object):
 
     def open(self):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        if sys.platform.startswith('bsd') or sys.platform.startswith('darwin'):
+            self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        else:
+            # Linux >= 3.9 has SO_REUSEPORT, but does load balancing for it.
+            # We want all data to go the last opened socket.
+            # More details:
+            # https://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t?rq=1
+            self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         if self.timeout is not None:
             self.current_timeout = max(self.timeout)
         else:

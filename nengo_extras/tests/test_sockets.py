@@ -197,6 +197,25 @@ def test_time_sync(Simulator, plt, seed, rng):
                        atol=0.0001, rtol=0.0001)
 
 
+def test_socket_port_reuse():
+    addr = ('127.0.0.1', 54321)
+    s1 = sockets._UDPSocket(addr, 1, '=', timeout=None)
+    s1.open()
+    s1.bind()
+    s2 = sockets._UDPSocket(addr, 1, '=', timeout=None)
+    s2.open()
+    s2.bind()
+    s_send = sockets._UDPSocket(addr, 1, '=', timeout=None)
+    s_send.open()
+    # Failure can be probabilistic if a system distributes data randomly
+    # among the two sockets.
+    for i in range(100):
+        s_send.send(0.1, [1.])
+    for i in range(100):
+        s2.recv(0.1)
+        assert s2.t == 0.1 and s2.x[0] == 1.
+
+
 def test_misordered_packets():
     s = UDPSocketMock(dims=1)
     s.open()
