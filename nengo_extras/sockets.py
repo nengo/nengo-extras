@@ -47,7 +47,10 @@ class _UDPSocket(object):
             self.timeout = (timeout, timeout)
         else:
             self.timeout = timeout
-        self.current_timeout = None
+        if self.timeout is not None:
+            self.current_timeout = max(self.timeout)
+        else:
+            self.current_timeout = None
 
         self._buffer = np.empty(dims + 1, dtype="%sf8" % byte_order)
         self._buffer[0] = np.nan
@@ -191,13 +194,12 @@ class SocketStep(object):
     """
 
     def __init__(self, dt, send=None, recv=None,
-                 remote_dt=None, connection_timeout=None, recv_timeout=None,
+                 remote_dt=None, connection_timeout=None,
                  loss_limit=None, ignore_timestamp=False):
         self.send_socket = send
         self.recv_socket = recv
         self.remote_dt = remote_dt
         self.connection_timeout = connection_timeout
-        self.recv_timeout = recv_timeout
         self.loss_limit = loss_limit
         self.ignore_timestamp = ignore_timestamp
 
@@ -357,13 +359,14 @@ class UDPReceiveSocket(nengo.Process):
 
     def make_step(self, shape_in, shape_out, dt, rng):
         assert len(shape_out) == 1
-        recv = _UDPSocket(self.listen_addr, shape_out[0], self.byte_order)
+        recv = _UDPSocket(
+            self.listen_addr, shape_out[0], self.byte_order,
+            timeout=self.recv_timeout)
         recv.open()
         recv.bind()
         return SocketStep(
             dt=dt, recv=recv, remote_dt=self.remote_dt,
             connection_timeout=self.connection_timeout,
-            recv_timeout=self.recv_timeout,
             loss_limit=self.loss_limit)
 
 
@@ -504,7 +507,9 @@ class UDPSendReceiveSocket(nengo.Process):
     def make_step(self, shape_in, shape_out, dt, rng):
         assert len(shape_in) == 1
         assert len(shape_out) == 1
-        recv = _UDPSocket(self.listen_addr, shape_out[0], self.byte_order)
+        recv = _UDPSocket(
+            self.listen_addr, shape_out[0], self.byte_order,
+            timeout=self.recv_timeout)
         recv.open()
         recv.bind()
         send = _UDPSocket(self.remote_addr, shape_in[0], self.byte_order)
