@@ -468,7 +468,7 @@ class UDPSendReceiveSocket(nengo.Process):
 
     and the following socket on machine B::
 
-        socket_send_recv_B = UDPSocket(
+        socket_send_recv_B = UDPSendReceiveSocket(
             listen_addr=('10.10.21.25', 5002),
             remote_addr=('10.10.21.1', 5001))
         node_send_recv_B = nengo.Node(
