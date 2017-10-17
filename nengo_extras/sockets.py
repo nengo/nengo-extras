@@ -1,11 +1,14 @@
 from __future__ import absolute_import
 
+import logging
 import socket
 import sys
 
 import nengo
 from nengo.exceptions import ValidationError
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 # FIXME close sockets when simulator is closed, remove SO_REUSEPORT
@@ -83,6 +86,7 @@ class _UDPSocket(object):
     def recv(self, timeout):
         self._socket.settimeout(timeout)
         self._socket.recv_into(self._buffer.data)
+        logger.debug("Received packet for t=%fs.", self.t)
 
     def recv_with_adaptive_timeout(self):
         self._socket.settimeout(self.current_timeout)
@@ -101,6 +105,7 @@ class _UDPSocket(object):
         self._buffer[0] = t
         self._buffer[1:] = x
         self._socket.sendto(self._buffer.tobytes(), self.addr)
+        logger.debug("Send packet for t=%fs.", self.t)
 
     def close(self):
         if not self.closed:
@@ -232,6 +237,7 @@ class SocketStep(object):
                 self.recv(t)
                 self.n_lost = 0
             except socket.timeout:  # packet lost
+                logger.info("No packet received for t=%fs.", t)
                 self.n_lost += 1
         return self.value
 
@@ -252,6 +258,7 @@ class SocketStep(object):
 
         # Receive initial packet
         if np.isnan(self.recv_socket.t):
+            logger.debug("Waiting for initial packet.")
             try:
                 self.recv_socket.recv(self.connection_timeout)
             except socket.timeout:
@@ -263,6 +270,7 @@ class SocketStep(object):
         # Wait for packet that is not timestamped in the past
         # (also skips receiving if we do not expect a new remote package yet)
         while self.recv_socket.t < t - self.remote_dt / 2.:
+            logger.debug("Waiting for packet.")
             self.recv_socket.recv_with_adaptive_timeout()
 
         # Use value if not in the future
