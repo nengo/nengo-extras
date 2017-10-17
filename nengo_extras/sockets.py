@@ -87,11 +87,18 @@ class _UDPSocket(object):
         self._socket.bind(self.addr)
 
     def recv(self, timeout):
+        logger.debug("Waiting for packet with timeout %fs.", timeout)
         self._socket.settimeout(timeout)
         self._socket.recv_into(self._buffer.data)
         logger.debug("Received packet for t=%fs.", self.t)
 
     def recv_with_adaptive_timeout(self):
+        if self.current_timeout is not None:
+            logger.debug(
+                "Waiting for packet with adaptive timeout "
+                "(current value %fs.)", self.current_timeout)
+        else:
+            logger.debug("Waiting for packet (blocking).")
         self._socket.settimeout(self.current_timeout)
         try:
             self._socket.recv_into(self._buffer.data)
@@ -260,7 +267,6 @@ class SocketStep(object):
 
         # Receive initial packet
         if np.isnan(self.recv_socket.t):
-            logger.debug("Waiting for initial packet.")
             try:
                 self.recv_socket.recv(self.connection_timeout)
             except socket.timeout:
@@ -272,7 +278,6 @@ class SocketStep(object):
         # Wait for packet that is not timestamped in the past
         # (also skips receiving if we do not expect a new remote package yet)
         while self.recv_socket.t < t - self.remote_dt / 2.:
-            logger.debug("Waiting for packet.")
             self.recv_socket.recv_with_adaptive_timeout()
 
         # Use value if not in the future
