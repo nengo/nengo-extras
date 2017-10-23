@@ -5,7 +5,10 @@ import collections
 
 import numpy as np
 import PIL.ImageTk
-import Tkinter as tk
+try:
+    import tkinter as tk
+except ImportError:
+    import Tkinter as tk
 
 
 class ImageSelector(tk.Frame):
