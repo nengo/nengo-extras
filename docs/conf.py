@@ -3,13 +3,9 @@
 # This file is execfile()d with the current directory set
 # to its containing dir.
 
-import os
-import os.path
-import shutil
 import sys
 
 try:
-    import nbsphinx
     import nengo_extras
     import guzzle_sphinx_theme
 except ImportError:
@@ -59,7 +55,8 @@ master_doc = 'index'
 project = u'Nengo extras'
 authors = u'Applied Brain Research'
 # copyright = nengo_extras.__copyright__
-version = '.'.join(nengo_extras.__version__.split('.')[:2])  # Short X.Y version
+version = '.'.join(
+    nengo_extras.__version__.split('.')[:2])  # Short X.Y version
 release = nengo_extras.__version__  # Full version, with tags
 pygments_style = 'default'
 
