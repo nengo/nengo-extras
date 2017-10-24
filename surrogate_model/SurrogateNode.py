@@ -1,148 +1,46 @@
-# Surrogate API that does not require full spiking simulation
-import random
 import nengo
-import nengo_normal_form
-
-import nengo.utils.numpy as npext
 import numpy as np
-import pandas as pd
-import time
-import SurrogateNode
 
-from nengo.utils.ensemble import tuning_curves
-from numpy.polynomial.polynomial import polyfromroots
-from scipy.interpolate import interp1d
-from scipy.stats import truncnorm
-from scipy import signal
-from statsmodels.tsa.statespace.sarimax import SARIMAX
+class SurrogateNode(nengo.Node):
+    def __init__(self, sim, ensemble, mode):
+        # go do all your build stuff
 
-###################
-# Surrogate Model #
-###################
+        self.sim = sim
+        self.ensemble = ensemble
+        self.mode = mode
+        super(SurrogateNode, self).__init__(sim.dt, size_in=ensemble.dimensions, size_out=ensemble.dimensions)
 
-class SurrogateModel(object):    
-    def __init__(self, model, ensemble, dim, sim_time, dt, input, 
-                    ARMA_orders=[2,0,2], tau_syn=0.05, seed=None):
-        
-        self.dim = dim                           # model dimension
-        self.stim_probe = None
-        self.pop_probe = None
-        self.input = input
-        self.sim_time = sim_time                 # simulated time
-        self.dt = dt                             # time step
-        self.trange = np.linspace(0, sim_time, num=int(sim_time/dt))
-        self.ARMA_orders = ARMA_orders
-        self.tau_syn = tau_syn
-        self.ensemble = ensemble                 # desired ensemble
-        self.model = model                       # model where the desired ensemble belongs
+    def step(self, t, x):
+        # compute one time step output for a value of x
+        t_index = np.where(self.time == t)
 
-        self.eval_points = []
-        self.rates = []
-        self.decoders = []
-        self.static_output = []
-
-        # Params for bias model
-        self.bias_values_sim = []                # time-independent difference between input and static_output
-        self.bias_values_est = []                # estimate of simulated bias
-
-        # Params for noise model
-        self.noise_values_est = []               # estimate of noise (difference between output and static_output),
-                                                 # using random gaussian distributed samples
-
-        self.output = []                         # surrogate output
-        self.simulated_time = []                 # sim tic_toc
-        self.build()
+        bias = self.createBiasModel(t_index, self.mode)
+        noise = self.createNoiseModel(t_index, self.ARMA_orders)
+        return x + bias + noise
 
 
-    #############################
-    # SURROGATE MODEL FUNCITONS #
-    #############################
+def replace_with_surr_node(self, model, ens, sim):
+    model.ensembles.remove(ens)
 
-    def build(self):
-        """
-        Build the surrogate model; 
-        FOR NOW: assume you are only interested in the last population
-        TODO: Make it applicable to any ensemble
+    with model:
+        surrogate = SurrogateNode(sim, ens)
 
-        Steps:
-        1. Calculate the rates of the ensemble based on the input
-        2. Find the decoders of the ensembles
-        3. Calculate the static output of the ensemble
-        """
-        pop = self.ensemble
-        n_neurons = pop.n_neurons
-
-        with nengo.Simulator(self.model) as sim:
-            eval_points, rates = tuning_curves(pop, sim, inputs=self.input.T)
-
-        # Find decoders
-        conn_dec = None
-        is_decoded = False
-        
-        # Fetch all the decoded connections of the desired ensemble
-        for conn in self.model.connections:
-            if self.ensemble == conn.pre:
-                if type(conn.post) == nengo.node.Node:
-                    is_decoded = True
-                    conn_dec = conn
-        
-        # Create a node for decoder if it doesn't exist
-        model = self.model
-        if not is_decoded:        
+    for c in model.connections[:]:
+        if c.post_obj is ens:
+            model.connections.remove(c)
             with model:
-                for conn in model.connections:
-                    if pop == conn.pre:
-                        node = nengo.Node(None, size_in=self.dim, label='node_decode') # For decoders
-                        conn_dec = nengo.Connection(pop, node)
-                        break
+                nengo.Connection(c.pre, surrogate[c.post_slice],
+                                 transform=c.transform,
+                                 synapse=c.synapse)
+    for c in model.connections[:]:
+        if c.pre_obj is ens:
+            model.connections.remove(c)
+            with model:
+                nengo.Connection(surrogate[c.pre_slice], c.post,
+                                 transform=c.transform,
+                                 synapse=c.synapse)
 
-            is_decoded = True
-            self.model = model
-            with nengo.Simulator(self.model) as sim:
-                eval_points, rates = tuning_curves(pop, sim, inputs=self.input.T)
-                pass
-
-        self.eval_points = eval_points
-        self.rates = rates.T
-        self.decoders = sim.data[conn_dec].weights
-        self.static_output = np.dot(self.decoders, self.rates)
-
-        # Replace the ensemble with surrogate node
-        SurrogateNode.replace_with_surr_node(model, ens, sim, static_output)
-
-
-    def run(self):
-        """
-        Calculates the surrogate model based on the estimated noise and bias terms;
-        SurrogateModel.run() should have ran in order to run this function
-
-        NOTE: surr_output = input + bias_est + noise_est
-
-        Steps:
-        1. Ensure that the model has been simulated
-        2. Estimate the bias and noise term
-        3. Calculate the surr_model output
-        """
-        # tic = time.clock()
-
-        try:
-            assert len(self.static_output) != 0
-        except:
-            raise ValueError("Surrogate model has not been simulated")
-        else:
-            with nengo.Simulator(self.sim) as sim:
-                sim.run(self.sim_time)
-                        
-            self.output = surr_output
-
-            # TODO: Consider multidimensional case
-
-        # toc = time.clock()
-
-        # self.simulated_time = toc - tic
-        # print "Simulating finished in {}".format(self.simulated_time)
-
-    ########################
+        ########################
     # BIAS MODEL FUNCTIONS #
     ########################
 
@@ -169,7 +67,7 @@ class SurrogateModel(object):
 
         Note: actual = ideal + bias
         """
-        # ind = 
+        ind = 
         bias = self.static_output - self.input
         self.bias_values_sim = bias
 
@@ -327,4 +225,3 @@ class SurrogateModel(object):
                 model_noise = np.vstack((model_noise, model_noise_d))
 
         return model_noise
-
