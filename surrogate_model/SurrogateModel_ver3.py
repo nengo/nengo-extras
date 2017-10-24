@@ -10,16 +10,15 @@ from nengo.utils.ensemble import tuning_curves
 from scipy.interpolate import interp1d
 from scipy.stats import truncnorm
 from scipy import signal
-from statsmodels.api.tsa.statespace.sarimax import SARIMAX
+from statsmodels.tsa.arima_model import ARMA
+from statsmodels.tsa.arima_process import arma_generate_sample
 
 class SurrogateModel(object):
     def __init__(self, model, dim, seed=None):
         self.dim = dim                           # model dimension
 
-        self.stim_probe = None
-        self.pop_probe = None
-        self.input_vec = []
-        self.model = self.createSurrModel(model) # nengo model
+        self.stim_probe = model.probes[-1]
+        self.pop_probe = model.probes[-1]
 
         self.dt = None                           # time step
         self.sim = None                          # simulator instance
@@ -55,20 +54,6 @@ class SurrogateModel(object):
     # SURROGATE MODEL FUNCITONS #
     #############################
 
-    def createSurrModel(self, model):
-        """
-        Adds surrgate model shell on the existing nengo model
-
-        Params:
-        model: nengo model instance
-        """
-        with model:
-            self.input_vec = model.nodes[0].output
-            self.stim_probe = model.probes[0] # Input
-            self.pop_probe = model.probes[-1] # Last ensemble's output
-
-        return model
-
     def run(self, dt, sim_time):
         """
         Run simulation with the surrogate model
@@ -92,6 +77,7 @@ class SurrogateModel(object):
         pop = self.model.ensembles[-1]
         conn_end = self.model.connections[-1]
         eval_points, rates = tuning_curves(pop, sim, inputs=self.input.T)
+        print rates
         self.rates = rates.T
         self.decoders = sim.data[conn_end].weights
         self.static_output = np.dot(self.decoders, self.rates)
@@ -237,37 +223,17 @@ class SurrogateModel(object):
         ARMA_orders: ARIMA model param; default is [2,0,2]
         tau_syn: synapse constant; default is 0.005
         """
-        self.calcSimNoise()
-        noise = self.noise_values_sim
-        filt_noise = self.filtNoise(noise, tau_syn)
-        # print "filt_noise: {}".format(filt_noise)
-        self.noise_values_filt = filt_noise
-        spike_freq, spike_PSD = signal.periodogram(noise,fs=1/self.dt,window='hanning')
-        filt_freq, filt_PSD = signal.periodogram(filt_noise,fs=1/self.dt,window='hanning')
+        self.noise_values_sim = self.output - self.static_output
+        self.noise_values_filt = self.filtNoise(self.noise_values_sim, tau_syn)
 
-        self.spike_freq = spike_freq
-        self.spike_PSD = spike_PSD
-        self.filt_freq = filt_freq
-        self.filt_PSD = filt_PSD
-        model_noise = self.estimateNoise(filt_noise, ARMA_orders, tau_syn)
-        print model_noise
-        self.noise_values_est = model_noise
-        model_freq, model_PSD = signal.periodogram(model_noise,fs=1/self.dt,window='hanning')
+        self.spike_freq, self.spike_PSD = signal.periodogram(self.noise_values_sim, fs=1/self.dt, window='hanning')
+        self.filt_freq, self.filt_PSD = signal.periodogram(self.noise_values_filt,fs=1/self.dt,window='hanning')
 
-        self.model_PSD = model_PSD
-        self.model_freq = model_freq
+        self.noise_values_est = self.estimateNoise(self.noise_values_filt, ARMA_orders, tau_syn)
+        model_PSD, self.model_freq = signal.periodogram(model_noise,fs=1/self.dt,window='hanning')
 
         return model_noise
 
-    def calcSimNoise(self):
-        """
-        Calculate the simulated noise, part of error that fluctuates over time
-        """
-        # print "output: {}".format(self.output.shape)
-        # print "self.static_output: {}".format(self.static_output.shape)
-        noise = self.output - self.static_output
-        # print "noise: {}".format(noise.shape)
-        self.noise_values_sim = noise
 
     def filtNoise(self, noise, tau_syn):
         """
@@ -285,46 +251,22 @@ class SurrogateModel(object):
         return filt_noise.reshape((self.dim,len(filt_noise)))
 
     def estimateNoise(self, filt_noise, ARMA_orders, tau_syn):
-        """
-        Estimates the simulated noise using ARMA modeling
-
-        Steps:
-        1. Create a ARMA model with the filtered noise
-        2. Generate random evaluation points based on the eval points
-        3. Using the ARMA model and random points from the previous steps, find model_noise
-        """
-        rand_noise_1 = np.random.randn(self.static_output.shape[0], self.static_output.shape[1])
-        rand_noise_1 = self.filtNoise(rand_noise_1, tau_syn)
-        rand_noise_2 = np.random.randn(self.static_output.shape[0], self.static_output.shape[1])
-        rand_noise_2 = self.filtNoise(rand_noise_2, tau_syn)
-
-        model_noise = self.fitARMAModel(rand_noise_1, rand_noise_2, ARMA_orders)
-
-        return model_noise
-
-    def fitARMAModel(self, noise, rand_noise, ARMA_orders):
-        """
-        Fit ARMA model to spike noise spectrum; returns the estimated noise
-        based on rand_noise
-        """
-        orders = ARMA_orders
-
-        # Find ARMA model in each dimension
         for d in range(self.dim):
-            model_d = SARIMAX(noise[d], order=orders, enforce_stationarity=False,
-                                enforce_invertibility=False)
-            model_fit_d = model_d.fit(disp=-1)
-            print model_fit_d.predict()
-            # arma filtering
-            model_d_rand = SARIMAX(rand_noise[d], order=orders, enforce_stationarity=False,
-                                enforce_invertibility=False)
-            model_d_rand = model_d_rand.filter(model_fit_d.params)
-            # print model_fit_d.params
-            # print model_d_rand.params
-            model_noise_d = model_d_rand.predict()
-            print model_noise_d
+            # print filt_noise[d]
+            # model = SARIMAX(filt_noise[d], order=ARMA_orders, enforce_invertibility=False,
+            #                         enforce_stationarity=False).fit(disp=False)
+            # model_noise_d = model.predict(2000, 3999, dynamic=True)
+            # print model_noise_d
+            # model_noise_d = np.concatenate((filt_noise[d, 0:len(filt_noise[d])/2], model_noise_d), axis=0)
 
-            # print "model_noise_d:{}".format(model_noise_d)
+            np.random.seed(12345)
+            arma_model = ARMA(filt_noise[d], order=(2,2)).fit([0,0,0,0], trend='nc', disp=False)
+            model_noise_d = arma_generate_sample(
+                ar=arma_model.arparams,
+                ma=arma_model.maparams,
+                nsample=len(filt_noise[d]),
+                sigma=arma_model.sigma2**0.5
+            )
 
             if d == 0:
                 model_noise = model_noise_d
@@ -332,5 +274,5 @@ class SurrogateModel(object):
             else:
                 model_noise = np.vstack((model_noise, model_noise_d))
 
-        return model_noise
 
+        return model_noise
