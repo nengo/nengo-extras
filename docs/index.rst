@@ -9,5 +9,12 @@ Full API documentation
 
    api/nengo_extras
 
+Changelog
+=========
+
+.. toctree::
+   :maxdepth: 2
+
+   changelog
 
 * :ref:`genindex`
