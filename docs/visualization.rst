@@ -91,3 +91,21 @@ TkInter GUIs
 .. autoclass:: nengo_extras.deepview.VerticalImageFrame
 
 .. autoclass:: nengo_extras.deepview.Viewer
+
+Gephi visualization
+===================
+
+.. autosummary::
+
+   nengo_extras.gexf.DispatchTable
+   nengo_extras.gexf.HierarchicalLabeler
+   nengo_extras.gexf.GexfConverter
+   nengo_extras.gexf.CollapsingGexfConverter
+
+.. autoclass:: nengo_extras.gexf.DispatchTable
+
+.. autoclass:: nengo_extras.gexf.HierarchicalLabeler
+
+.. autoclass:: nengo_extras.gexf.GexfConverter
+
+.. autoclass:: nengo_extras.gexf.CollapsingGexfConverter

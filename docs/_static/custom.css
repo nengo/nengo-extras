@@ -14,3 +14,7 @@ code, .rst-content tt, .rst-content code {
     padding-left: 0;
     width: inherit;
 }
+
+.body img {
+    max-width: 100%;
+}

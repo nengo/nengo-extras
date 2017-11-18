@@ -28,6 +28,8 @@ Release history
   to learn associations from cue vectors to target vectors
   in a one-shot fashion without catastrophic forgetting.
   (`#72 <https://github.com/nengo/nengo-extras/pull/72>`_)
+- Added classes to convert Nengo models to GEXF for visualization with Gephi.
+  (`#54 <https://github.com/nengo/nengo-extras/pull/54>`_)
 
 0.1.0 (March 14, 2018)
 ======================

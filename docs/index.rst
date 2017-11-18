@@ -39,6 +39,7 @@ To install Nengo extras, we recommend using ``pip``.
    vision-examples
    visualization
    visualization-examples
+   gephi-tutorial
 
 * :ref:`genindex`
 
