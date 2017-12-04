@@ -95,19 +95,17 @@ class SurrogateModel(object):
         3. Calculate the surr_model output
         5. Calculate RMSE in between the actual output and
         """
-        try:
-            assert self.sim is not None
-        except:
+        if self.sim is None:
             raise ValueError("Surrogate model has not been simulated")
-        else:
-            self.createBiasModel()
-            self.createNoiseModel(ARMA_orders, tau_syn)
-            surr_output = (self.input          +
-                          self.bias_values_est +
-                          self.noise_values_est )
 
-            self.surr_output = surr_output
-            self.RMSE = np.sqrt((surr_output - self.output) ** 2).mean()
+        self.createBiasModel()
+        self.createNoiseModel(ARMA_orders, tau_syn)
+        surr_output = (self.input          +
+                      self.bias_values_est +
+                      self.noise_values_est )
+
+        self.surr_output = surr_output
+        self.RMSE = np.sqrt((surr_output - self.output) ** 2).mean()
 
 
     ########################
@@ -230,7 +228,7 @@ class SurrogateModel(object):
         self.filt_freq, self.filt_PSD = signal.periodogram(self.noise_values_filt,fs=1/self.dt,window='hanning')
 
         self.noise_values_est = self.estimateNoise(self.noise_values_filt, ARMA_orders, tau_syn)
-        model_PSD, self.model_freq = signal.periodogram(model_noise,fs=1/self.dt,window='hanning')
+        self.model_freq, self.model_PSD = signal.periodogram(self.noise_values_est,fs=1/self.dt,window='hanning')
 
         return model_noise
 

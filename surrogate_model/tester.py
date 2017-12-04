@@ -40,10 +40,13 @@ with model:
     nengo.Connection(input, layers[0], synapse=tau_syn)
     for i in range(L-1):
         nengo.Connection(layers[i], layers[i+1], synapse=tau_syn)
-    # nengo.Connection(layers[-1], output)
+    nengo.Connection(layers[-1], output)
 
     pInput = nengo.Probe(input, 'output')
     pOutput = nengo.Probe(layers[-1], 'decoded_output', synapse=tau_syn)
+
+
+print "asdsad"
 
 
 
