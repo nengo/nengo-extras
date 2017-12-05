@@ -1,11 +1,12 @@
-import dill
+# import dill
 import matplotlib.pyplot as plt
 import nengo
 import numpy as np
 
+from nengo.utils.compat import pickle
 from nengo_extras.simulator import State
 
-filename = 'test_save.dil'
+# filename = 'test_save.dil'
 
 with nengo.Network() as model:
     u = nengo.Node(np.sin)
@@ -20,24 +21,22 @@ with nengo.Simulator(model) as sim:
     # print(sim.data['time'])
 
     plt.figure(1)
-    plt.plot(sim.data['time'], sim.data[bp])
+    plt.plot(sim.trange(), sim.data[bp])
 
     state = State(sim)
-    with open(filename, 'wb') as fh:
-        dill.dump(state, fh)
+    pkls = pickle.dumps(dict(state=state, bp=bp))
 
-del model
-del sim
+del model, sim, bp
 
-with open(filename, 'rb') as fh:
-    state = dill.load(fh)
-    # state = State.load(data)
-    sim = state.sim
+pkl = pickle.loads(pkls)
+state = pkl['state']
+sim = state.sim
+bp = pkl['bp']
 
 with sim:
     sim.run(3.0)
 
     plt.figure(2)
-    plt.plot(sim.data['time'], sim.data[bp])
+    plt.plot(sim.trange(), sim.data[bp])
 
 plt.show()
