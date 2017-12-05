@@ -326,6 +326,10 @@ class NeuronLayer(Layer):
         return self._output
 
     @property
+    def neurons(self):
+        return self.ensemble.neurons
+
+    @property
     def amplitude(self):
         return self.connection.transform
 
