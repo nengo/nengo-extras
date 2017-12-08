@@ -266,3 +266,8 @@ class SoftmaxClassifier(nengo.solvers.Solver):
             'time': t,
             'iterations': info['funcalls'],
         }
+
+
+nengo.cache.Fingerprint.whitelist(LstsqClassifier)
+nengo.cache.Fingerprint.whitelist(HingeClassifier)
+nengo.cache.Fingerprint.whitelist(SoftmaxClassifier)
