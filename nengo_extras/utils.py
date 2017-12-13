@@ -1,15 +1,13 @@
-import urllib
 
 from nengo.utils.compat import pickle, PY2
 
 
-urlretrieve = urllib.urlretrieve if PY2 else urllib.request.urlretrieve
-
-
 if PY2:
     from cStringIO import StringIO  # noqa: F401
+    from urllib import urlretrieve
 else:
     from io import StringIO  # noqa: F401
+    from urllib.request import urlretrieve
 
 
 def cmp(a, b):  # same as python2's builtin cmp, not available in python3
