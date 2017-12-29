@@ -250,21 +250,11 @@ class SurrogateModel(object):
 
     def estimateNoise(self, filt_noise, ARMA_orders, tau_syn):
         for d in range(self.dim):
-            # print filt_noise[d]
-            # model = SARIMAX(filt_noise[d], order=ARMA_orders, enforce_invertibility=False,
-            #                         enforce_stationarity=False).fit(disp=False)
-            # model_noise_d = model.predict(2000, 3999, dynamic=True)
-            # print model_noise_d
-            # model_noise_d = np.concatenate((filt_noise[d, 0:len(filt_noise[d])/2], model_noise_d), axis=0)
+            model = SARIMAX(filt_noise[d], order=ARMA_orders, enforce_invertibility=False,
+                                    enforce_stationarity=False).fit(disp=False)
+            model_noise_d = model.predict(2000, 3999, dynamic=True)
+            model_noise_d = np.concatenate((filt_noise[d, 0:len(filt_noise[d])/2], model_noise_d), axis=0)
 
-            np.random.seed(12345)
-            arma_model = ARMA(filt_noise[d], order=(2,2)).fit([0,0,0,0], trend='nc', disp=False)
-            model_noise_d = arma_generate_sample(
-                ar=arma_model.arparams,
-                ma=arma_model.maparams,
-                nsample=len(filt_noise[d]),
-                sigma=arma_model.sigma2**0.5
-            )
 
             if d == 0:
                 model_noise = model_noise_d
