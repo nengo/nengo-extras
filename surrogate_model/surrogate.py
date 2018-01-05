@@ -129,9 +129,10 @@ class NoiseModel:
 
     """
 
-    def __init__(self, radii, models):
+    def __init__(self, radii, models, variances):
         self.noise_radii = radii
         self.noise_models_by_range = models
+        self.noise_variances = variances
 
     def generate_noise(self, inp):
         out_shape = (len(inp), len(self.noise_models_by_range[0]))
@@ -143,24 +144,23 @@ class NoiseModel:
         # if we had built only one noise model, simply output the generated noise
         if len(self.noise_radii) == 1:
             return noises_by_range[0]
-
-        noise = np.zeros(out_shape)
-        inp_norm = np.linalg.norm(inp, axis=1)
-        for step, val in enumerate(inp_norm):
-            i = np.searchsorted(self.noise_radii, val)
-            if i == 0:  # if norm is smaller than the smallest radius we anticipated
-                noise[step,:] = noises_by_range[0][step,:] # use the noise for smallest radius
-            elif i == len(self.noise_radii): # if norm is greater than anticipated,
-                noise[step,:] = noises_by_range[-1][step,:] # use the noise for largest radius
-            else:   # else, calculate the weighted sum using two most similar noise models
-                noise[step,:] = self._calculate_weighted_sum(
-                    val,
-                    noises_by_range[i-1][step,:],
-                    noises_by_range[i][step,:],
-                    i-1, i, out_shape[1]
-                )
-
-        return noise
+        else:
+            noise = np.zeros(out_shape)
+            inp_norm = np.linalg.norm(inp, axis=1)
+            for step, val in enumerate(inp_norm):
+                i = np.searchsorted(self.noise_radii, val)
+                if i == 0:  # if norm is smaller than the smallest radius we anticipated
+                    noise[step,:] = noises_by_range[0][step,:] # use the noise for smallest radius
+                elif i == len(self.noise_radii): # if norm is greater than anticipated,
+                    noise[step,:] = noises_by_range[-1][step,:] # use the noise for largest radius
+                else:   # else, calculate the weighted sum using two most similar noise models
+                    noise[step,:] = self._calculate_weighted_sum(
+                        val,
+                        noises_by_range[i-1][step,:],
+                        noises_by_range[i][step,:],
+                        i-1, i, out_shape[1]
+                    )
+            return noise
 
     def _generate_noises_by_range(self, out_shape):
         noises_by_range = []
@@ -184,10 +184,10 @@ class NoiseModel:
         weighted_sum = w_i*noise_i + w_j*noise_j
 
         for dim in range(dimensions):
-            std_i = self.noise_models_by_range[i][dim].sigma2**0.5
-            std_j = self.noise_models_by_range[j][dim].sigma2**0.5
+            std_i = self.noise_variances[i][dim]**0.5
+            std_j = self.noise_variances[j][dim]**0.5
             scalar_factor = (w_i*std_i+w_j*std_j) * ( ((w_i*std_i)**2 + (w_j*std_j)**2) ** (-0.5) )
-            weighted_sum[dim] *= scalar_factor
+            weighted_sum[dim] *= scalar_factor * 1.2
 
         return weighted_sum
 
@@ -213,7 +213,7 @@ class SurrogateEnsemble(object):
 
 
     # ratio with respect to ensemble radius, which we expect to receive input
-    INPUT_RANGE_RATIO = 5
+    INPUT_RANGE_RATIO = 3
 
     def __init__(self, ens_config, connection, function_components, dt=0.001):
         self.ens_config = ens_config
@@ -285,7 +285,7 @@ class SurrogateEnsemble(object):
         # If function is the identity
         if self.connection.function is None:
             sim, ens, out_conn, p_in, p_out = self.build_network(
-                np.zeros(ens_dimensions), self.connection, None, np.array(1.0), seed
+                np.zeros(ens_dimensions), self.connection, None, np.array(1.0), self.dt, seed
             )
             # We break the identity function into components with low number of primary dimensions
             # i.e. f([x1, x2]) = [x1, x2] => f([x1, x2]) = [x1, 0] + [0, x2]
@@ -299,7 +299,7 @@ class SurrogateEnsemble(object):
             # build model for each components with low number of primary dimensions
             for mapping in self.function_components:
                 sim, ens, out_conn, p_in, p_out = self.build_network(
-                    np.zeros(ens_dimensions), self.connection, mapping.function, np.array(1.0), seed
+                    np.zeros(ens_dimensions), self.connection, mapping.function, np.array(1.0), self.dt, seed
                 )
                 functions_by_out_dims  = self.build_bias_functions(sim, ens, out_conn, mapping, 'linear')
                 self.bias_models.append(BiasModel(mapping, functions_by_out_dims))
@@ -312,19 +312,20 @@ class SurrogateEnsemble(object):
             noise_sampling_length, noise_sampling_steps
         )
         noise_models = []
+        variances = []
         for inp in ramp_inputs:
             sim, ens, out_conn, p_in, p_out = self.build_network(
-                inp, self.connection, self.connection.function, self.connection.transform, seed
+                inp, self.connection, self.connection.function, self.connection.transform, self.dt, seed
             )
             sim.run(noise_sampling_length)
             # code for monitoring
             self.training_tranges.append(sim.trange())
             self.training_ens_inputs.append(sim.data[p_in])
             self.training_ens_outputs.append(sim.data[p_out])
-            noise_models.append(
-                self.build_noise_model(sim, ens, sim.data[p_in], sim.data[p_out], out_conn)
-            )
-        self.noise_model = NoiseModel(noise_radii, noise_models)
+            variance, model = self.build_noise_model(sim, ens, sim.data[p_in], sim.data[p_out], out_conn)
+            variances.append(variance)
+            noise_models.append(model)
+        self.noise_model = NoiseModel(noise_radii, noise_models, variances)
 
 
     def _generate_ramp_inputs(self, noise_sampling_length, noise_sampling_steps):
@@ -366,7 +367,7 @@ class SurrogateEnsemble(object):
         return input_radii, ramps
 
 
-    def build_network(self, inp, connection, function, transform, seed):
+    def build_network(self, inp, connection, function, transform, dt, seed):
         """
             Build network given input, connection, function and transform
         """
@@ -391,7 +392,7 @@ class SurrogateEnsemble(object):
             p_in = nengo.Probe(in_node, synapse=connection.synapse)
             p_out = nengo.Probe(out_node, synapse=None)
 
-        sim = nengo.Simulator(model, self.dt)
+        sim = nengo.Simulator(model, dt)
 
         return sim, ensemble, out_conn, p_in, p_out
 
@@ -408,6 +409,9 @@ class SurrogateEnsemble(object):
 
         eval_points, grid_points = self._generate_eval_points(ens.radius, mapping)
         sampled_bias = self._calc_bias(sim, ens, eval_points, out_conn, mapping.function)
+
+        self.bias_eval_points = eval_points
+        self.sampled_bias = sampled_bias
 
         functions_by_out_dims = []
 
@@ -456,7 +460,7 @@ class SurrogateEnsemble(object):
 
         """
 
-        NUM_POINTS_PER_DIM = 30 # TODO move this somewhere else
+        NUM_POINTS_PER_DIM = 100 # TODO move this somewhere else
 
         num_secondary_dims = mapping.size_in - len(mapping.primary_dims)
         num_grid_dims = len(mapping.primary_dims) + (num_secondary_dims > 0)
@@ -517,15 +521,15 @@ class SurrogateEnsemble(object):
             the difference between the decoded and ideal output
         """
 
-        _, sim_rates = tuning_curves(ens, sim, inputs=eval_points)
-        sim_static_output = np.dot(sim_rates, sim.data[out_conn].weights.T)
-        out_shape = sim_static_output.shape
+        _, encoded_rates = tuning_curves(ens, sim, inputs=eval_points)
+        static_output = np.dot(encoded_rates, sim.data[out_conn].weights.T)
+        out_shape = static_output.shape
 
         ideal_output = np.apply_along_axis(function, 1, eval_points).reshape(out_shape) \
             if function is not None else eval_points
-        sim_bias =  sim_static_output - ideal_output
+        bias =  static_output - ideal_output
 
-        return sim_bias
+        return bias
 
 
     def build_noise_model(self, sim, ens, ens_input, ens_output, out_conn):
@@ -539,14 +543,15 @@ class SurrogateEnsemble(object):
         sim_noise = self._calc_noise(sim, ens, ens_input, ens_output, out_conn)
         self.training_sim_noises.append(sim_noise)  # CODE FOR MONITORING
 
+        variance_by_dimensions = []
         models_by_dimensions = []
         BUFFER_STEPS = 50  # this skips the sometimes abnormal noise at the beginning
         for dim in range(sim_noise.shape[1]):
-            models_by_dimensions.append(
-                self._build_elementary_noise_model(sim_noise[BUFFER_STEPS:, dim], (2,2))
-            )
+            variance, model = self._build_elementary_noise_model(sim_noise[BUFFER_STEPS:, dim], (2,2))
+            variance_by_dimensions.append(variance)
+            models_by_dimensions.append(model)
 
-        return models_by_dimensions
+        return variance_by_dimensions, models_by_dimensions
 
     def _build_elementary_noise_model(self, noise, order):
         """
@@ -554,7 +559,7 @@ class SurrogateEnsemble(object):
             parameters to them
         """
 
-        MIN_SAMPLE_NOISE_LENGTH = 100 # TODO: move this somewhere else
+        MIN_SAMPLE_NOISE_LENGTH = 200 # TODO: move this somewhere else
         TRIAL_MAX = 3
 
         if len(noise) < MIN_SAMPLE_NOISE_LENGTH:
@@ -573,7 +578,7 @@ class SurrogateEnsemble(object):
                 count += 1
                 seed += 1   # TODO: it seems that changing seed does not help solver to converge -> try regenerating the noise
 
-        return model
+        return np.var(noise), model
 
 
     def _calc_noise(self, sim, ens, eval_points, actual_output, out_conn):
@@ -584,11 +589,11 @@ class SurrogateEnsemble(object):
 
         assert len(eval_points) == len(actual_output)
 
-        _, sim_rates = tuning_curves(ens, sim, inputs=eval_points)
-        sim_static_output = np.dot(sim_rates, sim.data[out_conn].weights.T)
-        sim_noise = actual_output - sim_static_output
+        _, encoded_rates = tuning_curves(ens, sim, inputs=eval_points)
+        static_output = np.dot(encoded_rates, sim.data[out_conn].weights.T)
+        noise = actual_output - static_output
 
-        return sim_noise
+        return noise
 
 
     def emulate(self, inp, out_shape, seed=6):
@@ -600,6 +605,7 @@ class SurrogateEnsemble(object):
 
         self.ideal_output = np.apply_along_axis(self.connection.function, 1, inp).reshape(out_shape)
 
+        import time
         pre_transform_est_bias_values = sum(
             model.eval(inp).reshape(out_shape) for model in self.bias_models
         )
@@ -612,12 +618,12 @@ class SurrogateEnsemble(object):
         return self.surrogate_output
 
 
-    def test_performance(self, input, length=6, seed=None):
+    def test_performance(self, inp, length=6, seed=None):
         """
             Runs simulation for a period, and compares emulated output and actual output
         """
         sim, ens, out_conn, p_in, p_out = self.build_network(
-            input, self.connection, self.connection.function, self.connection.transform, seed
+            inp, self.connection, self.connection.function, self.connection.transform, self.dt, seed
         )
         sim.run(length)
 
