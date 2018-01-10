@@ -156,3 +156,10 @@ Networks
 .. autoclass:: nengo_extras.deepnetworks.PoolLayer
 
 .. autoclass:: nengo_extras.cuda_convnet.CudaConvnetNetwork
+
+Processes
+=========
+
+.. autoclass:: nengo_extras.Conv2d
+
+.. autoclass:: nengo_extras.Pool2d

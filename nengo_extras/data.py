@@ -237,6 +237,19 @@ def load_ilsvrc2012(filepath=None, n_files=None):
     return images, labels, data_mean, label_names
 
 
+def load_ilsvrc2012_metadata(filepath=None):
+    if filepath is None:
+        filepath = get_ilsvrc2012_tar_gz()
+
+    filepath = os.path.expanduser(filepath)
+    with tarfile.open(filepath, 'r:gz') as tar:
+        meta = unpickle_tarfile(tar, 'batches.meta')
+        data_mean = meta[b'data_mean'].reshape((3, 256, 256))
+        label_names = meta[b'label_names']
+
+    return data_mean, label_names
+
+
 def load_mnist(filepath=None, validation=False):
     """Load the MNIST dataset.
 

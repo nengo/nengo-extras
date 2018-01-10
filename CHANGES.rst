@@ -30,6 +30,8 @@ Release history
   (`#72 <https://github.com/nengo/nengo-extras/pull/72>`_)
 - Added classes to convert Nengo models to GEXF for visualization with Gephi.
   (`#54 <https://github.com/nengo/nengo-extras/pull/54>`_)
+- Added a ``Camera`` process to stream images from a camera to Nengo.
+  (`#61 <https://github.com/nengo/nengo-extras/pull/61>`_)
 
 0.1.0 (March 14, 2018)
 ======================

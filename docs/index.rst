@@ -33,7 +33,6 @@ To install Nengo extras, we recommend using ``pip``.
    learning_rules
    networks
    neurons
-   processes
    vision
    visualization
 
