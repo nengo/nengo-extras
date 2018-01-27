@@ -1,8 +1,8 @@
-### Surrogate Model ###
+## Surrogate Model ##
 
 Please refer to [the Jupytar notebook](https://github.com/nengo/nengo_extras/blob/surrogate_model/surrogate_model/surrogate_model_overview.ipynb) for a full technical overview of the the surrogate model.
 
-## Brief Summary ##
+### Brief Summary ###
 
 The surrogate model is meant to achieve what we refer to as the *population mode*. Essentially, we want to emulate the output of a population of NEF neurons without simulating the encoding and decoding processes for each neuron. The goal is to save computational cost while maitaining accuracy with respect to a full NEF simulation. 
 
@@ -12,6 +12,6 @@ Once the models are fit to the population output, we can then run the models ins
 
 Results on toy networks are presented in [the Jupytar notebook](https://github.com/nengo/nengo_extras/blob/surrogate_model/surrogate_model/surrogate_model_overview.ipynb). The interpolation methods have a hard time modeling the `bias` term when the population encodes a high dimension.
 
-## Folders ##
+### Folders ###
 
 The `legacy` folder contains previous iterations. There were major structual changes, but some logic in the current iteration was inspired from the previous iterations, and so they are kept for reference. 
