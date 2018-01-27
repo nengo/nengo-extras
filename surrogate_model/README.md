@@ -4,7 +4,7 @@ Please refer to [the Jupytar notebook](https://github.com/nengo/nengo_extras/blo
 
 ### Brief Summary ###
 
-The surrogate model is meant to achieve what we refer to as the *population mode*. Essentially, we want to emulate the output of a population of NEF neurons without simulating the encoding and decoding processes for each neuron. The goal is to save computational cost while maitaining accuracy with respect to a full NEF simulation. 
+The surrogate model is meant to achieve what we refer to as the *population mode*. We want to emulate the output of a population of NEF neurons without simulating the encoding and decoding processes for each neuron. The goal is to save computational cost while maitaining accuracy with respect to a full NEF simulation. 
 
 Roughly, the surrogate model breaks the NEF population output into a low frequency component (refered to as `bias`) and high frequency component (refered to as `noise`). We then characterize each component individually using various models. Currently, the `bias` term is fit using polynomial interpolations, and the `noise` term is fit using [ARMA model](https://en.wikipedia.org/wiki/Autoregressive%E2%80%93moving-average_model).
 
