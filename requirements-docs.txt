@@ -1,0 +1,4 @@
+sphinx
+numpydoc>=0.6
+guzzle_sphinx_theme
+pillow
