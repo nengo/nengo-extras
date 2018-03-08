@@ -5,9 +5,8 @@ import collections
 
 import numpy as np
 import PIL.ImageTk
-import Tkinter as tk
 
-from .utils import tkinter as tk
+from .compat import tkinter as tk
 
 
 class ImageSelector(tk.Frame):

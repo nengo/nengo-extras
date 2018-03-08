@@ -129,7 +129,7 @@ class SequentialNetwork(Network):
 
     def theano(self, sx, output_layer=None):
         # ensure we have Theano
-        import theano  # noqa: F401
+        import theano
 
         sy = sx
         for layer in self.layers_to(output_layer):
@@ -553,7 +553,7 @@ class PoolLayer(ProcessLayer):
 
     def theano(self, x):
         import theano.tensor as tt
-        import theano.tensor.signal.pool  # noqa: F401
+        import theano.tensor.signal.pool
 
         pool_size = self.process.pool_size
         strides = self.process.strides

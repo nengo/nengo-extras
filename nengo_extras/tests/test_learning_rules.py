@@ -1,16 +1,16 @@
-import numpy as np
-import pytest
-
 import nengo
 from nengo.exceptions import ValidationError
 from nengo.utils.numpy import rms
+import numpy as np
+import pytest
+
 
 from nengo_extras.learning_rules import DeltaRule
 
 
 @pytest.mark.parametrize('post_target', [None, 'in', 'out'])
 def test_delta_rule(Simulator, seed, rng, plt, post_target):
-    f = lambda x: np.abs(x)
+    f = np.abs
 
     learning_rate = 2e-2
 

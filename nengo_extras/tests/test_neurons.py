@@ -1,10 +1,8 @@
 import nengo
-import numpy as np
-import pytest
-from nengo.dists import Choice
-from nengo.processes import WhiteSignal
 from nengo.utils.matplotlib import implot
 from nengo.utils.numpy import rms
+import numpy as np
+import pytest
 
 from nengo_extras import FastLIF, SoftLIFRate
 from nengo_extras.neurons import rates_isi, rates_kernel
@@ -120,9 +118,9 @@ def _test_rates(Simulator, rates, plt, seed):
 
     model = nengo.Network(seed=seed)
     with model:
-        model.config[nengo.Ensemble].max_rates = Choice([50])
-        model.config[nengo.Ensemble].encoders = Choice([[1]])
-        u = nengo.Node(output=WhiteSignal(2, high=5))
+        model.config[nengo.Ensemble].max_rates = nengo.dists.Choice([50])
+        model.config[nengo.Ensemble].encoders = nengo.dists.Choice([[1]])
+        u = nengo.Node(output=nengo.processes.WhiteSignal(2, high=5))
         a = nengo.Ensemble(n, 1,
                            intercepts=intercepts, neuron_type=nengo.LIFRate())
         b = nengo.Ensemble(n, 1,

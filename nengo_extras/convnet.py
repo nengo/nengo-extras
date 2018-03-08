@@ -43,7 +43,8 @@ class Conv2d(Process):
     filters = NdarrayParam('filters', shape=('...',))
     biases = NdarrayParam('biases', shape=('...',), optional=True)
 
-    def __init__(self, shape_in, filters, biases=None, strides=1, padding=0):  # noqa: C901
+    def __init__(self, shape_in, filters,
+                 biases=None, strides=1, padding=0):  # noqa: C901
         self.shape_in = shape_in
         self.filters = filters
         if self.filters.ndim not in [4, 6]:
@@ -241,7 +242,7 @@ class PresentJitteredImages(Process):
 
     def __init__(self, images, presentation_time, output_shape,
                  jitter_std=None, jitter_tau=None, **kwargs):
-        import scipy.ndimage.interpolation  # noqa: F401
+        import scipy.ndimage.interpolation
         # ^ required for simulation, so check it here
 
         self.images = images

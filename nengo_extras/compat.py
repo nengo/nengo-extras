@@ -2,13 +2,13 @@ from nengo.utils.compat import pickle, PY2
 
 
 if PY2:
-    from cStringIO import StringIO  # noqa: F401
-    from urllib import urlretrieve  # noqa: F401
-    import Tkinter as tkinter  # noqa: F401
+    from cStringIO import StringIO
+    from urllib import urlretrieve
+    import Tkinter as tkinter
 else:
-    from io import StringIO  # noqa: F401
-    from urllib.request import urlretrieve  # noqa: F401
-    import tkinter  # noqa: F401
+    from io import StringIO
+    from urllib.request import urlretrieve
+    import tkinter
 
 
 def cmp(a, b):  # same as python2's builtin cmp, not available in python3

@@ -2,7 +2,8 @@ import nengo
 from nengo.utils.compat import is_iterable
 
 
-def probe_all(net, recursive=False, probe_options=None, **probe_args):  # noqa: C901
+def probe_all(  # noqa: C901
+        net, recursive=False, probe_options=None, **probe_args):
     """Probes all objects in a network.
 
     Parameters

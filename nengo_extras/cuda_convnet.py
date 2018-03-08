@@ -6,8 +6,8 @@ import os
 import nengo
 import numpy as np
 
+from .compat import cmp, pickle_load
 from .deepnetworks import SequentialNetwork
-from .utils import cmp, pickle_load
 
 
 def load_model_pickle(loadfile):
@@ -44,13 +44,13 @@ def sort_layers(layers, depths=None, cycle_check=True):
     snames = sorted(layers, cmp=compare)
 
     if cycle_check:
-        def compare(a, b):
+        def compare_cycle(a, b):
             ainb = a in layers[b].get('inputs', [])
             bina = b in layers[a].get('inputs', [])
             assert not (ainb and bina), "Cycle in graph"
             return -1 if ainb else 1 if bina else 0
 
-        if any(compare(snames[i], snames[j]) < 0
+        if any(compare_cycle(snames[i], snames[j]) < 0
                for i in range(1, len(snames)) for j in range(i)):
             raise ValueError("Cycle in graph")
 
