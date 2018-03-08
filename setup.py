@@ -2,14 +2,15 @@
 import imp
 import io
 import os
+import sys
 
 try:
-    from setuptools import setup
+    from setuptools import find_packages, setup
 except ImportError:
-    from ez_setup import use_setuptools
-    use_setuptools()
-
-from setuptools import find_packages, setup  # noqa: F811
+    raise ImportError(
+        "'setuptools' is required but not installed. To install it, "
+        "follow the instructions at "
+        "https://pip.pypa.io/en/stable/installing/#installing-with-get-pip-py")
 
 
 def read(*filenames, **kwargs):
@@ -21,27 +22,37 @@ def read(*filenames, **kwargs):
             buf.append(f.read())
     return sep.join(buf)
 
+
 root = os.path.dirname(os.path.realpath(__file__))
 version_module = imp.load_source(
     'version', os.path.join(root, 'nengo_extras', 'version.py'))
-description = "Deep learning in Nengo."
-long_description = read('README.rst', 'CHANGES.rst')
+testing = 'test' in sys.argv or 'pytest' in sys.argv
 
-url = "https://github.com/nengo/nengo_extras"
 setup(
     name="nengo_extras",
     version=version_module.version,
-    author="Nengo developers",
-    author_email="tbekolay@gmail.com",
+    author="Applied Brain Research",
+    author_email="info@appliedbrainresearch.com",
     packages=find_packages(),
-    include_package_data=True,
     scripts=[],
-    url=url,
-    license="",
-    description=description,
-    long_description=long_description,
+    url="https://github.com/nengo/nengo_extras",
+    license="Free for non-commercial use",
+    description="Lesser used features for the Nengo neural simulator",
+    long_description=read('README.rst', 'CHANGES.rst'),
+    # Without this, `setup.py install` fails to install NumPy.
+    # See https://github.com/nengo/nengo/issues/508 for details.
+    setup_requires=["pytest-runner"] if testing else [] + [
+        "numpy>=1.8",
+    ],
     install_requires=[
         "nengo",
-        "numpy",
+        "numpy>=1.8",
+    ],
+    extras_require={
+        'deepnetworks': ["keras"],
+        'plots': ["matplotlib"],
+    },
+    tests_require=[
+        'pytest>=3.2',
     ],
 )
