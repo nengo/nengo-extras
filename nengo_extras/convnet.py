@@ -43,7 +43,7 @@ class Conv2d(Process):
     filters = NdarrayParam('filters', shape=('...',))
     biases = NdarrayParam('biases', shape=('...',), optional=True)
 
-    def __init__(self, shape_in, filters, biases=None, strides=1, padding=0):  # noqa: C901
+    def __init__(self, shape_in, filters, biases=None, strides=1, padding=0):  # noqa: E501,C901
         self.shape_in = shape_in
         self.filters = filters
         if self.filters.ndim not in [4, 6]:

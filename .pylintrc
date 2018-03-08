@@ -1,0 +1,13 @@
+[MESSAGES CONTROL]
+
+disable = all
+enable = anomalous-backslash-in-string,
+         bad-super-call,
+         dangerous-default-value,
+         super-init-not-called,
+         unused-import,
+
+
+[REPORTS]
+
+reports = no
