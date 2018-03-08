@@ -26,8 +26,8 @@ def test_matrix_mult(Simulator, rng, nl, plt):
         nengo.Connection(node_right, mult_net.input_right)
 
     dt = 0.001
-    sim = Simulator(model, dt=dt)
-    sim.run(1)
+    with Simulator(model, dt=dt) as sim:
+        sim.run(1)
 
     t = sim.trange()
     plt.plot(t, sim.data[p])

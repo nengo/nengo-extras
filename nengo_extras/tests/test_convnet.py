@@ -89,7 +89,7 @@ def test_pool2d(s, st, Simulator, rng):
         nengo.Connection(u, v, synapse=None)
         vp = nengo.Probe(v)
 
-    sim = Simulator(model)
-    sim.step()
+    with Simulator(model) as sim:
+        sim.step()
     y = sim.data[vp][-1].reshape(result.shape)
     assert np.allclose(result, y, rtol=1e-3, atol=1e-6)

@@ -1,8 +1,16 @@
+from nengo.dists import Gaussian, Uniform
 import numpy as np
 
-from nengo.dists import Gaussian, Uniform
 from nengo_extras.dists import (
-    Concatenate, Mixture, MultivariateCopula, MultivariateGaussian, Tile)
+    Concatenate,
+    gaussian_icdf,
+    loggaussian_icdf,
+    Mixture,
+    MultivariateCopula,
+    MultivariateGaussian,
+    Tile,
+    uniform_icdf
+)
 
 
 def test_concatenate(plt, rng):
@@ -22,9 +30,6 @@ def test_concatenate(plt, rng):
 
 
 def test_icdfs(plt, rng):
-    from nengo_extras.dists import (
-        gaussian_icdf, loggaussian_icdf, uniform_icdf)
-
     p = rng.rand(100000)
 
     rows = 3
@@ -41,7 +46,6 @@ def test_icdfs(plt, rng):
 
 
 def test_multivariate_copula_simple(plt, rng):
-    from nengo_extras.dists import gaussian_icdf, uniform_icdf
     n = 100000
 
     c = 0.7
