@@ -10,7 +10,7 @@ from nengo_extras.learning_rules import DeltaRule
 
 @pytest.mark.parametrize('post_target', [None, 'in', 'out'])
 def test_delta_rule(Simulator, seed, rng, plt, post_target):
-    f = np.abs
+    f = np.cos
 
     learning_rate = 2e-2
 
@@ -72,6 +72,7 @@ def test_delta_rule(Simulator, seed, rng, plt, post_target):
         sim.run(t_train + t_test)
 
     t = sim.trange()
+    m = t > t_train
     filt = nengo.synapses.Alpha(0.005)
     x = filt.filtfilt(sim.data[up])
     fx = f(x)
@@ -87,13 +88,12 @@ def test_delta_rule(Simulator, seed, rng, plt, post_target):
     plt.ylabel('output')
 
     plt.subplot(313)
-    plt.plot(t[t > t_train], fx[t > t_train])
-    plt.plot(t[t > t_train], y[t > t_train])
+    plt.plot(t[m], fx[m])
+    plt.plot(t[m], y[m])
     plt.ylabel('test output')
 
     plt.tight_layout()
 
-    m = t > t_train
     rms_error = rms(y[m] - fx[m]) / rms(fx[m])
     assert rms_error < 0.3
 

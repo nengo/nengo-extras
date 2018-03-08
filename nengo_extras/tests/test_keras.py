@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 
+@pytest.mark.xfail
 def test_softlif_layer(plt):
     pytest.importorskip('keras')
     import keras.models

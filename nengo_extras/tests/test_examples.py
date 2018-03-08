@@ -47,13 +47,6 @@ def assert_noexceptions(nb_file, tmpdir):
     plt.close('all')
 
 
-@pytest.mark.example
-@pytest.mark.parametrize('nb_file', all_examples)
-def test_noexceptions(nb_file, tmpdir):
-    """Ensure that no cells raise an exception."""
-    assert_noexceptions(nb_file, tmpdir)
-
-
 def iter_cells(nb_file, cell_type="code"):
     from nengo.utils.ipython import load_notebook
     nb = load_notebook(os.path.join(examples_dir, "%s.ipynb" % nb_file))

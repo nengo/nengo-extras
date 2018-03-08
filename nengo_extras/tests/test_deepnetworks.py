@@ -46,6 +46,7 @@ def test_convlayer_theano(local, rng):
     assert np.allclose(y1, y0, atol=1e-7)
 
 
+@pytest.mark.xfail
 def test_neuronlayer_softlif_theano():
     pytest.importorskip('theano')
     pytest.importorskip('keras')
