@@ -8,8 +8,11 @@ This repository contains utilities that occupy
 a liminal space not quite generic enough for inclusion in Nengo_,
 but useful enough that they should be publicly accessible.
 
-Some of these utilities may eventually migrate to Nengo_,
+Some of these utilities may eventually migrate to `Nengo core <Nengo>`_,
 and others may be split off into their own separate repositories.
+If something that you were using has been moved,
+please consult the release history below
+to see where it has been moved.
 
 .. _Nengo: https://github.com/nengo/nengo
 
@@ -22,9 +25,21 @@ To install Nengo extras, we recommend using ``pip``.
 
    pip install nengo_extras
 
-Usage
-=====
+.. toctree::
+   :maxdepth: 2
 
-For a listing of the contents of this repository,
-and information on how to use it,
-see the `full documentation <https://www.nengo.ai/nengo_extras>`_.
+   deeplearning
+   deeplearning-examples
+   dists
+   learning_rules
+   networks
+   neurons
+   processes
+   vision
+   vision-examples
+   visualization
+   visualization-examples
+
+* :ref:`genindex`
+
+.. include:: ../CHANGES.rst

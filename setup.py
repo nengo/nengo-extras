@@ -49,7 +49,7 @@ setup(
         "numpy>=1.8",
     ],
     extras_require={
-        'deepnetworks': ["keras"],
+        'deepnetworks': ["keras", "theano"],
         'plots': ["matplotlib"],
     },
     tests_require=[

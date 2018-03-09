@@ -7,14 +7,16 @@ notifications:
 env:
   global:
     - STATIC="false"
-    - CONDA_DEPS="jupyter keras matplotlib numpy pytest scipy theano"
-    - PIP_DEPS="nengo"
+    - CONDA_DEPS="jupyter keras matplotlib numpy pillow pytest scipy tensorflow theano"
+    - PIP_DEPS=""
+    - DOCS="false"
 
 matrix:
   include:
     - env: PYTHON="2.7"
     - env: PYTHON="3.6"
     - env: PYTHON="3.6" STATIC="true"
+    - env: PYTHON="3.6" DOCS="true"
 
 # Setup Miniconda
 before_install:
@@ -32,6 +34,8 @@ install:
   - if [[ "$STATIC" == "true" ]]; then
       export CONDA_DEPS="";
       export PIP_DEPS="flake8 pylint";
+    elif [[ "$DOCS" == "true" ]]; then
+      export PIP_DEPS="sphinx==1.6.7 ghp-import numpydoc guzzle_sphinx_theme nbsphinx_link";
     fi
   - if [[ -n "$CONDA_DEPS" ]]; then eval conda install --quiet "$CONDA_DEPS"; fi
   - if [[ -n "$PIP_DEPS" ]]; then eval pip install "$PIP_DEPS"; fi
@@ -45,5 +49,21 @@ script:
       flake8 -v nengo_extras && pylint nengo_extras;
     else
       python setup.py -q develop;
-      pytest nengo_extras -v;
+      if [[ "$DOCS" == "true" ]]; then
+        if [[ -n "$TRAVIS_TAG" ]]; then
+          rm "$HOME/.ipython/profile_default/ipython_config.py";
+          sphinx-build -W docs docs/_build;
+        fi
+      else
+        pytest nengo_extras -v --duration 20;
+      fi
+    fi
+
+after_success:
+  - if [[ -n "$TRAVIS_TAG" && "$DOCS" == "true" ]]; then
+      export DATE=$(date '+%Y-%m-%d %T');
+      git config --global user.email "travis@travis-ci.org";
+      git config --global user.name "TravisCI";
+      ghp-import -m "Last update at $DATE" -b gh-pages docs/_build;
+      git push -fq "https://$GH_TOKEN@github.com/nengo/nengo_extras.git" gh-pages;
     fi

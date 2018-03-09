@@ -194,7 +194,7 @@ class SequentialNetwork(nengo_extras.deepnetworks.SequentialNetwork):
 
 
 def LSUVinit(kmodel, X, tol=0.1, t_max=50):
-    """Layer-sequential unit-variance initialization [1]_
+    """Layer-sequential unit-variance initialization.
 
     References
     ----------

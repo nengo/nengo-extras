@@ -104,10 +104,10 @@ class Mask(FrozenObject):
 
 def ciw_encoders(n_encoders, trainX, trainY, rng=np.random,
                  normalize_data=True, normalize_encoders=True):
-    """Computed Input Weights (CIW) method for encoders from data [1]_.
+    """Computed Input Weights (CIW) method for encoders from data.
 
     Parameters
-    ==========
+    ----------
     n_encoders : int
         Number of encoders to generate.
     trainX : (n_samples, n_dimensions) array-like
@@ -116,12 +116,12 @@ def ciw_encoders(n_encoders, trainX, trainY, rng=np.random,
         Training labels.
 
     Returns
-    =======
+    -------
     encoders : (n_encoders, n_dimensions) array
         Generated encoders.
 
     References
-    ==========
+    ----------
     .. [1] McDonnell, M. D., Tissera, M. D., Vladusich, T., Van Schaik, A.,
        Tapson, J., & Schwenker, F. (2015). Fast, simple and accurate
        handwritten digit classification by training shallow neural network
@@ -159,10 +159,10 @@ def ciw_encoders(n_encoders, trainX, trainY, rng=np.random,
 
 def cd_encoders_biases(n_encoders, trainX, trainY, rng=np.random, mask=None,
                        norm_min=0.05, norm_tries=10):
-    """Constrained difference (CD) method for encoders from data [1]_.
+    """Constrained difference (CD) method for encoders from data.
 
     Parameters
-    ==========
+    ----------
     n_encoders : int
         Number of encoders to generate.
     trainX : (n_samples, n_dimensions) array-like
@@ -171,7 +171,7 @@ def cd_encoders_biases(n_encoders, trainX, trainY, rng=np.random, mask=None,
         Training labels.
 
     Returns
-    =======
+    -------
     encoders : (n_encoders, n_dimensions) array
         Generated encoders.
     biases : (n_encoders,) array
@@ -179,7 +179,7 @@ def cd_encoders_biases(n_encoders, trainX, trainY, rng=np.random, mask=None,
         and are therefore more like Nengo's `intercepts`.
 
     References
-    ==========
+    ----------
     .. [1] McDonnell, M. D., Tissera, M. D., Vladusich, T., Van Schaik, A.,
        Tapson, J., & Schwenker, F. (2015). Fast, simple and accurate
        handwritten digit classification by training shallow neural network
@@ -218,8 +218,7 @@ def cd_encoders_biases(n_encoders, trainX, trainY, rng=np.random, mask=None,
 
 
 def percentile_biases(encoders, trainX, percentile=50):
-    """Pick biases such that neurons are active for a percentile of inputs.
-    """
+    """Pick biases such that neurons are active for a percentile of inputs."""
     trainX = trainX.reshape(trainX.shape[0], -1)
     H = np.dot(trainX, encoders.T)
     biases = np.percentile(H, percentile, axis=0)

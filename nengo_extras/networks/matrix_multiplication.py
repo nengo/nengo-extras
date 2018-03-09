@@ -8,8 +8,8 @@ def MatrixMult(n_neurons, shape_left, shape_right, net=None):
 
     Both matrices need to be two dimensional.
 
-    See the `Matrix Multiplication example`_ for a description of the network
-    internals.
+    See the `Matrix Multiplication example <:doc:networks>`_
+    for a description of the network internals.
 
     Parameters
     ----------

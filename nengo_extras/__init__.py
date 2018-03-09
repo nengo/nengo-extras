@@ -5,3 +5,6 @@ from .rc import rc
 from .convnet import Conv2d, Pool2d
 from .neurons import FastLIF, SoftLIFRate
 from . import data, dists, graphviz, gui, networks, neurons, probe, vision
+
+__copyright__ = "2015-2018, Applied Brain Research"
+__license__ = "Free for non-commercial use; see LICENSE.rst"
