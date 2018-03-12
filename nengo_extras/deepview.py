@@ -7,6 +7,8 @@ import numpy as np
 import PIL.ImageTk
 import Tkinter as tk
 
+from .utils import tkinter as tk
+
 
 class ImageSelector(tk.Frame):
     """Choose between images with left and right arrows
