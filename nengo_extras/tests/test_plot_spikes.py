@@ -84,7 +84,7 @@ def test_sample_by_variance():
     assert (spikes_sampled == spikes[:, [3, 2, 1, 0]]).all()
 
 
-def test_sample_by_activity(plt):
+def test_sample_by_activity():
     dt = 0.001
     t = np.arange(0., 1., dt) + dt
 
