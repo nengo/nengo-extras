@@ -1,0 +1,113 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Classifying webcam images\n",
+    "\n",
+    "This example classifies images being shown to a webcam\n",
+    "using the ImageNet ILSVRC-2012 classifier.\n",
+    "To run it, please download the `ilsvrc2012-lif-48.pkl` file at\n",
+    "https://figshare.com/s/f343c68df647e675af28\n",
+    "and place it in the same directory as this example."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%matplotlib inline\n",
+    "import matplotlib.pyplot as plt\n",
+    "import nengo\n",
+    "import numpy as np\n",
+    "\n",
+    "from nengo_extras.camera import Camera\n",
+    "from nengo_extras.data import load_ilsvrc2012_metadata, spasafe_names\n",
+    "from nengo_extras.cuda_convnet import CudaConvnetNetwork, load_model_pickle"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "data_mean, label_names = load_ilsvrc2012_metadata()\n",
+    "data_mean = data_mean[:, 16:-16, 16:-16]\n",
+    "image_shape = data_mean.shape\n",
+    "\n",
+    "# retrieve from https://figshare.com/s/f343c68df647e675af28\n",
+    "cc_model = load_model_pickle('ilsvrc2012-lif-48.pkl')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# --- Run model in Nengo\n",
+    "with nengo.Network() as model:\n",
+    "    u = nengo.Node(Camera(\n",
+    "        device='/dev/video1',\n",
+    "        height=image_shape[1], width=image_shape[2], offset=-data_mean))\n",
+    "    u_probe = nengo.Probe(u, synapse=None)\n",
+    "\n",
+    "    ccnet = CudaConvnetNetwork(cc_model, synapse=nengo.synapses.Alpha(0.001))\n",
+    "    nengo.Connection(u, ccnet.input, synapse=None)\n",
+    "\n",
+    "    # --- output spa display\n",
+    "    vocab_names = spasafe_names(label_names)\n",
+    "    vocab_vectors = np.eye(len(vocab_names))\n",
+    "\n",
+    "    vocab = nengo.spa.Vocabulary(len(vocab_names))\n",
+    "    for name, vector in zip(vocab_names, vocab_vectors):\n",
+    "        vocab.add(name, vector)\n",
+    "\n",
+    "    config = nengo.Config(nengo.Ensemble)\n",
+    "    config[nengo.Ensemble].neuron_type = nengo.Direct()\n",
+    "    with config:\n",
+    "        output = nengo.spa.State(\n",
+    "            len(vocab_names), subdimensions=10, vocab=vocab)\n",
+    "    nengo.Connection(ccnet.output, output.input)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "with nengo.Simulator(model) as sim:\n",
+    "    sim.run(0.01)  # Get the first image"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "image = sim.data[u_probe][4].reshape(image_shape)\n",
+    "plt.figure(figsize=(9, 9))\n",
+    "for i, channel in enumerate(image):\n",
+    "    plt.subplot(3, 3, i + 1)\n",
+    "    plt.imshow(channel)"
+   ]
+  }
+ ],
+ "metadata": {
+  "language_info": {
+   "name": "python",
+   "pygments_lexer": "ipython3"
+  },
+  "nbsphinx": {
+   "execute": "never"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

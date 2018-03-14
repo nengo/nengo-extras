@@ -1,0 +1,654 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>nengo_extras.data &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<link rel="stylesheet" type="text/css" href="../../_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    ../../index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>nengo_extras.data</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for nengo_extras.data</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">tarfile</span>
+
+<span class="kn">import</span> <span class="nn">nengo</span>
+<span class="kn">from</span> <span class="nn">nengo.utils.compat</span> <span class="k">import</span> <span class="n">is_integer</span><span class="p">,</span> <span class="n">is_iterable</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.compat</span> <span class="k">import</span> <span class="n">pickle_load_bytes</span><span class="p">,</span> <span class="n">urlretrieve</span>
+
+
+<span class="n">data_dir</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">rc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nengo_extras&#39;</span><span class="p">,</span> <span class="s1">&#39;data_dir&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">get_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Retrieving </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">url</span><span class="p">)</span>
+        <span class="n">urlretrieve</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Data retrieved as </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">filename</span>
+
+
+<div class="viewcode-block" id="get_cifar10_tar_gz"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.data.get_cifar10_tar_gz">[docs]</a><span class="k">def</span> <span class="nf">get_cifar10_tar_gz</span><span class="p">():</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s1">&#39;cifar-10-python.tar.gz&#39;</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz&#39;</span>
+    <span class="k">return</span> <span class="n">get_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_cifar100_tar_gz"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.data.get_cifar100_tar_gz">[docs]</a><span class="k">def</span> <span class="nf">get_cifar100_tar_gz</span><span class="p">():</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s1">&#39;cifar-100-python.tar.gz&#39;</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz&#39;</span>
+    <span class="k">return</span> <span class="n">get_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_ilsvrc2012_tar_gz"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.data.get_ilsvrc2012_tar_gz">[docs]</a><span class="k">def</span> <span class="nf">get_ilsvrc2012_tar_gz</span><span class="p">():</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s1">&#39;ilsvrc-2012-batches-test3.tar.gz&#39;</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://files.figshare.com/5370887/ilsvrc-2012-batches-test3.tar.gz&#39;</span>
+    <span class="k">return</span> <span class="n">get_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_mnist_pkl_gz"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.data.get_mnist_pkl_gz">[docs]</a><span class="k">def</span> <span class="nf">get_mnist_pkl_gz</span><span class="p">():</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s1">&#39;mnist.pkl.gz&#39;</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://deeplearning.net/data/mnist/mnist.pkl.gz&#39;</span>
+    <span class="k">return</span> <span class="n">get_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_svhn_tar_gz"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.data.get_svhn_tar_gz">[docs]</a><span class="k">def</span> <span class="nf">get_svhn_tar_gz</span><span class="p">():</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s1">&#39;svhn-py-colmajor.tar.gz&#39;</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://files.figshare.com/7868377/svhn-py-colmajor.tar.gz&#39;</span>
+    <span class="k">return</span> <span class="n">get_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">unpickle_tarfile</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="n">tarextract</span> <span class="o">=</span> <span class="n">tar</span><span class="o">.</span><span class="n">extractfile</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pickle_load_bytes</span><span class="p">(</span><span class="n">tarextract</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="load_cifar10"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.data.load_cifar10">[docs]</a><span class="k">def</span> <span class="nf">load_cifar10</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_train</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">n_test</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label_names</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load the CIFAR-10 dataset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath : str (optional, Default: None)</span>
+<span class="sd">        Path to the previously downloaded &#39;cifar-10-python.tar.gz&#39; file.</span>
+<span class="sd">        If ``None``, the file will be downloaded to the current directory.</span>
+<span class="sd">    n_train : int (optional, Default: 6)</span>
+<span class="sd">        The number of training batches to load (max: 6).</span>
+<span class="sd">    n_test : int (optional, Default: 6)</span>
+<span class="sd">        The number of testing batches to load (max: 1).</span>
+<span class="sd">    label_names : boolean (optional, Default: False)</span>
+<span class="sd">        Whether to provide the category label names.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    train_set : (n_train, n_pixels) ndarray, (n_train,) ndarray</span>
+<span class="sd">        A tuple of the training image array and label array.</span>
+<span class="sd">    test_set : (n_test, n_pixels) ndarray, (n_test,) ndarray</span>
+<span class="sd">        A tuple of the testing image array and label array.</span>
+<span class="sd">    label_names : list</span>
+<span class="sd">        A list of the label names.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">get_cifar10_tar_gz</span><span class="p">()</span>
+
+    <span class="c1"># helper for reading each batch file</span>
+    <span class="k">def</span> <span class="nf">read_tar_batch</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">unpickle_tarfile</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="sa">b</span><span class="s1">&#39;data&#39;</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="sa">b</span><span class="s1">&#39;labels&#39;</span><span class="p">])</span>
+
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r:gz&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tar</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">n_train</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">train</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">train</span> <span class="o">=</span> <span class="p">([],</span> <span class="p">[])</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_train</span><span class="p">):</span>
+                <span class="n">data</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">read_tar_batch</span><span class="p">(</span>
+                    <span class="n">tar</span><span class="p">,</span> <span class="s1">&#39;cifar-10-batches-py/data_batch_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+                <span class="n">train</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="n">train</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+
+            <span class="n">train</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="n">n_test</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">test</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">test</span> <span class="o">=</span> <span class="n">read_tar_batch</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="s1">&#39;cifar-10-batches-py/test_batch&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">label_names</span><span class="p">:</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="n">unpickle_tarfile</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="s1">&#39;cifar-10-batches-py/batches.meta&#39;</span><span class="p">)</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="sa">b</span><span class="s1">&#39;label_names&#39;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">test</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="n">names</span><span class="p">,)</span> <span class="k">if</span> <span class="n">label_names</span> <span class="k">else</span> <span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="load_cifar100"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.data.load_cifar100">[docs]</a><span class="k">def</span> <span class="nf">load_cifar100</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fine_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">label_names</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load the CIFAR-100 dataset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath : str (optional, Default: None)</span>
+<span class="sd">        Path to the previously downloaded &#39;cifar-100-python.tar.gz&#39; file.</span>
+<span class="sd">        If ``None``, the file will be downloaded to the current directory.</span>
+<span class="sd">    fine_labels : boolean (optional, Default: True)</span>
+<span class="sd">        Whether to provide the fine labels or coarse labels.</span>
+<span class="sd">    label_names : boolean (optional, Default: False)</span>
+<span class="sd">        Whether to provide the category label names.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    train_set : (n_train, n_pixels) ndarray, (n_train,) ndarray</span>
+<span class="sd">        A tuple of the training image array and label array.</span>
+<span class="sd">    test_set : (n_test, n_pixels) ndarray, (n_test,) ndarray</span>
+<span class="sd">        A tuple of the testing image array and label array.</span>
+<span class="sd">    label_names : list</span>
+<span class="sd">        A list of the label names.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">get_cifar100_tar_gz</span><span class="p">()</span>
+
+    <span class="c1"># helper for reading each batch file</span>
+    <span class="k">def</span> <span class="nf">read_tar_batch</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">unpickle_tarfile</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="sa">b</span><span class="s1">&#39;data&#39;</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">[</span><span class="sa">b</span><span class="s1">&#39;fine_labels&#39;</span> <span class="k">if</span> <span class="n">fine_labels</span> <span class="k">else</span> <span class="sa">b</span><span class="s1">&#39;coarse_labels&#39;</span><span class="p">])</span>
+
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r:gz&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tar</span><span class="p">:</span>
+        <span class="n">train</span> <span class="o">=</span> <span class="n">read_tar_batch</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="s1">&#39;cifar-100-python/train&#39;</span><span class="p">)</span>
+        <span class="n">test</span> <span class="o">=</span> <span class="n">read_tar_batch</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="s1">&#39;cifar-100-python/test&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">label_names</span><span class="p">:</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="n">unpickle_tarfile</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="s1">&#39;cifar-100-python/meta&#39;</span><span class="p">)</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span>
+                <span class="sa">b</span><span class="s1">&#39;fine_label_names&#39;</span> <span class="k">if</span> <span class="n">fine_labels</span> <span class="k">else</span> <span class="sa">b</span><span class="s1">&#39;coarse_label_names&#39;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">test</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="n">names</span><span class="p">,)</span> <span class="k">if</span> <span class="n">label_names</span> <span class="k">else</span> <span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="load_ilsvrc2012"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.data.load_ilsvrc2012">[docs]</a><span class="k">def</span> <span class="nf">load_ilsvrc2012</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_files</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load part of the ILSVRC 2012 (ImageNet) dataset.</span>
+
+<span class="sd">    This loads a small section of the ImageNet Large Scale Visual Recognition</span>
+<span class="sd">    Challenge (ILSVRC) 2012 dataset. The images are from the test portion of</span>
+<span class="sd">    the dataset, and can be used to test pretrained classifiers.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath : str (optional, Default: None)</span>
+<span class="sd">        Path to the previously downloaded &#39;ilsvrc-2012-batches-test3.tar.gz&#39;.</span>
+<span class="sd">        If ``None``, the file will be downloaded to the current directory.</span>
+<span class="sd">    n_files : int (optional, Default: None)</span>
+<span class="sd">        Number of files (batches) to load from the archive. Defaults to all.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    images : (n_images, nc, ny, nx) ndarray</span>
+<span class="sd">        The loaded images. nc = number of channels, ny = height, nx = width</span>
+<span class="sd">    labels : (n_images,) ndarray</span>
+<span class="sd">        The labels of the images.</span>
+<span class="sd">    data_mean : (nc, ny, nx) ndarray</span>
+<span class="sd">        The mean of the images in the whole of the training set.</span>
+<span class="sd">    label_names : list</span>
+<span class="sd">        A list of the label names.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">PIL.Image</span>  <span class="c1"># ``pip install pillow``</span>
+
+    <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">get_ilsvrc2012_tar_gz</span><span class="p">()</span>
+
+    <span class="c1"># helper for reading each batch file</span>
+    <span class="k">def</span> <span class="nf">read_tar_batch</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">unpickle_tarfile</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="sa">b</span><span class="s1">&#39;data&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="sa">b</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span>  <span class="c1"># JPEG strings, labels</span>
+
+    <span class="k">def</span> <span class="nf">bytes_to_array</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">PIL</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="n">image</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">image</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">array</span>
+
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r:gz&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tar</span><span class="p">:</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="n">tar</span><span class="o">.</span><span class="n">getnames</span><span class="p">()</span>
+        <span class="n">regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;.*/data_batch_([0-9]+\.[0-9]+)&#39;</span><span class="p">)</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">regex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">match</span> <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">matches</span> <span class="k">if</span> <span class="n">match</span><span class="p">]</span>
+
+        <span class="n">batchfiles</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
+            <span class="n">batchfiles</span><span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>
+
+        <span class="n">raw_images</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">raw_labels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">batchfiles</span><span class="p">))[:</span><span class="n">n_files</span><span class="p">]:</span>
+            <span class="n">batchfile</span> <span class="o">=</span> <span class="n">batchfiles</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">read_tar_batch</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="n">batchfile</span><span class="p">)</span>
+            <span class="n">raw_images</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">raw_labels</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+        <span class="n">n_images</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_images</span><span class="p">)</span>
+        <span class="n">image_shape</span> <span class="o">=</span> <span class="n">bytes_to_array</span><span class="p">(</span><span class="n">raw_images</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">images</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_images</span><span class="p">,)</span> <span class="o">+</span> <span class="n">image_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">raw_images</span><span class="p">):</span>
+            <span class="n">images</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">bytes_to_array</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">raw_labels</span><span class="p">)</span>
+        <span class="n">labels</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_images</span><span class="p">,)</span>
+
+        <span class="n">meta</span> <span class="o">=</span> <span class="n">unpickle_tarfile</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="s1">&#39;batches.meta&#39;</span><span class="p">)</span>
+        <span class="n">data_mean</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="sa">b</span><span class="s1">&#39;data_mean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">image_shape</span><span class="p">)</span>
+        <span class="n">label_names</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="sa">b</span><span class="s1">&#39;label_names&#39;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">images</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">data_mean</span><span class="p">,</span> <span class="n">label_names</span></div>
+
+
+<span class="k">def</span> <span class="nf">load_ilsvrc2012_metadata</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">get_ilsvrc2012_tar_gz</span><span class="p">()</span>
+
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r:gz&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tar</span><span class="p">:</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="n">unpickle_tarfile</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="s1">&#39;batches.meta&#39;</span><span class="p">)</span>
+        <span class="n">data_mean</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="sa">b</span><span class="s1">&#39;data_mean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">))</span>
+        <span class="n">label_names</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="sa">b</span><span class="s1">&#39;label_names&#39;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">data_mean</span><span class="p">,</span> <span class="n">label_names</span>
+
+
+<div class="viewcode-block" id="load_mnist"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.data.load_mnist">[docs]</a><span class="k">def</span> <span class="nf">load_mnist</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">validation</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load the MNIST dataset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath : str (optional, Default: None)</span>
+<span class="sd">        Path to the previously downloaded &#39;mnist.pkl.gz&#39; file.</span>
+<span class="sd">        If ``None``, the file will be downloaded to the current directory.</span>
+<span class="sd">    validation : boolean (optional, Default: False)</span>
+<span class="sd">        Whether to provide the validation data as a separate set (True),</span>
+<span class="sd">        or combine it into the training data (False).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    train_set : (n_train, n_pixels) ndarray, (n_train,) ndarray</span>
+<span class="sd">        A tuple of the training image array and label array.</span>
+<span class="sd">    validation_set : (n_valid, n_pixels) ndarray, (n_valid,) ndarray</span>
+<span class="sd">        A tuple of the validation image array and label array</span>
+<span class="sd">        (if ``validation``)</span>
+<span class="sd">    test_set : (n_test, n_pixels) ndarray, (n_test,) ndarray</span>
+<span class="sd">        A tuple of the testing image array and label array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">get_mnist_pkl_gz</span><span class="p">()</span>
+
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">train_set</span><span class="p">,</span> <span class="n">valid_set</span><span class="p">,</span> <span class="n">test_set</span> <span class="o">=</span> <span class="n">pickle_load_bytes</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">validation</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">train_set</span><span class="p">,</span> <span class="n">valid_set</span><span class="p">,</span> <span class="n">test_set</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># combine valid into train</span>
+        <span class="n">train_set</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">valid_set</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span>
+                     <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">train_set</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">valid_set</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+        <span class="k">return</span> <span class="n">train_set</span><span class="p">,</span> <span class="n">test_set</span></div>
+
+
+<div class="viewcode-block" id="load_svhn"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.data.load_svhn">[docs]</a><span class="k">def</span> <span class="nf">load_svhn</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_train</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">n_test</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">data_mean</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+              <span class="n">label_names</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load the SVHN dataset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath : str (optional, Default: None)</span>
+<span class="sd">        Path to the previously downloaded &#39;svhn-py-colmajor.tar.gz&#39; file.</span>
+<span class="sd">        If ``None``, the file will be downloaded to the current directory.</span>
+<span class="sd">    n_train : int (optional, Default: 6)</span>
+<span class="sd">        The number of training batches to load (max: 6).</span>
+<span class="sd">    n_test : int (optional, Default: 6)</span>
+<span class="sd">        The number of testing batches to load (max: 1).</span>
+<span class="sd">    label_names : boolean (optional, Default: False)</span>
+<span class="sd">        Whether to provide the category label names.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    train_set : (n_train, n_pixels) ndarray, (n_train,) ndarray</span>
+<span class="sd">        A tuple of the training image array and label array.</span>
+<span class="sd">    test_set : (n_test, n_pixels) ndarray, (n_test,) ndarray</span>
+<span class="sd">        A tuple of the testing image array and label array.</span>
+<span class="sd">    label_names : list</span>
+<span class="sd">        A list of the label names.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">get_svhn_tar_gz</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">read_tar_batch</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">unpickle_tarfile</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="sa">b</span><span class="s1">&#39;data&#39;</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="sa">b</span><span class="s1">&#39;labels&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">load_batches</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="n">inds</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">inds</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]))</span>
+
+        <span class="n">batches</span> <span class="o">=</span> <span class="p">([],</span> <span class="p">[])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">inds</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">read_tar_batch</span><span class="p">(</span>
+                <span class="n">tar</span><span class="p">,</span> <span class="s1">&#39;svhn-py-colmajor/data_batch_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">batches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="n">batches</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">batches</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="n">shape</span><span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">batches</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r:gz&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tar</span><span class="p">:</span>
+        <span class="n">train</span> <span class="o">=</span> <span class="n">load_batches</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_train</span><span class="o">+</span><span class="mi">1</span><span class="p">)))</span>
+        <span class="n">test</span> <span class="o">=</span> <span class="n">load_batches</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_test</span><span class="o">+</span><span class="mi">10</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="n">label_names</span> <span class="ow">or</span> <span class="n">data_mean</span><span class="p">:</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="n">unpickle_tarfile</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="s1">&#39;svhn-py-colmajor/batches.meta&#39;</span><span class="p">)</span>
+        <span class="n">data_mean</span> <span class="o">=</span> <span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="sa">b</span><span class="s1">&#39;data_mean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">),)</span> <span class="k">if</span> <span class="n">data_mean</span> <span class="k">else</span> <span class="p">()</span>
+        <span class="n">label_names</span> <span class="o">=</span> <span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="sa">b</span><span class="s1">&#39;label_names&#39;</span><span class="p">],)</span> <span class="k">if</span> <span class="n">label_names</span> <span class="k">else</span> <span class="p">()</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">test</span><span class="p">)</span> <span class="o">+</span> <span class="n">data_mean</span> <span class="o">+</span> <span class="n">label_names</span></div>
+
+
+<div class="viewcode-block" id="spasafe_name"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.data.spasafe_name">[docs]</a><span class="k">def</span> <span class="nf">spasafe_name</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">pre_comma_only</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make a name safe to use as a SPA semantic pointer name.</span>
+
+<span class="sd">    Ensure a name conforms with SPA name standards. Replaces hyphens and</span>
+<span class="sd">    spaces with underscores, removes all other characters, and makes the</span>
+<span class="sd">    first letter uppercase.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pre_comma_only : boolean</span>
+<span class="sd">        Only use the part of a name before a/the first comma.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Empty name.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">pre_comma_only</span> <span class="ow">and</span> <span class="s1">&#39;,&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># part before first comma</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(\s|-|,)+&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>  <span class="c1"># repl space/hyphen/comma w undersc</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;(^[^a-zA-Z]+)|[^a-zA-Z0-9_]+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>  <span class="c1"># del other chars</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="n">name</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>  <span class="c1"># capitalize first letter</span>
+    <span class="k">return</span> <span class="n">name</span></div>
+
+
+<div class="viewcode-block" id="spasafe_names"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.data.spasafe_names">[docs]</a><span class="k">def</span> <span class="nf">spasafe_names</span><span class="p">(</span><span class="n">label_names</span><span class="p">,</span> <span class="n">pre_comma_only</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make names safe to use as SPA semantic pointer names.</span>
+
+<span class="sd">    Format a list of names to conform with SPA name standards. In addition</span>
+<span class="sd">    to running each name through ``spasafe_name``, this function numbers</span>
+<span class="sd">    duplicate names so they are unique.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pre_comma_only : boolean</span>
+<span class="sd">        Only use the part of a name before a/the first comma.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vocab_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">spasafe_name</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">pre_comma_only</span><span class="o">=</span><span class="n">pre_comma_only</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">label_names</span><span class="p">]</span>
+
+    <span class="c1"># number duplicates</span>
+    <span class="n">unique</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">duplicates</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">vocab_names</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">unique</span><span class="p">:</span>
+            <span class="n">duplicates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">unique</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="n">duplicates</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">duplicates</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vocab_names</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">duplicates</span><span class="p">:</span>
+            <span class="n">vocab_names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">duplicates</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+            <span class="n">duplicates</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">vocab_names</span></div>
+
+
+<div class="viewcode-block" id="one_hot_from_labels"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.data.one_hot_from_labels">[docs]</a><span class="k">def</span> <span class="nf">one_hot_from_labels</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">classes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Turn integer labels into a one-hot encoding.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ==========</span>
+<span class="sd">    labels : (n,) array</span>
+<span class="sd">        Labels to turn into one-hot encoding.</span>
+<span class="sd">    classes : int or (n_classes,) array (optional)</span>
+<span class="sd">        Classes for encoding. If integer and ``labels.dtype`` is integer, this</span>
+<span class="sd">        is the number of classes in the encoding. If iterable, this is the</span>
+<span class="sd">        list of classes to place in the one-hot (must be a superset of the</span>
+<span class="sd">        unique elements in ``labels``).</span>
+<span class="sd">    dtype : dtype (optional)</span>
+<span class="sd">        Data type of returned one-hot encoding (defaults to ``float``).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">labels</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="n">classes</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">is_integer</span><span class="p">(</span><span class="n">classes</span><span class="p">)):</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">labels</span>
+        <span class="n">index_min</span><span class="p">,</span> <span class="n">index_max</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">index</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">n_classes</span> <span class="o">=</span> <span class="p">(</span><span class="n">index_max</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">classes</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">classes</span>
+        <span class="k">assert</span> <span class="n">index_min</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="n">index_max</span> <span class="o">&lt;</span> <span class="n">n_classes</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">classes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">is_iterable</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">classes</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">classes</span>
+        <span class="n">n_classes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span>
+
+        <span class="n">c_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span>
+        <span class="n">c_sorted</span> <span class="o">=</span> <span class="n">classes</span><span class="p">[</span><span class="n">c_index</span><span class="p">]</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">c_index</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">c_sorted</span><span class="p">,</span> <span class="n">labels</span><span class="p">)]</span>
+
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">y</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">y</span></div>
+
+
+<div class="viewcode-block" id="ZCAWhiten"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.data.ZCAWhiten">[docs]</a><span class="k">class</span> <span class="nc">ZCAWhiten</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;ZCA Whitening</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Krizhevsky, Alex. &quot;Learning multiple layers of features from tiny</span>
+<span class="sd">           images&quot; (2009) MSc Thesis, Dept. of Comp. Science, Univ. of</span>
+<span class="sd">           Toronto. pp. 48-49.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pixel_mu</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">e</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Sinv</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">contrast_normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">remove_mean</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">hard_beta</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;contrast_normalize requires flat patches&#39;</span><span class="p">)</span>
+
+        <span class="n">Xc</span> <span class="o">=</span> <span class="n">X</span> <span class="o">-</span> <span class="n">X</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="k">if</span> <span class="n">remove_mean</span> <span class="k">else</span> <span class="n">X</span>
+        <span class="n">l2</span> <span class="o">=</span> <span class="p">(</span><span class="n">Xc</span> <span class="o">*</span> <span class="n">Xc</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="k">if</span> <span class="n">beta</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">beta</span>
+        <span class="n">div2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">l2</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span> <span class="k">if</span> <span class="n">hard_beta</span> <span class="k">else</span> <span class="n">l2</span> <span class="o">+</span> <span class="n">beta</span>
+        <span class="k">return</span> <span class="n">Xc</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">div2</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">])</span>
+
+<div class="viewcode-block" id="ZCAWhiten.fit"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.data.ZCAWhiten.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fit whitening transform to training data</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : array_like</span>
+<span class="sd">            Flattened data, with each row corresponding to one example</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">contrast_normalize</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pixel_mu</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_mu</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># each pixel has zero mean</span>
+
+        <span class="n">S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">e</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">S</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">e</span> <span class="o">=</span> <span class="n">e</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">V</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Sinv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">e</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span><span class="p">))</span> <span class="o">*</span> <span class="n">V</span><span class="p">,</span> <span class="n">V</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Sinv</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">contrast_normalize</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span>
+
+        <span class="n">X</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_mu</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Sinv</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

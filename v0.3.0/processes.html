@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>Processes &#8212; Nengo extras 0.1.1.dev0 docs</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.1.dev0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Vision models" href="vision.html" />
+    <link rel="prev" title="Neuron types" href="neurons.html" />
+<link rel="stylesheet" type="text/css" href="_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="vision.html" title="Vision models"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="neurons.html" title="Neuron types"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo extras 0.1.1.dev0 docs</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    index.html" class="text-logo">Nengo extras 0.1</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="neurons.html">Neuron types</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Processes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="index.html">Docs</a></li>
+              
+              <li>Processes</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="processes">
+<h1>Processes<a class="headerlink" href="#processes" title="Permalink to this headline">¶</a></h1>
+<p>These processes can be used in any place that
+<a class="reference external" href="https://www.nengo.ai/nengo/frontend_api.html#processes">Nengo processes</a>
+can be used.</p>
+<dl class="class">
+<dt id="nengo_extras.Conv2d">
+<em class="property">class </em><code class="descclassname">nengo_extras.</code><code class="descname">Conv2d</code><span class="sig-paren">(</span><em>shape_in</em>, <em>filters</em>, <em>biases=None</em>, <em>strides=1</em>, <em>padding=0</em>, <em>border='ceil'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/convnet.html#Conv2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.Conv2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform 2-D (image) convolution on an input.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>shape_in</strong> : 3-tuple (n_channels, height, width)</p>
+<blockquote>
+<div><p>Shape of the input images: channels, height, width.</p>
+</div></blockquote>
+<p><strong>filters</strong> : array_like (n_filters, n_channels, f_height, f_width)</p>
+<blockquote>
+<div><p>Static filters to convolve with the input. Shape is number of filters,
+number of input channels, filter height, and filter width. Shape can
+also be (n_filters, height, width, n_channels, f_height, f_width)
+to apply different filters at each point in the image, where ‘height’
+and ‘width’ are the input image height and width.</p>
+</div></blockquote>
+<p><strong>biases</strong> : array_like (1,) or (n_filters,) or (n_filters, height, width)</p>
+<blockquote>
+<div><p>Biases to add to outputs. Can have one bias across the entire output
+space, one bias per filter, or a unique bias for each output pixel.</p>
+</div></blockquote>
+<p><strong>strides</strong> : 2-tuple (vertical, horizontal) or int</p>
+<blockquote>
+<div><p>Spacing between filter placements. If an integer
+is provided, the same spacing is used in both dimensions.</p>
+</div></blockquote>
+<p><strong>padding</strong> : 2-tuple (vertical, horizontal) or int</p>
+<blockquote class="last">
+<div><p>Amount of zero-padding around the outside of the input image. Padding
+is applied to both sides, e.g. <code class="docutils literal"><span class="pre">padding=(1,</span> <span class="pre">0)</span></code> will add one pixel
+of padding to the top and bottom, and none to the left and right.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.Pool2d">
+<em class="property">class </em><code class="descclassname">nengo_extras.</code><code class="descname">Pool2d</code><span class="sig-paren">(</span><em>shape_in</em>, <em>pool_size</em>, <em>strides=None</em>, <em>kind='avg'</em>, <em>mode='full'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/convnet.html#Pool2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.Pool2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform 2-D (image) pooling on an input.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>shape_in</strong> : 3-tuple (channels, height, width)</p>
+<blockquote>
+<div><p>Shape of the input image.</p>
+</div></blockquote>
+<p><strong>pool_size</strong> : 2-tuple (vertical, horizontal) or int</p>
+<blockquote>
+<div><p>Shape of the pooling region. If an integer is provided, the shape will
+be square with the given side length.</p>
+</div></blockquote>
+<p><strong>strides</strong> : 2-tuple (vertical, horizontal) or int</p>
+<blockquote>
+<div><p>Spacing between pooling placements. If <code class="docutils literal"><span class="pre">None</span></code> (default), will be
+equal to <code class="docutils literal"><span class="pre">pool_size</span></code> resulting in non-overlapping pooling.</p>
+</div></blockquote>
+<p><strong>kind</strong> : “avg” or “max”</p>
+<blockquote>
+<div><p>Type of pooling to perform: average pooling or max pooling.</p>
+</div></blockquote>
+<p><strong>mode</strong> : “full” or “valid”</p>
+<blockquote class="last">
+<div><p>If the input image does not divide into an integer number of pooling
+regions, whether to add partial pooling regions for the extra
+pixels (“full”), or discard extra input pixels (“valid”).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>shape_out</strong></td>
+<td>(3-tuple (channels, height, width)) Shape of the output image.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.convnet.PresentJitteredImages">
+<em class="property">class </em><code class="descclassname">nengo_extras.convnet.</code><code class="descname">PresentJitteredImages</code><span class="sig-paren">(</span><em>images</em>, <em>presentation_time</em>, <em>output_shape</em>, <em>jitter_std=None</em>, <em>jitter_tau=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/convnet.html#PresentJitteredImages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.convnet.PresentJitteredImages" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+            
+  <div class="footer-relations">
+    
+      <div class="pull-left">
+        <a class="btn btn-default" href="neurons.html" title="previous chapter (use the left arrow)">Neuron types</a>
+      </div>
+    
+      <div class="pull-right">
+        <a class="btn btn-default" href="vision.html" title="next chapter (use the right arrow)">Vision models</a>
+      </div>
+    </div>
+    <div class="clearer"></div>
+  
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="vision.html" title="Vision models"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="neurons.html" title="Neuron types"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo extras 0.1.1.dev0 docs</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

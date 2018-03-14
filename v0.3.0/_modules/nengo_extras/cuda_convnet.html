@@ -1,0 +1,358 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>nengo_extras.cuda_convnet &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<link rel="stylesheet" type="text/css" href="../../_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    ../../index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>nengo_extras.cuda_convnet</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for nengo_extras.cuda_convnet</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">nengo</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.compat</span> <span class="k">import</span> <span class="nb">cmp</span><span class="p">,</span> <span class="n">pickle_load</span>
+<span class="kn">from</span> <span class="nn">.deepnetworks</span> <span class="k">import</span> <span class="n">SequentialNetwork</span>
+
+
+<span class="k">def</span> <span class="nf">load_model_pickle</span><span class="p">(</span><span class="n">loadfile</span><span class="p">):</span>
+    <span class="n">loadfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">loadfile</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">loadfile</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pickle_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">layer_depths</span><span class="p">(</span><span class="n">layers</span><span class="p">):</span>
+    <span class="n">depths</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">get_depth</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">depths</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">depths</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+
+        <span class="n">inputs</span> <span class="o">=</span> <span class="n">layers</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;inputs&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">depth</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">get_depth</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">depths</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">depth</span>
+        <span class="k">return</span> <span class="n">depth</span>
+
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+        <span class="n">get_depth</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">depths</span>
+
+
+<span class="k">def</span> <span class="nf">sort_layers</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="n">depths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cycle_check</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">depths</span> <span class="o">=</span> <span class="n">layer_depths</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span> <span class="k">if</span> <span class="n">depths</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">depths</span>
+
+    <span class="k">def</span> <span class="nf">compare</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+        <span class="n">da</span><span class="p">,</span> <span class="n">db</span> <span class="o">=</span> <span class="n">depths</span><span class="p">[</span><span class="n">a</span><span class="p">],</span> <span class="n">depths</span><span class="p">[</span><span class="n">b</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">if</span> <span class="n">da</span> <span class="o">==</span> <span class="n">db</span> <span class="k">else</span> <span class="nb">cmp</span><span class="p">(</span><span class="n">da</span><span class="p">,</span> <span class="n">db</span><span class="p">)</span>
+
+    <span class="n">snames</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="nb">cmp</span><span class="o">=</span><span class="n">compare</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">cycle_check</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">compare_cycle</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+            <span class="n">ainb</span> <span class="o">=</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">[</span><span class="n">b</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;inputs&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="n">bina</span> <span class="o">=</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;inputs&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span><span class="n">ainb</span> <span class="ow">and</span> <span class="n">bina</span><span class="p">),</span> <span class="s2">&quot;Cycle in graph&quot;</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">ainb</span> <span class="k">else</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">bina</span> <span class="k">else</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">compare_cycle</span><span class="p">(</span><span class="n">snames</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">snames</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">0</span>
+               <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">snames</span><span class="p">))</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cycle in graph&quot;</span><span class="p">)</span>
+
+    <span class="n">slayers</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">layers</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">snames</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">slayers</span>
+
+
+<div class="viewcode-block" id="CudaConvnetNetwork"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.cuda_convnet.CudaConvnetNetwork">[docs]</a><span class="k">class</span> <span class="nc">CudaConvnetNetwork</span><span class="p">(</span><span class="n">SequentialNetwork</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">synapse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lif_type</span><span class="o">=</span><span class="s1">&#39;lif&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CudaConvnetNetwork</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">synapse</span> <span class="o">=</span> <span class="n">synapse</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lif_type</span> <span class="o">=</span> <span class="n">lif_type</span>
+
+        <span class="c1"># --- build model</span>
+        <span class="n">layers</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;model_state&#39;</span><span class="p">][</span><span class="s1">&#39;layers&#39;</span><span class="p">])</span>
+
+        <span class="c1"># remove cost layer(s) and label inputs</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;cost&#39;</span><span class="p">):</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;inputs&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># first input is labels</span>
+
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">i</span> <span class="ow">in</span> <span class="n">layers</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;inputs&#39;</span><span class="p">,</span> <span class="p">()))</span>
+
+        <span class="c1"># sort layers</span>
+        <span class="n">depths</span> <span class="o">=</span> <span class="n">layer_depths</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">depths</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">depths</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">depths</span><span class="p">[</span><span class="n">n</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_add_layer</span><span class="p">(</span><span class="n">layers</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_add_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="n">attrname</span> <span class="o">=</span> <span class="s1">&#39;_add_</span><span class="si">%s</span><span class="s1">_layer&#39;</span> <span class="o">%</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrname</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)(</span><span class="n">layer</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Layer type </span><span class="si">%r</span><span class="s2"> not implemented&quot;</span> <span class="o">%</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_get_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">layers_by_name</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;inputs&#39;</span><span class="p">,</span> <span class="p">[])]</span>
+
+    <span class="k">def</span> <span class="nf">_get_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;inputs&#39;</span><span class="p">,</span> <span class="p">[]))</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_inputs</span><span class="p">(</span><span class="n">layer</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_add_data_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;outputs&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_data_layer</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_add_neuron_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_input</span><span class="p">(</span><span class="n">layer</span><span class="p">)]</span>
+        <span class="n">neuron</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;neuron&#39;</span><span class="p">]</span>
+        <span class="n">ntype</span> <span class="o">=</span> <span class="n">neuron</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;outputs&#39;</span><span class="p">]</span>
+
+        <span class="n">gain</span> <span class="o">=</span> <span class="mf">1.</span>
+        <span class="n">bias</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">amplitude</span> <span class="o">=</span> <span class="mf">1.</span>
+        <span class="k">if</span> <span class="n">ntype</span> <span class="o">==</span> <span class="s1">&#39;ident&#39;</span><span class="p">:</span>
+            <span class="n">neuron_type</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Direct</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">ntype</span> <span class="o">==</span> <span class="s1">&#39;relu&#39;</span><span class="p">:</span>
+            <span class="n">neuron_type</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">RectifiedLinear</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">ntype</span> <span class="o">==</span> <span class="s1">&#39;logistic&#39;</span><span class="p">:</span>
+            <span class="n">neuron_type</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">ntype</span> <span class="o">==</span> <span class="s1">&#39;softlif&#39;</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">.neurons</span> <span class="k">import</span> <span class="n">SoftLIFRate</span>
+            <span class="n">tau_ref</span><span class="p">,</span> <span class="n">tau_rc</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">amp</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">noise</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">neuron</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">]]</span>
+            <span class="n">lif_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lif_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">lif_type</span> <span class="o">==</span> <span class="s1">&#39;lif&#39;</span><span class="p">:</span>
+                <span class="n">neuron_type</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">LIF</span><span class="p">(</span><span class="n">tau_rc</span><span class="o">=</span><span class="n">tau_rc</span><span class="p">,</span> <span class="n">tau_ref</span><span class="o">=</span><span class="n">tau_ref</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">lif_type</span> <span class="o">==</span> <span class="s1">&#39;lifrate&#39;</span><span class="p">:</span>
+                <span class="n">neuron_type</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">LIFRate</span><span class="p">(</span><span class="n">tau_rc</span><span class="o">=</span><span class="n">tau_rc</span><span class="p">,</span> <span class="n">tau_ref</span><span class="o">=</span><span class="n">tau_ref</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">lif_type</span> <span class="o">==</span> <span class="s1">&#39;softlifrate&#39;</span><span class="p">:</span>
+                <span class="n">neuron_type</span> <span class="o">=</span> <span class="n">SoftLIFRate</span><span class="p">(</span>
+                    <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">tau_rc</span><span class="o">=</span><span class="n">tau_rc</span><span class="p">,</span> <span class="n">tau_ref</span><span class="o">=</span><span class="n">tau_ref</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Unrecognized LIF type </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">lif_type</span><span class="p">)</span>
+            <span class="n">gain</span> <span class="o">=</span> <span class="n">alpha</span>
+            <span class="n">bias</span> <span class="o">=</span> <span class="mf">1.</span>
+            <span class="n">amplitude</span> <span class="o">=</span> <span class="n">amp</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Neuron type </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ntype</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_neuron_layer</span><span class="p">(</span>
+            <span class="n">n</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">neuron_type</span><span class="o">=</span><span class="n">neuron_type</span><span class="p">,</span> <span class="n">synapse</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">synapse</span><span class="p">,</span>
+            <span class="n">gain</span><span class="o">=</span><span class="n">gain</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="n">bias</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="n">amplitude</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_add_softmax_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># non-neural, we can do without it</span>
+        <span class="c1"># inputs = [self._get_input(layer)]</span>
+        <span class="c1"># return self.add_softmax_layer(</span>
+        <span class="c1">#     d=layer[&#39;outputs&#39;], inputs=inputs, name=layer[&#39;name&#39;])</span>
+
+    <span class="k">def</span> <span class="nf">_add_dropout_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_input</span><span class="p">(</span><span class="n">layer</span><span class="p">)]</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;outputs&#39;</span><span class="p">]</span>
+        <span class="n">keep</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;keep&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_dropout_layer</span><span class="p">(</span>
+            <span class="n">d</span><span class="p">,</span> <span class="n">keep</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_add_dropout2_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_dropout_layer</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_fc_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_input</span><span class="p">(</span><span class="n">layer</span><span class="p">)]</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;weights&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">biases</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;biases&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_full_layer</span><span class="p">(</span>
+            <span class="n">weights</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_add_conv_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_input</span><span class="p">(</span><span class="n">layer</span><span class="p">)]</span>
+        <span class="k">assert</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;sharedBiases&#39;</span><span class="p">]</span>
+        <span class="n">nc</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">nx</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;imgSize&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ny</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;modulesX&#39;</span><span class="p">]</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;filters&#39;</span><span class="p">]</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;filterSize&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;stride&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="o">-</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;padding&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">filters</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;weights&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nc</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">nf</span><span class="p">)</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rollaxis</span><span class="p">(</span><span class="n">filters</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">biases</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;biases&#39;</span><span class="p">]</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_conv_layer</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">nc</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">nx</span><span class="p">),</span> <span class="n">filters</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="n">st</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">p</span><span class="p">,</span>
+            <span class="n">border</span><span class="o">=</span><span class="s1">&#39;ceil&#39;</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">layer</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">shape_out</span> <span class="o">==</span> <span class="p">(</span><span class="n">nf</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">layer</span>
+
+    <span class="k">def</span> <span class="nf">_add_local_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_input</span><span class="p">(</span><span class="n">layer</span><span class="p">)]</span>
+        <span class="n">nc</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">nx</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;imgSize&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ny</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;modulesX&#39;</span><span class="p">]</span>
+        <span class="n">nf</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;filters&#39;</span><span class="p">]</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;filterSize&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;stride&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="o">-</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;padding&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">filters</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;weights&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nc</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">nf</span><span class="p">)</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rollaxis</span><span class="p">(</span><span class="n">filters</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">biases</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;biases&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nf</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_local_layer</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">nc</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">nx</span><span class="p">),</span> <span class="n">filters</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="n">st</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">p</span><span class="p">,</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_add_pool_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_input</span><span class="p">(</span><span class="n">layer</span><span class="p">)]</span>
+        <span class="k">assert</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">nc</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">]</span>
+        <span class="n">nx</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;imgSize&#39;</span><span class="p">]</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;sizeX&#39;</span><span class="p">]</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;stride&#39;</span><span class="p">]</span>
+        <span class="n">kind</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s1">&#39;pool&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_pool_layer</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">nc</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">nx</span><span class="p">),</span> <span class="n">s</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="n">st</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;full&#39;</span><span class="p">,</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

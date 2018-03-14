@@ -1,0 +1,249 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>Nengo extras &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Deep learning" href="deeplearning.html" />
+<link rel="stylesheet" type="text/css" href="_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="deeplearning.html" title="Deep learning"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Nengo extras 0.3.0 docs</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    #" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="#">Docs</a></li>
+              
+              <li>Nengo extras</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="nengo-extras">
+<h1>Nengo extras<a class="headerlink" href="#nengo-extras" title="Permalink to this headline">¶</a></h1>
+<p>Extra utilities and add-ons for Nengo.</p>
+<p>This repository contains utilities that occupy
+a liminal space not quite generic enough for inclusion in <a class="reference external" href="https://github.com/nengo/nengo">Nengo</a>,
+but useful enough that they should be publicly accessible.</p>
+<p>Some of these utilities may eventually migrate to <a class="reference external" href="Nengo">Nengo core</a>,
+and others may be split off into their own separate repositories.
+If something that you were using has been moved,
+please consult the release history below
+to see where it has been moved.</p>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>To install Nengo extras, we recommend using <code class="docutils literal"><span class="pre">pip</span></code>.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>pip install nengo-extras
+</pre></div>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="deeplearning.html">Deep learning</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/keras/mnist_spiking_cnn.html">MNIST classifier with Keras and Nengo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/cuda_convnet/cifar10_spiking_cnn.html">CIFAR-10 classifier with a spiking CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/cuda_convnet/imagenet_spiking_cnn.html">ImageNet ILSVRC-2012 classifier with a spiking CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deeplearning.html#datasets">Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deeplearning.html#keras">Keras</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deeplearning.html#networks">Networks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deeplearning.html#processes">Processes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networks.html">Networks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="networks.html#utilities">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="neurons.html">Neuron types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="neurons.html#utilities">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vision.html">Vision models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/mnist_single_layer.html">Encoding for image recognition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vision.html#camera-input">Camera input</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gephi-tutorial.html">Visualizing Nengo networks with Gephi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/plot_spikes.html">Creating spike raster plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/cuda_convnet/imagenet_visualization.html">Visualizing the ImageNet classifier</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html#graphviz-diagrams">GraphViz diagrams</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html#image-manipulation">Image manipulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html#matplotlib-plots">Matplotlib plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html#tkinter-guis">TkInter GUIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html#gephi-visualization">Gephi visualization</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="release-history">
+<h1>Release history<a class="headerlink" href="#release-history" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="june-4-2018">
+<h2>0.3.0 (June 4, 2018)<a class="headerlink" href="#june-4-2018" title="Permalink to this headline">¶</a></h2>
+<p><strong>Changed</strong></p>
+<ul class="simple">
+<li>Submodules are no longer automatically imported into the
+<code class="docutils literal"><span class="pre">nengo_extras</span></code> namespace, as it can be difficult to install
+requirements for the various tools in Nengo Extras.
+(<a class="reference external" href="https://github.com/nengo/nengo-extras/issues/77">#77</a>,
+<a class="reference external" href="https://github.com/nengo/nengo-extras/pull/78">#78</a>)</li>
+</ul>
+</div>
+<div class="section" id="may-31-2018">
+<h2>0.2.0 (May 31, 2018)<a class="headerlink" href="#may-31-2018" title="Permalink to this headline">¶</a></h2>
+<p><strong>Added</strong></p>
+<ul class="simple">
+<li>Added the association matrix learning rule (AML)
+to learn associations from cue vectors to target vectors
+in a one-shot fashion without catastrophic forgetting.
+(<a class="reference external" href="https://github.com/nengo/nengo-extras/pull/72">#72</a>)</li>
+<li>Added classes to convert Nengo models to GEXF for visualization with Gephi.
+(<a class="reference external" href="https://github.com/nengo/nengo-extras/pull/54">#54</a>)</li>
+<li>Added a <code class="docutils literal"><span class="pre">Camera</span></code> process to stream images from a camera to Nengo.
+(<a class="reference external" href="https://github.com/nengo/nengo-extras/pull/61">#61</a>)</li>
+</ul>
+</div>
+<div class="section" id="march-14-2018">
+<h2>0.1.0 (March 14, 2018)<a class="headerlink" href="#march-14-2018" title="Permalink to this headline">¶</a></h2>
+<p>Initial release of Nengo Extras!
+Tested with Nengo 2.7.0, but should work with earlier versions.
+If you run into any issues, please
+<a class="reference external" href="https://github.com/nengo/nengo-extras/issues/new">file a bug report</a>.</p>
+</div>
+</div>
+
+
+          </div>
+            
+  <div class="footer-relations">
+    
+      <div class="pull-right">
+        <a class="btn btn-default" href="deeplearning.html" title="next chapter (use the right arrow)">Deep learning</a>
+      </div>
+    </div>
+    <div class="clearer"></div>
+  
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="deeplearning.html" title="Deep learning"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Nengo extras 0.3.0 docs</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

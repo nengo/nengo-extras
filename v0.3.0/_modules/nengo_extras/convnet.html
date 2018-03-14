@@ -1,0 +1,448 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>nengo_extras.convnet &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<link rel="stylesheet" type="text/css" href="../../_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    ../../index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>nengo_extras.convnet</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for nengo_extras.convnet</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">nengo.processes</span> <span class="k">import</span> <span class="n">Process</span>
+<span class="kn">from</span> <span class="nn">nengo.params</span> <span class="k">import</span> <span class="n">EnumParam</span><span class="p">,</span> <span class="n">NdarrayParam</span><span class="p">,</span> <span class="n">NumberParam</span><span class="p">,</span> <span class="n">ShapeParam</span>
+<span class="kn">from</span> <span class="nn">nengo.utils.compat</span> <span class="k">import</span> <span class="n">is_iterable</span><span class="p">,</span> <span class="nb">range</span>
+
+
+<span class="k">def</span> <span class="nf">softmax</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Stable softmax function&quot;&quot;&quot;</span>
+    <span class="n">ex</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">ex</span> <span class="o">/</span> <span class="n">ex</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Conv2d"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.convnet.Conv2d">[docs]</a><span class="k">class</span> <span class="nc">Conv2d</span><span class="p">(</span><span class="n">Process</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform 2-D (image) convolution on an input.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    shape_in : 3-tuple (n_channels, height, width)</span>
+<span class="sd">        Shape of the input images: channels, height, width.</span>
+<span class="sd">    filters : array_like (n_filters, n_channels, f_height, f_width)</span>
+<span class="sd">        Static filters to convolve with the input. Shape is number of filters,</span>
+<span class="sd">        number of input channels, filter height, and filter width. Shape can</span>
+<span class="sd">        also be (n_filters, height, width, n_channels, f_height, f_width)</span>
+<span class="sd">        to apply different filters at each point in the image, where &#39;height&#39;</span>
+<span class="sd">        and &#39;width&#39; are the input image height and width.</span>
+<span class="sd">    biases : array_like (1,) or (n_filters,) or (n_filters, height, width)</span>
+<span class="sd">        Biases to add to outputs. Can have one bias across the entire output</span>
+<span class="sd">        space, one bias per filter, or a unique bias for each output pixel.</span>
+<span class="sd">    strides : 2-tuple (vertical, horizontal) or int</span>
+<span class="sd">        Spacing between filter placements. If an integer</span>
+<span class="sd">        is provided, the same spacing is used in both dimensions.</span>
+<span class="sd">    padding : 2-tuple (vertical, horizontal) or int</span>
+<span class="sd">        Amount of zero-padding around the outside of the input image. Padding</span>
+<span class="sd">        is applied to both sides, e.g. ``padding=(1, 0)`` will add one pixel</span>
+<span class="sd">        of padding to the top and bottom, and none to the left and right.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">shape_in</span> <span class="o">=</span> <span class="n">ShapeParam</span><span class="p">(</span><span class="s1">&#39;shape_in&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">shape_out</span> <span class="o">=</span> <span class="n">ShapeParam</span><span class="p">(</span><span class="s1">&#39;shape_out&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">strides</span> <span class="o">=</span> <span class="n">ShapeParam</span><span class="p">(</span><span class="s1">&#39;strides&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">padding</span> <span class="o">=</span> <span class="n">ShapeParam</span><span class="p">(</span><span class="s1">&#39;padding&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">filters</span> <span class="o">=</span> <span class="n">NdarrayParam</span><span class="p">(</span><span class="s1">&#39;filters&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;...&#39;</span><span class="p">,))</span>
+    <span class="n">biases</span> <span class="o">=</span> <span class="n">NdarrayParam</span><span class="p">(</span><span class="s1">&#39;biases&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;...&#39;</span><span class="p">,),</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">border</span> <span class="o">=</span> <span class="n">EnumParam</span><span class="p">(</span><span class="s1">&#39;border&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;floor&#39;</span><span class="p">,</span> <span class="s1">&#39;ceil&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape_in</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">biases</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                 <span class="n">border</span><span class="o">=</span><span class="s1">&#39;ceil&#39;</span><span class="p">):</span>  <span class="c1"># noqa: C901</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape_in</span> <span class="o">=</span> <span class="n">shape_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filters</span> <span class="o">=</span> <span class="n">filters</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">ndim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;`filters` must have four or six dimensions &quot;</span>
+                <span class="s2">&quot;(filters, [height, width,] channels, f_height, f_width)&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Filter channels (</span><span class="si">%d</span><span class="s2">) and input channels (</span><span class="si">%d</span><span class="s2">) must match&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">s</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Filter shapes must be odd (got </span><span class="si">%r</span><span class="s2">)&quot;</span>
+                             <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:],))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">strides</span> <span class="o">=</span> <span class="n">strides</span> <span class="k">if</span> <span class="n">is_iterable</span><span class="p">(</span><span class="n">strides</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="n">strides</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="n">padding</span> <span class="k">if</span> <span class="n">is_iterable</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="n">padding</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">border</span>
+
+        <span class="n">nf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">nxi</span><span class="p">,</span> <span class="n">nxj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_in</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">si</span><span class="p">,</span> <span class="n">sj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="n">pi</span><span class="p">,</span> <span class="n">pj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span>
+        <span class="n">sti</span><span class="p">,</span> <span class="n">stj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">strides</span>
+        <span class="n">rounder</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">border</span> <span class="o">==</span> <span class="s1">&#39;ceil&#39;</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span>
+        <span class="n">nyi</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">rounder</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span> <span class="o">+</span> <span class="n">nxi</span> <span class="o">-</span> <span class="n">si</span><span class="p">)</span> <span class="o">/</span> <span class="n">sti</span><span class="p">)),</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">nyj</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">rounder</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">pj</span> <span class="o">+</span> <span class="n">nxj</span> <span class="o">-</span> <span class="n">sj</span><span class="p">)</span> <span class="o">/</span> <span class="n">stj</span><span class="p">)),</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape_out</span> <span class="o">=</span> <span class="p">(</span><span class="n">nf</span><span class="p">,</span> <span class="n">nyi</span><span class="p">,</span> <span class="n">nyj</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">6</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">!=</span> <span class="p">(</span><span class="n">nyi</span><span class="p">,</span> <span class="n">nyj</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Number of local filters </span><span class="si">%r</span><span class="s2"> must match out shape &quot;</span>
+                             <span class="s2">&quot;</span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="p">(</span><span class="n">nyi</span><span class="p">,</span> <span class="n">nyj</span><span class="p">)))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">biases</span> <span class="o">=</span> <span class="n">biases</span> <span class="k">if</span> <span class="n">biases</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">biases</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">biases</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">biases</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">biases</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape_out</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">biases</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_out</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">biases</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_out</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">biases</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape_out</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">biases</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape_out</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">biases</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_out</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Biases size (</span><span class="si">%d</span><span class="s2">) does not match output shape </span><span class="si">%s</span><span class="s2">&quot;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">biases</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_out</span><span class="p">))</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Conv2d</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">default_size_in</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape_in</span><span class="p">),</span>
+            <span class="n">default_size_out</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape_out</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">make_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape_in</span><span class="p">,</span> <span class="n">shape_out</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">rng</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape_in</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape_in</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape_out</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape_out</span><span class="p">)</span>
+        <span class="n">shape_in</span><span class="p">,</span> <span class="n">shape_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_in</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_out</span>
+
+        <span class="n">filters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filters</span>
+        <span class="n">local_filters</span> <span class="o">=</span> <span class="n">filters</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">6</span>
+        <span class="n">biases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">biases</span>
+
+        <span class="n">nc</span><span class="p">,</span> <span class="n">nxi</span><span class="p">,</span> <span class="n">nxj</span> <span class="o">=</span> <span class="n">shape_in</span>
+        <span class="n">nf</span><span class="p">,</span> <span class="n">nyi</span><span class="p">,</span> <span class="n">nyj</span> <span class="o">=</span> <span class="n">shape_out</span>
+        <span class="n">si</span><span class="p">,</span> <span class="n">sj</span> <span class="o">=</span> <span class="n">filters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="n">pi</span><span class="p">,</span> <span class="n">pj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span>
+        <span class="n">sti</span><span class="p">,</span> <span class="n">stj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">strides</span>
+
+        <span class="k">def</span> <span class="nf">step_conv2d</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">nc</span><span class="p">,</span> <span class="n">nxi</span><span class="p">,</span> <span class="n">nxj</span><span class="p">)</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">nf</span><span class="p">,</span> <span class="n">nyi</span><span class="p">,</span> <span class="n">nyj</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nyi</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nyj</span><span class="p">):</span>
+                    <span class="n">i0</span> <span class="o">=</span> <span class="n">i</span><span class="o">*</span><span class="n">sti</span> <span class="o">-</span> <span class="n">pi</span>
+                    <span class="n">j0</span> <span class="o">=</span> <span class="n">j</span><span class="o">*</span><span class="n">stj</span> <span class="o">-</span> <span class="n">pj</span>
+                    <span class="n">i1</span><span class="p">,</span> <span class="n">j1</span> <span class="o">=</span> <span class="n">i0</span> <span class="o">+</span> <span class="n">si</span><span class="p">,</span> <span class="n">j0</span> <span class="o">+</span> <span class="n">sj</span>
+                    <span class="n">sli</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="n">i0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">nxi</span> <span class="o">+</span> <span class="n">si</span> <span class="o">-</span> <span class="n">i1</span><span class="p">,</span> <span class="n">si</span><span class="p">))</span>
+                    <span class="n">slj</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="n">j0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">nxj</span> <span class="o">+</span> <span class="n">sj</span> <span class="o">-</span> <span class="n">j1</span><span class="p">,</span> <span class="n">sj</span><span class="p">))</span>
+                    <span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">filters</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="p">:,</span> <span class="n">sli</span><span class="p">,</span> <span class="n">slj</span><span class="p">]</span> <span class="k">if</span> <span class="n">local_filters</span> <span class="k">else</span>
+                         <span class="n">filters</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">sli</span><span class="p">,</span> <span class="n">slj</span><span class="p">])</span>
+                    <span class="n">xij</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="p">:,</span> <span class="nb">max</span><span class="p">(</span><span class="n">i0</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span><span class="nb">min</span><span class="p">(</span><span class="n">i1</span><span class="p">,</span> <span class="n">nxi</span><span class="p">),</span>
+                            <span class="nb">max</span><span class="p">(</span><span class="n">j0</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span><span class="nb">min</span><span class="p">(</span><span class="n">j1</span><span class="p">,</span> <span class="n">nxj</span><span class="p">)]</span>
+                    <span class="n">y</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span>
+                        <span class="n">xij</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">w</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nf</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">biases</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">y</span> <span class="o">+=</span> <span class="n">biases</span>
+
+            <span class="k">return</span> <span class="n">y</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">step_conv2d</span></div>
+
+
+<div class="viewcode-block" id="Pool2d"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.convnet.Pool2d">[docs]</a><span class="k">class</span> <span class="nc">Pool2d</span><span class="p">(</span><span class="n">Process</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform 2-D (image) pooling on an input.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    shape_in : 3-tuple (channels, height, width)</span>
+<span class="sd">        Shape of the input image.</span>
+<span class="sd">    pool_size : 2-tuple (vertical, horizontal) or int</span>
+<span class="sd">        Shape of the pooling region. If an integer is provided, the shape will</span>
+<span class="sd">        be square with the given side length.</span>
+<span class="sd">    strides : 2-tuple (vertical, horizontal) or int</span>
+<span class="sd">        Spacing between pooling placements. If ``None`` (default), will be</span>
+<span class="sd">        equal to ``pool_size`` resulting in non-overlapping pooling.</span>
+<span class="sd">    kind : &quot;avg&quot; or &quot;max&quot;</span>
+<span class="sd">        Type of pooling to perform: average pooling or max pooling.</span>
+<span class="sd">    mode : &quot;full&quot; or &quot;valid&quot;</span>
+<span class="sd">        If the input image does not divide into an integer number of pooling</span>
+<span class="sd">        regions, whether to add partial pooling regions for the extra</span>
+<span class="sd">        pixels (&quot;full&quot;), or discard extra input pixels (&quot;valid&quot;).</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    shape_out : 3-tuple (channels, height, width)</span>
+<span class="sd">        Shape of the output image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">shape_in</span> <span class="o">=</span> <span class="n">ShapeParam</span><span class="p">(</span><span class="s1">&#39;shape_in&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">shape_out</span> <span class="o">=</span> <span class="n">ShapeParam</span><span class="p">(</span><span class="s1">&#39;shape_out&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">pool_size</span> <span class="o">=</span> <span class="n">ShapeParam</span><span class="p">(</span><span class="s1">&#39;pool_size&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">strides</span> <span class="o">=</span> <span class="n">ShapeParam</span><span class="p">(</span><span class="s1">&#39;strides&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">kind</span> <span class="o">=</span> <span class="n">EnumParam</span><span class="p">(</span><span class="s1">&#39;kind&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;avg&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">))</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">EnumParam</span><span class="p">(</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;full&#39;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape_in</span><span class="p">,</span> <span class="n">pool_size</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;avg&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;full&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape_in</span> <span class="o">=</span> <span class="n">shape_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">pool_size</span> <span class="k">if</span> <span class="n">is_iterable</span><span class="p">(</span><span class="n">pool_size</span><span class="p">)</span> <span class="k">else</span>
+                          <span class="p">[</span><span class="n">pool_size</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strides</span> <span class="o">=</span> <span class="p">(</span><span class="n">strides</span> <span class="k">if</span> <span class="n">is_iterable</span><span class="p">(</span><span class="n">strides</span><span class="p">)</span> <span class="k">else</span>
+                        <span class="p">[</span><span class="n">strides</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">strides</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">pool_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">=</span> <span class="n">kind</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">st</span> <span class="o">&lt;=</span> <span class="n">p</span> <span class="k">for</span> <span class="n">st</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">strides</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool_size</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Strides </span><span class="si">%s</span><span class="s2"> must be &lt;= pool_size </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                             <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">strides</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool_size</span><span class="p">))</span>
+
+        <span class="n">nc</span><span class="p">,</span> <span class="n">nxi</span><span class="p">,</span> <span class="n">nxj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_in</span>
+        <span class="n">nyi_float</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">nxi</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool_size</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">nyj_float</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">nxj</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool_size</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">strides</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;full&#39;</span><span class="p">:</span>
+            <span class="n">nyi</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">nyi_float</span><span class="p">))</span>
+            <span class="n">nyj</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">nyj_float</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;valid&#39;</span><span class="p">:</span>
+            <span class="n">nyi</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">nyi_float</span><span class="p">))</span>
+            <span class="n">nyj</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">nyj_float</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape_out</span> <span class="o">=</span> <span class="p">(</span><span class="n">nc</span><span class="p">,</span> <span class="n">nyi</span><span class="p">,</span> <span class="n">nyj</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Pool2d</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">default_size_in</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape_in</span><span class="p">),</span>
+            <span class="n">default_size_out</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape_out</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">make_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape_in</span><span class="p">,</span> <span class="n">shape_out</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">rng</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape_in</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape_in</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape_out</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape_out</span><span class="p">)</span>
+        <span class="n">nc</span><span class="p">,</span> <span class="n">nxi</span><span class="p">,</span> <span class="n">nxj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_in</span>
+        <span class="n">nc</span><span class="p">,</span> <span class="n">nyi</span><span class="p">,</span> <span class="n">nyj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_out</span>
+        <span class="n">si</span><span class="p">,</span> <span class="n">sj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool_size</span>
+        <span class="n">sti</span><span class="p">,</span> <span class="n">stj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">strides</span>
+        <span class="n">kind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span>
+        <span class="n">nxi2</span><span class="p">,</span> <span class="n">nxj2</span> <span class="o">=</span> <span class="n">nyi</span> <span class="o">*</span> <span class="n">sti</span><span class="p">,</span> <span class="n">nyj</span> <span class="o">*</span> <span class="n">stj</span>
+
+        <span class="k">def</span> <span class="nf">step_pool2d</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">nc</span><span class="p">,</span> <span class="n">nxi</span><span class="p">,</span> <span class="n">nxj</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nc</span><span class="p">,</span> <span class="n">nyi</span><span class="p">,</span> <span class="n">nyj</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nyi</span><span class="p">,</span> <span class="n">nyj</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">si</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sj</span><span class="p">):</span>
+                    <span class="n">xij</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">:</span><span class="nb">min</span><span class="p">(</span><span class="n">nxi2</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="n">nxi</span><span class="p">):</span><span class="n">sti</span><span class="p">,</span>
+                            <span class="n">j</span><span class="p">:</span><span class="nb">min</span><span class="p">(</span><span class="n">nxj2</span><span class="o">+</span><span class="n">j</span><span class="p">,</span> <span class="n">nxj</span><span class="p">):</span><span class="n">stj</span><span class="p">]</span>
+                    <span class="n">ni</span><span class="p">,</span> <span class="n">nj</span> <span class="o">=</span> <span class="n">xij</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+                    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;max&#39;</span><span class="p">:</span>
+                        <span class="n">y</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="n">ni</span><span class="p">,</span> <span class="p">:</span><span class="n">nj</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">y</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="n">ni</span><span class="p">,</span> <span class="p">:</span><span class="n">nj</span><span class="p">],</span> <span class="n">xij</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;avg&#39;</span><span class="p">:</span>
+                        <span class="n">y</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="n">ni</span><span class="p">,</span> <span class="p">:</span><span class="n">nj</span><span class="p">]</span> <span class="o">+=</span> <span class="n">xij</span>
+                        <span class="n">n</span><span class="p">[:</span><span class="n">ni</span><span class="p">,</span> <span class="p">:</span><span class="n">nj</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">kind</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;avg&#39;</span><span class="p">:</span>
+                <span class="n">y</span> <span class="o">/=</span> <span class="n">n</span>
+
+            <span class="k">return</span> <span class="n">y</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">step_pool2d</span></div>
+
+
+<div class="viewcode-block" id="PresentJitteredImages"><a class="viewcode-back" href="../../vision.html#nengo_extras.convnet.PresentJitteredImages">[docs]</a><span class="k">class</span> <span class="nc">PresentJitteredImages</span><span class="p">(</span><span class="n">Process</span><span class="p">):</span>
+    <span class="n">images</span> <span class="o">=</span> <span class="n">NdarrayParam</span><span class="p">(</span><span class="s1">&#39;images&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;...&#39;</span><span class="p">,))</span>
+    <span class="n">image_shape</span> <span class="o">=</span> <span class="n">ShapeParam</span><span class="p">(</span><span class="s1">&#39;image_shape&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">output_shape</span> <span class="o">=</span> <span class="n">ShapeParam</span><span class="p">(</span><span class="s1">&#39;output_shape&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">presentation_time</span> <span class="o">=</span> <span class="n">NumberParam</span><span class="p">(</span><span class="s1">&#39;presentation_time&#39;</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">low_open</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">jitter_std</span> <span class="o">=</span> <span class="n">NumberParam</span><span class="p">(</span><span class="s1">&#39;jitter_std&#39;</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">low_open</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">jitter_tau</span> <span class="o">=</span> <span class="n">NumberParam</span><span class="p">(</span><span class="s1">&#39;jitter_tau&#39;</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">low_open</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">images</span><span class="p">,</span> <span class="n">presentation_time</span><span class="p">,</span> <span class="n">output_shape</span><span class="p">,</span>
+                 <span class="n">jitter_std</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">jitter_tau</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">scipy.ndimage.interpolation</span>
+        <span class="c1"># ^ required for simulation, so check it here</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">images</span> <span class="o">=</span> <span class="n">images</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">presentation_time</span> <span class="o">=</span> <span class="n">presentation_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image_shape</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_shape</span> <span class="o">=</span> <span class="n">output_shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jitter_std</span> <span class="o">=</span> <span class="n">jitter_std</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jitter_tau</span> <span class="o">=</span> <span class="p">(</span><span class="n">presentation_time</span> <span class="k">if</span> <span class="n">jitter_tau</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span>
+                           <span class="n">jitter_tau</span><span class="p">)</span>
+
+        <span class="n">nc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">nyi</span><span class="p">,</span> <span class="n">nyj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_shape</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PresentJitteredImages</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">default_size_in</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">default_size_out</span><span class="o">=</span><span class="n">nc</span><span class="o">*</span><span class="n">nyi</span><span class="o">*</span><span class="n">nyj</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">make_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape_in</span><span class="p">,</span> <span class="n">shape_out</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">rng</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">scipy.ndimage.interpolation</span>
+
+        <span class="n">nc</span><span class="p">,</span> <span class="n">nxi</span><span class="p">,</span> <span class="n">nxj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_shape</span>
+        <span class="n">nyi</span><span class="p">,</span> <span class="n">nyj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_shape</span>
+        <span class="n">ni</span><span class="p">,</span> <span class="n">nj</span> <span class="o">=</span> <span class="n">nxi</span> <span class="o">-</span> <span class="n">nyi</span><span class="p">,</span> <span class="n">nxj</span> <span class="o">-</span> <span class="n">nyj</span>
+        <span class="n">nij</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ni</span><span class="p">,</span> <span class="n">nj</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">shape_in</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)</span>
+        <span class="k">assert</span> <span class="n">shape_out</span> <span class="o">==</span> <span class="p">(</span><span class="n">nc</span><span class="o">*</span><span class="n">nyi</span><span class="o">*</span><span class="n">nyj</span><span class="p">,)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">jitter_std</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">si</span><span class="p">,</span> <span class="n">sj</span> <span class="o">=</span> <span class="n">ni</span> <span class="o">/</span> <span class="mf">4.</span><span class="p">,</span> <span class="n">nj</span> <span class="o">/</span> <span class="mf">4.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">si</span> <span class="o">=</span> <span class="n">sj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">jitter_std</span>
+
+        <span class="n">tau</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">jitter_tau</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">)</span>
+        <span class="n">images</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">nc</span><span class="p">,</span> <span class="n">nxi</span><span class="p">,</span> <span class="n">nxj</span><span class="p">))</span>
+        <span class="n">presentation_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">presentation_time</span><span class="p">)</span>
+
+        <span class="n">cij</span> <span class="o">=</span> <span class="p">(</span><span class="n">nij</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.</span>
+        <span class="n">dt7tau</span> <span class="o">=</span> <span class="n">dt</span> <span class="o">/</span> <span class="n">tau</span>
+        <span class="n">sigma2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">dt</span><span class="o">/</span><span class="n">tau</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">si</span><span class="p">,</span> <span class="n">sj</span><span class="p">])</span>
+        <span class="n">ij</span> <span class="o">=</span> <span class="n">cij</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">step_presentjitteredimages</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+            <span class="c1"># update jitter position</span>
+            <span class="n">ij0</span> <span class="o">=</span> <span class="n">dt7tau</span><span class="o">*</span><span class="p">(</span><span class="n">cij</span> <span class="o">-</span> <span class="n">ij</span><span class="p">)</span> <span class="o">+</span> <span class="n">sigma2</span><span class="o">*</span><span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">ij</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">ij</span> <span class="o">+</span> <span class="n">ij0</span><span class="p">)</span><span class="o">.</span><span class="n">clip</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">ni</span><span class="p">,</span> <span class="n">nj</span><span class="p">))</span>
+
+            <span class="c1"># select image</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">t</span><span class="o">-</span><span class="n">dt</span><span class="p">)</span> <span class="o">/</span> <span class="n">presentation_time</span> <span class="o">+</span> <span class="mf">1e-7</span><span class="p">)</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="n">k</span> <span class="o">%</span> <span class="n">n</span><span class="p">]</span>
+
+            <span class="c1"># interpolate jittered sub-image</span>
+            <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">ij</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">ndimage</span><span class="o">.</span><span class="n">interpolation</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span>
+                <span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ni</span><span class="o">-</span><span class="n">i</span><span class="p">,</span> <span class="n">nj</span><span class="o">-</span><span class="n">j</span><span class="p">))[:,</span> <span class="o">-</span><span class="n">nyi</span><span class="p">:,</span> <span class="o">-</span><span class="n">nyj</span><span class="p">:]</span>
+
+            <span class="k">return</span> <span class="n">image</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">step_presentjitteredimages</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

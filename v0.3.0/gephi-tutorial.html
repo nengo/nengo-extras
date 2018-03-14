@@ -1,0 +1,419 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>Visualizing Nengo networks with Gephi &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Creating spike raster plots" href="examples/plot_spikes.html" />
+    <link rel="prev" title="Visualization tools" href="visualization.html" />
+<link rel="stylesheet" type="text/css" href="_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="examples/plot_spikes.html" title="Creating spike raster plots"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="visualization.html" title="Visualization tools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="visualization.html" accesskey="U">Visualization tools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision.html">Vision models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="visualization.html">Visualization tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Visualizing Nengo networks with Gephi</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#step-1-exporting-a-nengo-model-to-gexf">Step 1: Exporting a Nengo model to GEXF</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-2-loading-the-gexf-file-in-gephi">Step 2: Loading the GEXF file in Gephi</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3-setting-up-the-appearance">Step 3: Setting up the appearance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-4-improving-the-layout">Step 4: Improving the layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-5-merging-nodes">Step 5: Merging nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-6-selecting-and-filtering">Step 6: Selecting and filtering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/plot_spikes.html">Creating spike raster plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/cuda_convnet/imagenet_visualization.html">Visualizing the ImageNet classifier</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html#graphviz-diagrams">GraphViz diagrams</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html#image-manipulation">Image manipulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html#matplotlib-plots">Matplotlib plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html#tkinter-guis">TkInter GUIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html#gephi-visualization">Gephi visualization</a></li>
+</ul>
+</li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="index.html">Docs</a></li>
+              
+                <li><a href="visualization.html">Visualization tools</a></li>
+              
+              <li>Visualizing Nengo networks with Gephi</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="visualizing-nengo-networks-with-gephi">
+<h1>Visualizing Nengo networks with Gephi<a class="headerlink" href="#visualizing-nengo-networks-with-gephi" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="https://gephi.org/">Gephi</a> is an open-source graph visualization and
+exploration program. It can be useful to analyze larger scale Nengo networks as
+it gives some more flexibility with the representation than Nengo GUI currently
+provides. The following will give a step-by-step introduction how to export
+a Nengo model, import it in Gephi and produce a basic visualization. For
+a deeper introduction into Gephi, you might want to take a look at <a class="reference external" href="https://gephi.org/users/">general
+Gephi tutorials</a>.</p>
+<div class="section" id="step-1-exporting-a-nengo-model-to-gexf">
+<h2>Step 1: Exporting a Nengo model to GEXF<a class="headerlink" href="#step-1-exporting-a-nengo-model-to-gexf" title="Permalink to this headline">¶</a></h2>
+<p>To load the graph of a Nengo model in Gephi, it first needs to be exported into
+the GEXF format. That is an XML-based description of the graph that can be
+opened with Gephi.</p>
+<p>For this tutorial, we will use the model presented by <a class="footnote-reference" href="#id2" id="id1">[1]</a> which is available
+from <a class="reference external" href="https://github.com/ctn-archive/kajic-cogsci2017">GitHub</a>. To install
+the model:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>git clone https://github.com/ctn-archive/kajic-cogsci2017.git
+<span class="nb">cd</span> kajic-cogsci2017
+pip install -r requirements.txt
+python setup.py develop
+<span class="nb">cd</span> scripts
+python fetch_external.py
+python categorize_animals.py
+<span class="nb">cd</span> ../cogsci17-semflu
+python create_database.py
+<span class="nb">cd</span> ..
+</pre></div>
+</div>
+<p>To convert the model to GEXF only a few lines of Python code are required:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cogsci17_semflu.models.wta_semflu</span> <span class="k">import</span> <span class="n">SemFlu</span>
+<span class="kn">from</span> <span class="nn">nengo_extras.gexf</span> <span class="k">import</span> <span class="n">CollapsingGexfConverter</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">SemFlu</span><span class="p">()</span><span class="o">.</span><span class="n">make_model</span><span class="p">(</span><span class="n">d</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>  <span class="c1"># This creates the model</span>
+<span class="c1"># The next line exports the model to semflu.gexf.</span>
+<span class="n">CollapsingGexfConverter</span><span class="p">()</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;semflu.gexf&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="visualization.html#nengo_extras.gexf.CollapsingGexfConverter" title="nengo_extras.gexf.CollapsingGexfConverter"><code class="xref py py-obj docutils literal"><span class="pre">CollapsingGexfConverter</span></code></a> will collapse the following networks into
+a single graph node because the details of those networks are often not of
+interest:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">nengo.networks.CircularConvolution</span></code></li>
+<li><code class="docutils literal"><span class="pre">nengo.networks.EnsembleArray</span></code></li>
+<li><code class="docutils literal"><span class="pre">nengo.networks.Product</span></code></li>
+<li>Networks from <a class="reference external" href="https://github.com/nengo/nengo-spa">Nengo SPA</a> (but not
+<code class="docutils literal"><span class="pre">nengo.spa</span></code>!)</li>
+</ul>
+<p>The <em>to_collapse</em> constructor argument allows to specify a custom list of
+networks to collapse. To not collapse any networks, the <a class="reference internal" href="visualization.html#nengo_extras.gexf.GexfConverter" title="nengo_extras.gexf.GexfConverter"><code class="xref py py-obj docutils literal"><span class="pre">GexfConverter</span></code></a> class
+can be used too.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The export will flatten all networks by default. To keep the network
+hierarchy you can pass <code class="docutils literal"><span class="pre">hierarchical=True</span></code> to <a class="reference internal" href="visualization.html#nengo_extras.gexf.GexfConverter" title="nengo_extras.gexf.GexfConverter"><code class="xref py py-obj docutils literal"><span class="pre">GexfConverter</span></code></a> or
+<a class="reference internal" href="visualization.html#nengo_extras.gexf.CollapsingGexfConverter" title="nengo_extras.gexf.CollapsingGexfConverter"><code class="xref py py-obj docutils literal"><span class="pre">CollapsingGexfConverter</span></code></a>. However, support for hierarchical graphs was
+removed in Gephi 0.9. The containing nodes of a hierarchical graph will
+be added as unconnected nodes to the graph which is not helpful. If you want
+the hierarchy to visualized, you can try an older Gephi version, but expect
+that you will also need to install an outdated Java version which might
+require you to create a (free) account with Oracle.</p>
+</div>
+</div>
+<div class="section" id="step-2-loading-the-gexf-file-in-gephi">
+<h2>Step 2: Loading the GEXF file in Gephi<a class="headerlink" href="#step-2-loading-the-gexf-file-in-gephi" title="Permalink to this headline">¶</a></h2>
+<p>The GEXF file can be opened via the <em>File &gt; Open</em> menu. After choosing the
+file, an import dialog will be shown. For many Nengo networks it is best to
+click <em>More Options</em> and select “First” for the <em>Edges merge strategy</em>.
+With “Sum”, the scaling of the thickness of connections and their arrowheads
+might be problematic. This is because it is common to have only a single
+connection between two components (which would get a weight of 1), but it is
+also common to have a large number of connections between two components when
+networks got collapsed (the connections do not get collapsed) which would sum
+up to a very large weight.</p>
+<img alt="The Gephi import window." src="https://i.imgur.com/bqpxc3N.png" />
+<div class="section" id="overview-of-the-gephi-interface">
+<h3>Overview of the Gephi interface<a class="headerlink" href="#overview-of-the-gephi-interface" title="Permalink to this headline">¶</a></h3>
+<p>The central part of the Gephi window shows the current graph visualization. For
+a freshly loaded GEXF file, all the nodes will be randomly placed and
+everything is in black. We will improve on that state shortly, but first take
+a look of the general organization of the user interface. You can zoom the
+visualization with the scroll wheel on your mouse. To move the view click and
+drag with the right mouse button.</p>
+<p>The toolbar to the left of the visualization provides mostly editing tools to
+edit the graph or its appearance. The bottom toolbar gives tools to influence
+how things are displayed.</p>
+<p>The remaining parts of the window are organized in a somewhat logical flow. We
+will start at in the top left (1) to make some initial adjustments to the graph
+appearance based on different network attributes. Then will will use the layout
+section below it (2) to obtain a first pass layout to start sorting things out.
+Finally, the right panel allows us to select or filter out parts of the graph
+based on network attributes.</p>
+<a class="reference external image-reference" href="https://i.imgur.com/bt9BdS8.png"><img alt="The Gephi main view." src="https://i.imgur.com/bt9BdS8.png" /></a>
+</div>
+</div>
+<div class="section" id="step-3-setting-up-the-appearance">
+<h2>Step 3: Setting up the appearance<a class="headerlink" href="#step-3-setting-up-the-appearance" title="Permalink to this headline">¶</a></h2>
+<p>Let us start by introducing some color into the network graph. To get a better
+idea what nodes belong together it can be helpful to color them by the network
+they belong to. Select <em>Nodes</em> in the <em>Appearance</em> box (top left). On the right
+side you can choose which aspect of the appearance should be changed. Select
+the color palette symbol to change node colors. In the row below select
+<em>Partition</em> and choose <em>net_label</em> from the drop-down menu. This will give you
+a list of all network names with color predefined for the most common ones. If
+you want, you can edit the assigned colors. When you are satisfied with the
+choices click the <em>Apply</em> button in the lower right to apply your choices.</p>
+<img alt="Coloring nodes by network name." src="https://i.imgur.com/FRtT1Xw.png" />
+<p>Next, let us visualize the number of neurons in each ensemble (or collapsed
+network) by the size of the node. Select symbol with the three differently
+sized circles in upper right and select <em>Ranking</em> in the row below. In the
+drop-down choose <em>n_neurons</em>. You can play with the minimum and maximum size
+settings. A good starting point is 10 and 40. In the lower left is a <em>Spline</em>
+link that allows you to specify how exactly the neuron number should be mapped
+onto size. Again, the settings are applied by clicking the <em>Apply</em> button in
+the lower right.</p>
+<img alt="Changing node size by neuron number." src="https://i.imgur.com/ZMe7ZcV.png" />
+<p>Finally, let us visualize the type of connections. Select <em>Edges</em> in the upper
+left and the color palette symbol on the right. Then choose <em>Partition</em> and
+<em>post_type</em> in the drop down menu. The <em>post_type</em> attribute give the type of
+the object that is target by a connection. There is also a <em>pre_type</em> attribute
+that gives the type of the object a connection originates from. In this case
+the default color choices are not extremely helpful. Connections that target
+ensembles or nodes are normal connections, so we want those to be black. To set
+the color, press the left mouse button and drag the cursor to the desired color
+in the pop up. To get more control over the color selection, right click the
+square (you might need to left click it first) which opens a modal with
+different color pickers. A connections to neurons is likely to be inhibitory,
+so let us set that color to red. Once finished setting the colors, click
+<em>Apply</em> as usual.</p>
+<img alt="Coloring connections by type." src="https://i.imgur.com/6CqzQYV.png" />
+<p>With all these appearance settings applied, the graph should look something
+like this:</p>
+<img alt="The graph after setting up the appearance." src="https://i.imgur.com/heLNPJF.png" />
+<p>You might want to know what the different nodes are. You can display node labels
+by toggling the black T icon in the bottom toolbar. Then adjust the label size
+with the right slider until you got a good balance between too much clutter and
+legible font size.</p>
+<img alt="Display toolbar." src="https://i.imgur.com/fuxf8kb.png" />
+<p>The other slider adjusts the thickness of connections which might also be
+useful.</p>
+</div>
+<div class="section" id="step-4-improving-the-layout">
+<h2>Step 4: Improving the layout<a class="headerlink" href="#step-4-improving-the-layout" title="Permalink to this headline">¶</a></h2>
+<p>So far it is still hard to make sense of the graph because everything is
+positioned randomly. Now we are going to improve on that state. The lower left
+layout pane provides a number of graph layout algorithms. Select <em>Force Atlas</em>
+from the drop-down menu. It tends to give a decent initial layout, but feel
+free to try other layout algorithms or parameter settings. For now the default
+parameters should be fine. When you click <em>Run</em>, you can watch the algorithm do
+its work.</p>
+<img alt="The layout pane." src="https://i.imgur.com/l4gFqSI.png" />
+<p>Once you are satisfied with the result, stop the algorithm by clicking the
+<em>Stop</em> button that the <em>Run</em> button turned into. The graph should look
+something like this now:</p>
+<img alt="The graph after running the Force Atlas layout algorithm." src="https://i.imgur.com/zVuqOau.png" />
+<p>Further improvements can be made by hand with the move tool. It is the hand
+icon in the vertical toolbar left of the main view. It will affect all nodes
+with a certain radius of the cursor. That radius can be adjusted by clicking
+the <em>Configure</em> link at the top. That allows you to not just move individual
+nodes at once, but whole clusters by setting an appropriate radius.</p>
+<img alt="The move tool." src="https://i.imgur.com/Oq4kbhk.png" />
+<p>With a little bit of work, your graph might look like this:</p>
+<img alt="The graph after manually improving the layout." src="https://i.imgur.com/KV9tnTl.png" />
+</div>
+<div class="section" id="step-5-merging-nodes">
+<h2>Step 5: Merging nodes<a class="headerlink" href="#step-5-merging-nodes" title="Permalink to this headline">¶</a></h2>
+<p>You might notice the big green and pale violet clusters. These are associative
+memory networks and showing all the detail might not be particularly useful. We
+could have used the <a class="reference internal" href="visualization.html#nengo_extras.gexf.CollapsingGexfConverter" title="nengo_extras.gexf.CollapsingGexfConverter"><code class="xref py py-obj docutils literal"><span class="pre">CollapsingGexfConverter</span></code></a> to merge all of these nodes into
+a single node, but we can also do this after the fact. First activate the select
+tool.</p>
+<img alt="The selection tool." src="https://i.imgur.com/k2A2lhe.png" />
+<p>Then drag a box around one of those clusters to select all the nodes in it and
+access the context menu with a right click. In that menu click <em>Select in data
+laboratory</em>.</p>
+<img alt="The context menu allows to select entries in the Data Laboratory." src="https://i.imgur.com/CixEY30.png" />
+<p>Next switch to the <em>Data Laboratory</em> with the button right under the menu bar.</p>
+<img alt="The view selection." src="https://i.imgur.com/ObReneJ.png" />
+<p>In the Data Laboratory open the context menu by right clicking on one of the
+selected nodes and choose <em>Merge nodes</em>.</p>
+<img alt="The Data Laboratory context menu allows to merge nodes." src="https://i.imgur.com/M2IXM0G.png" />
+<p>This will open a dialog that allows you to configure how to merge the nodes.
+Make your choices and confirm the merge. Then go back to the <em>Overview</em> by
+clicking the button directly under the menu bar. You should now see a single
+node for the selected set of nodes:</p>
+<img alt="The graph after merging the nodes of the associative networks." src="https://i.imgur.com/VAAIDth.png" />
+</div>
+<div class="section" id="step-6-selecting-and-filtering">
+<h2>Step 6: Selecting and filtering<a class="headerlink" href="#step-6-selecting-and-filtering" title="Permalink to this headline">¶</a></h2>
+<p>We now have a visualization of the model that allows us to easily get an
+overview of the structure and follow individual connections which can be
+extremely useful when debugging large-scale networks. Sometimes such tasks are
+even easier when selectively displaying certain parts of the network based on
+certain properties.</p>
+<p>This can be achieved with the filtering pane on the right. The top part
+provides different filters and operators that can be combined to complex
+queries by dragging the into the lower part of the pane.</p>
+<p>For example, we might be interested in all nodes that provide external input or
+in other words all nodes that do not get any input. To find these nodes the
+<em>In-Degree Range</em> filter in <em>Topology</em> can be used. Drag it to the query
+window, select it and use the slider at the bottom to configure it to consider
+only nodes with an in-degree of 0.</p>
+<p>When you click <em>Select</em>, the filter will select all nodes that do not receive
+any input.</p>
+<a class="reference external image-reference" href="https://i.imgur.com/aBoh2vg.png"><img alt="Using a query to select things." src="https://i.imgur.com/aBoh2vg.png" /></a>
+<p>This can be useful to apply manipulations or move a group of nodes that is not
+spatially clustered.</p>
+<p>If you toggle <em>Filter</em> instead, everything else in the network will be
+completely hidden.</p>
+<a class="reference external image-reference" href="https://i.imgur.com/CixEY30.png"><img alt="Using a query to filter the graph." src="https://i.imgur.com/CixEY30.png" /></a>
+<p>This should be sufficient to get you started on using Gephi to analyze and
+debug your models. Of course, there are many more Gephi features that have not
+been covered here and can be useful for certain tasks. While Gephi gives you
+some more freedom and more features than Nengo GUI, it is certainly not
+a complete replacement, but rather an additional tool that might be better
+suited for certain tasks and less suited for other tasks. The major downside of
+Gephi is that a change to your model requires you to export the network again
+and redo the network layout in Gephi.</p>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Ivana Kajić, Jan Gosmann, Brent Komer, Ryan W. Orr, Terrence C. Stewart,
+and Chris Eliasmith. A biologically constrained model of semantic memory
+search. In Proceedings of the 39th Annual Conference of the Cognitive
+Science Society.  London, UK, 2017. Cognitive Science Society. URL:
+<a class="reference external" href="http://mindmodeling.org/cogsci2017/papers/0127/index.html">http://mindmodeling.org/cogsci2017/papers/0127/index.html</a></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+            
+  <div class="footer-relations">
+    
+      <div class="pull-left">
+        <a class="btn btn-default" href="visualization.html" title="previous chapter (use the left arrow)">Visualization tools</a>
+      </div>
+    
+      <div class="pull-right">
+        <a class="btn btn-default" href="examples/plot_spikes.html" title="next chapter (use the right arrow)">Creating spike raster plots</a>
+      </div>
+    </div>
+    <div class="clearer"></div>
+  
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="examples/plot_spikes.html" title="Creating spike raster plots"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="visualization.html" title="Visualization tools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="visualization.html" >Visualization tools</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

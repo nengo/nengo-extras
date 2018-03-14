@@ -1,0 +1,392 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>nengo_extras.neurons &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<link rel="stylesheet" type="text/css" href="../../_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    ../../index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>nengo_extras.neurons</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for nengo_extras.neurons</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">nengo</span>
+<span class="kn">import</span> <span class="nn">nengo.utils.numpy</span> <span class="k">as</span> <span class="nn">npext</span>
+<span class="kn">from</span> <span class="nn">nengo.exceptions</span> <span class="k">import</span> <span class="n">ValidationError</span>
+<span class="kn">from</span> <span class="nn">nengo.params</span> <span class="k">import</span> <span class="n">NumberParam</span>
+
+
+<span class="k">def</span> <span class="nf">softplus</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">1.</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="n">sigma</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">z</span><span class="p">[</span><span class="n">y</span> <span class="o">&lt;</span> <span class="mf">34.0</span><span class="p">]</span> <span class="o">=</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log1p</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">y</span> <span class="o">&lt;</span> <span class="mf">34.0</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">z</span>
+    <span class="c1"># ^ 34.0 gives exact answer in 32 or 64 bit but doesn&#39;t overflow in 32 bit</span>
+
+
+<span class="k">def</span> <span class="nf">lif_j</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">tau_ref</span><span class="p">,</span> <span class="n">tau_rc</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="mf">1.</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">amplitude</span> <span class="o">/</span> <span class="p">(</span><span class="n">tau_ref</span> <span class="o">+</span> <span class="n">tau_rc</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log1p</span><span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">j</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="SoftLIFRate"><a class="viewcode-back" href="../../neurons.html#nengo_extras.neurons.SoftLIFRate">[docs]</a><span class="k">class</span> <span class="nc">SoftLIFRate</span><span class="p">(</span><span class="n">nengo</span><span class="o">.</span><span class="n">neurons</span><span class="o">.</span><span class="n">LIFRate</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;LIF neuron with smoothing around the firing threshold.</span>
+
+<span class="sd">    This is a rate version of the LIF neuron whose tuning curve has a</span>
+<span class="sd">    continuous first derivative, due to the smoothing around the firing</span>
+<span class="sd">    threshold. It can be used as a substitute for LIF neurons in deep networks</span>
+<span class="sd">    during training, and then replaced with LIF neurons when running</span>
+<span class="sd">    the network [1]_.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sigma : float</span>
+<span class="sd">        Amount of smoothing around the firing threshold. Larger values mean</span>
+<span class="sd">        more smoothing.</span>
+<span class="sd">    amplitude : float</span>
+<span class="sd">        Scaling factor on the output. If 1 (default), output rates correspond</span>
+<span class="sd">        to LIF neuron model rates.</span>
+<span class="sd">    tau_rc : float</span>
+<span class="sd">        Membrane RC time constant, in seconds. Affects how quickly the membrane</span>
+<span class="sd">        voltage decays to zero in the absence of input (larger = slower decay).</span>
+<span class="sd">    tau_ref : float</span>
+<span class="sd">        Absolute refractory period, in seconds. This is how long the</span>
+<span class="sd">        membrane voltage is held at zero after a spike.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] E. Hunsberger &amp; C. Eliasmith (2015). Spiking Deep Networks with</span>
+<span class="sd">       LIF Neurons. arXiv Preprint, 1510. https://arxiv.org/abs/1510.08829</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">sigma</span> <span class="o">=</span> <span class="n">NumberParam</span><span class="p">(</span><span class="s1">&#39;sigma&#39;</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">low_open</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="o">**</span><span class="n">lif_args</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SoftLIFRate</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">lif_args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">=</span> <span class="n">sigma</span>  <span class="c1"># smoothing around the threshold</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_argreprs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">SoftLIFRate</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_argreprs</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">!=</span> <span class="mf">1.</span><span class="p">:</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;sigma=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">args</span>
+
+    <span class="k">def</span> <span class="nf">rates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">gain</span><span class="p">,</span> <span class="n">bias</span><span class="p">):</span>
+        <span class="n">J</span> <span class="o">=</span> <span class="n">gain</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">bias</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">J</span><span class="p">)</span>
+        <span class="n">SoftLIFRate</span><span class="o">.</span><span class="n">step_math</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">J</span><span class="o">=</span><span class="n">J</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+<div class="viewcode-block" id="SoftLIFRate.step_math"><a class="viewcode-back" href="../../neurons.html#nengo_extras.neurons.SoftLIFRate.step_math">[docs]</a>    <span class="k">def</span> <span class="nf">step_math</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute rates in Hz for input current (incl. bias)&quot;&quot;&quot;</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">softplus</span><span class="p">(</span><span class="n">J</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">)</span>
+        <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># faster than output[j &lt;= 0] = 0</span>
+        <span class="n">output</span><span class="p">[</span><span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">lif_j</span><span class="p">(</span><span class="n">j</span><span class="p">[</span><span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_rc</span><span class="p">,</span>
+                              <span class="n">amplitude</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">derivative</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">gain</span><span class="p">,</span> <span class="n">bias</span><span class="p">):</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">gain</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">bias</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">softplus</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">)</span>
+        <span class="n">yy</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">jj</span> <span class="o">=</span> <span class="n">j</span><span class="p">[</span><span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">vv</span> <span class="o">=</span> <span class="n">lif_j</span><span class="p">(</span><span class="n">jj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_rc</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">)</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">gain</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_rc</span> <span class="o">*</span> <span class="n">vv</span> <span class="o">*</span> <span class="n">vv</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span> <span class="o">*</span> <span class="n">jj</span> <span class="o">*</span> <span class="p">(</span><span class="n">jj</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">yy</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
+
+<div class="viewcode-block" id="FastLIF"><a class="viewcode-back" href="../../neurons.html#nengo_extras.neurons.FastLIF">[docs]</a><span class="k">class</span> <span class="nc">FastLIF</span><span class="p">(</span><span class="n">nengo</span><span class="o">.</span><span class="n">neurons</span><span class="o">.</span><span class="n">LIF</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Faster version of the leaky integrate-and-fire (LIF) neuron model.</span>
+
+<span class="sd">    This neuron model is faster than ``LIF`` but does not produce the ideal</span>
+<span class="sd">    firing rate for larger ``dt`` due to linearization of the tuning curves.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">step_math</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">spiked</span><span class="p">,</span> <span class="n">voltage</span><span class="p">,</span> <span class="n">refractory_time</span><span class="p">):</span>
+
+        <span class="c1"># update voltage using accurate exponential integration scheme</span>
+        <span class="n">dV</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">expm1</span><span class="p">(</span><span class="o">-</span><span class="n">dt</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_rc</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">J</span> <span class="o">-</span> <span class="n">voltage</span><span class="p">)</span>
+        <span class="n">voltage</span> <span class="o">+=</span> <span class="n">dV</span>
+        <span class="n">voltage</span><span class="p">[</span><span class="n">voltage</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_voltage</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_voltage</span>
+
+        <span class="c1"># update refractory period assuming no spikes for now</span>
+        <span class="n">refractory_time</span> <span class="o">-=</span> <span class="n">dt</span>
+
+        <span class="c1"># set voltages of neurons still in their refractory period to 0</span>
+        <span class="c1"># and linearly reduce voltage when partway out of ref. period</span>
+        <span class="n">voltage</span> <span class="o">*=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">refractory_time</span> <span class="o">/</span> <span class="n">dt</span><span class="p">)</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># determine which neurons spike (if v &gt; 1 set spiked = 1/dt, else 0)</span>
+        <span class="n">spiked</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">voltage</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">dt</span>
+
+        <span class="c1"># linearly approximate time since neuron crossed spike threshold</span>
+        <span class="n">overshoot</span> <span class="o">=</span> <span class="p">(</span><span class="n">voltage</span><span class="p">[</span><span class="n">spiked</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">dV</span><span class="p">[</span><span class="n">spiked</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">spiketime</span> <span class="o">=</span> <span class="n">dt</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">overshoot</span><span class="p">)</span>
+
+        <span class="c1"># set spiking neurons&#39; voltages to zero, and ref. time to tau_ref</span>
+        <span class="n">voltage</span><span class="p">[</span><span class="n">spiked</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">refractory_time</span><span class="p">[</span><span class="n">spiked</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_ref</span> <span class="o">+</span> <span class="n">spiketime</span></div>
+
+
+<div class="viewcode-block" id="spikes2events"><a class="viewcode-back" href="../../neurons.html#nengo_extras.neurons.spikes2events">[docs]</a><span class="k">def</span> <span class="nf">spikes2events</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">spikes</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return an event-based representation of spikes (i.e. spike times)&quot;&quot;&quot;</span>
+    <span class="n">spikes</span> <span class="o">=</span> <span class="n">npext</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spikes</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">min_dims</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">spikes</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;Cannot handle </span><span class="si">%d</span><span class="s2">-dimensional arrays&quot;</span>
+                              <span class="o">%</span> <span class="n">spikes</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="s1">&#39;spikes&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">spikes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;Last dimension of &#39;spikes&#39; must equal &#39;len(t)&#39;&quot;</span><span class="p">,</span>
+                              <span class="n">attr</span><span class="o">=</span><span class="s1">&#39;spikes&#39;</span><span class="p">)</span>
+
+    <span class="c1"># find nonzero elements (spikes) in each row, and translate to times</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="n">spike</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">spike</span> <span class="ow">in</span> <span class="n">spikes</span><span class="p">]</span></div>
+
+
+<span class="k">def</span> <span class="nf">_rates_isi_events</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">midpoint</span><span class="p">,</span> <span class="n">interp</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">scipy.interpolate</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+    <span class="n">isis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+
+    <span class="n">rt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">midpoint</span> <span class="k">else</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">rt</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">events</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">events</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="k">if</span> <span class="n">midpoint</span> <span class="k">else</span> <span class="n">events</span>
+    <span class="n">rt</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rt</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">rt</span><span class="p">)</span>
+    <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">isis</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">isis</span>
+
+    <span class="n">f</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="n">rt</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">interp</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="rates_isi"><a class="viewcode-back" href="../../neurons.html#nengo_extras.neurons.rates_isi">[docs]</a><span class="k">def</span> <span class="nf">rates_isi</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">spikes</span><span class="p">,</span> <span class="n">midpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interp</span><span class="o">=</span><span class="s1">&#39;zero&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Estimate firing rates from spikes using ISIs.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    t : (M,) array_like</span>
+<span class="sd">        The times at which raw spike data (spikes) is defined.</span>
+<span class="sd">    spikes : (M, N) array_like</span>
+<span class="sd">        The raw spike data from N neurons.</span>
+<span class="sd">    midpoint : bool, optional</span>
+<span class="sd">        If true, place interpolation points at midpoints of ISIs. Otherwise,</span>
+<span class="sd">        the points are placed at the beginning of ISIs.</span>
+<span class="sd">    interp : string, optional</span>
+<span class="sd">        Interpolation type, passed to `scipy.interpolate.interp1d` as the</span>
+<span class="sd">        ``kind`` parameter.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    rates : (M, N) array_like</span>
+<span class="sd">        The estimated neuron firing rates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">spike_times</span> <span class="o">=</span> <span class="n">spikes2events</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">spikes</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">rates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">spikes</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">st</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">spike_times</span><span class="p">):</span>
+        <span class="n">rates</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">_rates_isi_events</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">midpoint</span><span class="p">,</span> <span class="n">interp</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">rates</span></div>
+
+
+<span class="k">def</span> <span class="nf">lowpass_filter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;expon&#39;</span><span class="p">):</span>
+    <span class="n">nt</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;expon&#39;</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">tau</span><span class="p">)</span>
+        <span class="n">kern</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">t</span> <span class="o">/</span> <span class="n">tau</span><span class="p">)</span> <span class="o">/</span> <span class="n">tau</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="n">tau</span>
+    <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;gauss&#39;</span><span class="p">:</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="n">tau</span> <span class="o">/</span> <span class="mf">2.</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span> <span class="o">*</span> <span class="n">std</span><span class="p">,</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">std</span><span class="p">)</span>
+        <span class="n">kern</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">t</span> <span class="o">/</span> <span class="n">std</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">std</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">std</span>
+    <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;alpha&#39;</span><span class="p">:</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">tau</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">tau</span><span class="p">)</span>
+        <span class="n">kern</span> <span class="o">=</span> <span class="n">alpha</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">t</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">t</span><span class="p">)</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="n">tau</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;Unrecognized filter kind &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">kind</span><span class="p">,</span> <span class="s1">&#39;kind&#39;</span><span class="p">)</span>
+
+    <span class="n">delay</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">delay</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">kern</span><span class="p">,</span> <span class="n">xx</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;full&#39;</span><span class="p">)[</span><span class="n">delay</span><span class="p">:</span><span class="n">nt</span> <span class="o">+</span> <span class="n">delay</span><span class="p">]</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="rates_kernel"><a class="viewcode-back" href="../../neurons.html#nengo_extras.neurons.rates_kernel">[docs]</a><span class="k">def</span> <span class="nf">rates_kernel</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">spikes</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;gauss&#39;</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mf">0.04</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Estimate firing rates from spikes using a kernel.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    t : (M,) array_like</span>
+<span class="sd">        The times at which raw spike data (spikes) is defined.</span>
+<span class="sd">    spikes : (M, N) array_like</span>
+<span class="sd">        The raw spike data from N neurons.</span>
+<span class="sd">    kind : str {&#39;expon&#39;, &#39;gauss&#39;, &#39;expogauss&#39;, &#39;alpha&#39;}, optional</span>
+<span class="sd">        The type of kernel to use. &#39;expon&#39; is an exponential kernel, &#39;gauss&#39; is</span>
+<span class="sd">        a Gaussian (normal) kernel, &#39;expogauss&#39; is an exponential followed by</span>
+<span class="sd">        a Gaussian, and &#39;alpha&#39; is an alpha function kernel.</span>
+<span class="sd">    tau : float</span>
+<span class="sd">        The time constant for the kernel. The optimal value will depend on the</span>
+<span class="sd">        firing rate of the neurons, with a longer tau preferred for lower</span>
+<span class="sd">        firing rates. The default value of 0.04 works well across a wide range</span>
+<span class="sd">        of firing rates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">spikes</span> <span class="o">=</span> <span class="n">spikes</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">spikes</span> <span class="o">=</span> <span class="n">npext</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spikes</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">min_dims</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">spikes</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;Cannot handle </span><span class="si">%d</span><span class="s2">-dimensional arrays&quot;</span>
+                              <span class="o">%</span> <span class="n">spikes</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="s1">&#39;spikes&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">spikes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;Last dimension of &#39;spikes&#39; must equal &#39;len(t)&#39;&quot;</span><span class="p">,</span>
+                              <span class="n">attr</span><span class="o">=</span><span class="s1">&#39;spikes&#39;</span><span class="p">)</span>
+
+    <span class="n">n</span><span class="p">,</span> <span class="n">nt</span> <span class="o">=</span> <span class="n">spikes</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">tau_i</span> <span class="o">=</span> <span class="n">tau</span> <span class="o">/</span> <span class="n">dt</span>
+    <span class="n">kind</span> <span class="o">=</span> <span class="n">kind</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;expogauss&#39;</span><span class="p">:</span>
+        <span class="n">rates</span> <span class="o">=</span> <span class="n">lowpass_filter</span><span class="p">(</span><span class="n">spikes</span><span class="p">,</span> <span class="n">tau_i</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;expon&#39;</span><span class="p">)</span>
+        <span class="n">rates</span> <span class="o">=</span> <span class="n">lowpass_filter</span><span class="p">(</span><span class="n">rates</span><span class="p">,</span> <span class="n">tau_i</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;gauss&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rates</span> <span class="o">=</span> <span class="n">lowpass_filter</span><span class="p">(</span><span class="n">spikes</span><span class="p">,</span> <span class="n">tau_i</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">rates</span><span class="o">.</span><span class="n">T</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

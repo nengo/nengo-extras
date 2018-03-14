@@ -1,0 +1,290 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>nengo_extras.gui &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<link rel="stylesheet" type="text/css" href="../../_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    ../../index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>nengo_extras.gui</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for nengo_extras.gui</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">BytesIO</span>
+
+
+<div class="viewcode-block" id="preprocess_display"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gui.preprocess_display">[docs]</a><span class="k">def</span> <span class="nf">preprocess_display</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">transpose</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">scale</span><span class="o">=</span><span class="mf">255.</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">0.</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Basic preprocessing that reshapes, transposes, and scales an image&quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">offset</span><span class="p">)</span> <span class="o">*</span> <span class="n">scale</span>
+    <span class="k">if</span> <span class="n">transpose</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">transpose</span><span class="p">)</span>  <span class="c1"># color channel last</span>
+    <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;uint8&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="image_function"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gui.image_function">[docs]</a><span class="k">def</span> <span class="nf">image_function</span><span class="p">(</span><span class="n">image_shape</span><span class="p">,</span> <span class="n">preprocess</span><span class="o">=</span><span class="n">preprocess_display</span><span class="p">,</span>
+                   <span class="o">**</span><span class="n">preprocess_args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make a function to turn an array into a PIL Image.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image_shape : array_like (3,)</span>
+<span class="sd">        The shape of the image: (channels, height, width)</span>
+<span class="sd">    preprocess : callable</span>
+<span class="sd">        Callable that takes an image and preprocesses it to be displayed.</span>
+<span class="sd">    preprocess_args : dict</span>
+<span class="sd">        Optional dictionary of keyword arguments for ``preprocess``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    to_pil : callable (x)</span>
+<span class="sd">        A function that takes a (flattened) image array, returning a PIL Image.</span>
+
+<span class="sd">    Requirements</span>
+<span class="sd">    ------------</span>
+<span class="sd">    pillow (provides PIL, `pip install pillow`)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">PIL.Image</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
+
+    <span class="k">def</span> <span class="nf">to_pil</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">image_shape</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">preprocess</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">preprocess_args</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">PIL</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">image</span>
+
+    <span class="k">return</span> <span class="n">to_pil</span></div>
+
+
+<div class="viewcode-block" id="image_string_function"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gui.image_string_function">[docs]</a><span class="k">def</span> <span class="nf">image_string_function</span><span class="p">(</span><span class="n">image_shape</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;PNG&quot;</span><span class="p">,</span>
+                          <span class="n">preprocess</span><span class="o">=</span><span class="n">preprocess_display</span><span class="p">,</span> <span class="o">**</span><span class="n">preprocess_args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make a function to turn an array into an image string.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image_shape : array_like (3,)</span>
+<span class="sd">        The shape of the image: (channels, height, width)</span>
+<span class="sd">    format : string</span>
+<span class="sd">        A format string for the ``PIL.Image.save`` function.</span>
+<span class="sd">    preprocess : callable</span>
+<span class="sd">        Callable that takes an image and preprocesses it to be displayed.</span>
+<span class="sd">    preprocess_args : dict</span>
+<span class="sd">        Optional dictionary of keyword arguments for ``preprocess``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    string_function : callable (x)</span>
+<span class="sd">        A function that takes a (flattened) image array, and returns a</span>
+<span class="sd">        base64 string representation of the image of the requested format.</span>
+
+<span class="sd">    See also</span>
+<span class="sd">    --------</span>
+<span class="sd">    image_function</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">to_pil</span> <span class="o">=</span> <span class="n">image_function</span><span class="p">(</span>
+        <span class="n">image_shape</span><span class="p">,</span> <span class="n">preprocess</span><span class="o">=</span><span class="n">preprocess</span><span class="p">,</span> <span class="o">**</span><span class="n">preprocess_args</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">string_function</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">to_pil</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">buffer</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+        <span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">)</span>
+        <span class="n">image_string</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">buffer</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">image_string</span>
+
+    <span class="k">return</span> <span class="n">string_function</span></div>
+
+
+<div class="viewcode-block" id="image_html_function"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gui.image_html_function">[docs]</a><span class="k">def</span> <span class="nf">image_html_function</span><span class="p">(</span><span class="n">image_shape</span><span class="p">,</span> <span class="n">preprocess</span><span class="o">=</span><span class="n">preprocess_display</span><span class="p">,</span>
+                        <span class="o">**</span><span class="n">preprocess_args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make a function to turn an image into HTML to display as an SVG.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image_shape : array_like (3,)</span>
+<span class="sd">        The shape of the image: (channels, height, width)</span>
+<span class="sd">    preprocess : callable</span>
+<span class="sd">        Callable that takes an image and preprocesses it to be displayed.</span>
+<span class="sd">    preprocess_args : dict</span>
+<span class="sd">        Optional dictionary of keyword arguments for ``preprocess``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    html_function : callable (x)</span>
+<span class="sd">        A function that takes a (flattened) image array, and returns</span>
+<span class="sd">        a string that defines an SVG object in HTML to display the image.</span>
+
+<span class="sd">    See also</span>
+<span class="sd">    --------</span>
+<span class="sd">    image_function</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">string_function</span> <span class="o">=</span> <span class="n">image_string_function</span><span class="p">(</span>
+        <span class="n">image_shape</span><span class="p">,</span> <span class="n">preprocess</span><span class="o">=</span><span class="n">preprocess</span><span class="p">,</span> <span class="o">**</span><span class="n">preprocess_args</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">html_function</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="n">image_string</span> <span class="o">=</span> <span class="n">string_function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">            &lt;svg width=&quot;100</span><span class="si">%%</span><span class="s1">&quot; height=&quot;100</span><span class="si">%%</span><span class="s1">&quot; viewbox=&quot;0 0 100 100&quot;&gt;</span>
+<span class="s1">            &lt;image width=&quot;100</span><span class="si">%%</span><span class="s1">&quot; height=&quot;100</span><span class="si">%%</span><span class="s1">&quot;</span>
+<span class="s1">                   xlink:href=&quot;data:image/png;base64,</span><span class="si">%s</span><span class="s1">&quot;</span>
+<span class="s1">                   style=&quot;image-rendering: pixelated;&quot;&gt;</span>
+<span class="s1">            &lt;/svg&gt;&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">image_string</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">html_function</span></div>
+
+
+<div class="viewcode-block" id="image_display_function"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gui.image_display_function">[docs]</a><span class="k">def</span> <span class="nf">image_display_function</span><span class="p">(</span><span class="n">image_shape</span><span class="p">,</span> <span class="n">preprocess</span><span class="o">=</span><span class="n">preprocess_display</span><span class="p">,</span>
+                           <span class="o">**</span><span class="n">preprocess_args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make a function to display images in Nengo GUI</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; u = nengo.Node(nengo.processes.PresentInput(images, 0.1))</span>
+<span class="sd">    &gt;&gt;&gt; display_f = nengo_extras.gui.image_display_function(image_shape)</span>
+<span class="sd">    &gt;&gt;&gt; display_node = nengo.Node(display_f, size_in=u.size_out)</span>
+<span class="sd">    &gt;&gt;&gt; nengo.Connection(u, display_node, synapse=None)</span>
+
+<span class="sd">    Requirements</span>
+<span class="sd">    ------------</span>
+<span class="sd">    pillow (provides PIL, `pip install pillow`)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">html_function</span> <span class="o">=</span> <span class="n">image_html_function</span><span class="p">(</span>
+        <span class="n">image_shape</span><span class="p">,</span> <span class="n">preprocess</span><span class="o">=</span><span class="n">preprocess</span><span class="p">,</span> <span class="o">**</span><span class="n">preprocess_args</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">display_func</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">display_func</span><span class="o">.</span><span class="n">_nengo_html_</span> <span class="o">=</span> <span class="n">html_function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">display_func</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

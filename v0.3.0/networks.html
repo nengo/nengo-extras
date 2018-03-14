@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>Networks &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Neuron types" href="neurons.html" />
+    <link rel="prev" title="Learning rules" href="learning_rules.html" />
+<link rel="stylesheet" type="text/css" href="_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="neurons.html" title="Neuron types"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="learning_rules.html" title="Learning rules"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo extras 0.3.0 docs</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Networks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#utilities">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="index.html">Docs</a></li>
+              
+              <li>Networks</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="networks">
+<h1>Networks<a class="headerlink" href="#networks" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="nengo_extras.networks.MatrixMult">
+<code class="descclassname">nengo_extras.networks.</code><code class="descname">MatrixMult</code><span class="sig-paren">(</span><em>n_neurons</em>, <em>shape_left</em>, <em>shape_right</em>, <em>net=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/networks/matrix_multiplication.html#MatrixMult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.networks.MatrixMult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the matrix product A*B.</p>
+<p>Both matrices need to be two dimensional.</p>
+<p>See the <a class="reference external" href=":doc:networks">Matrix Multiplication example</a>
+for a description of the network internals.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>n_neurons</strong> : int</p>
+<blockquote>
+<div><p>Number of neurons used per product of two scalars.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If an odd number of neurons is given, one less neuron will be
+used per product to obtain an even number. This is due to
+the implementation the <a class="reference internal" href="#nengo_extras.networks.Product" title="nengo_extras.networks.Product"><code class="xref py py-obj docutils literal"><span class="pre">Product</span></code></a> network.</p>
+</div>
+</div></blockquote>
+<p><strong>shape_left</strong> : tuple</p>
+<blockquote>
+<div><p>Shape of the A input matrix.</p>
+</div></blockquote>
+<p><strong>shape_right</strong> : tuple</p>
+<blockquote>
+<div><p>Shape of the B input matrix.</p>
+</div></blockquote>
+<p><strong>net</strong> : Network, optional (Default: None)</p>
+<blockquote>
+<div><p>A network in which the network components will be built.
+This is typically used to provide a custom set of Nengo object
+defaults through modifying <code class="docutils literal"><span class="pre">net.config</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>net</strong> : Network</p>
+<blockquote class="last">
+<div><p>The newly built matrix multiplication network, or the provided <code class="docutils literal"><span class="pre">net</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.networks.Product">
+<code class="descclassname">nengo_extras.networks.</code><code class="descname">Product</code><span class="sig-paren">(</span><em>n_neurons</em>, <em>dimensions</em>, <em>input_magnitude=1</em>, <em>net=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/networks/product.html#Product"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.networks.Product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the element-wise product of two equally sized vectors.</p>
+</dd></dl>
+
+<div class="section" id="utilities">
+<h2>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="nengo_extras.probe.probe_all">
+<code class="descclassname">nengo_extras.probe.</code><code class="descname">probe_all</code><span class="sig-paren">(</span><em>net</em>, <em>recursive=False</em>, <em>probe_options=None</em>, <em>**probe_args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/probe.html#probe_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.probe.probe_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Probes all objects in a network.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>net</strong> : nengo.Network</p>
+<p><strong>recursive</strong> : bool, optional (Default: False)</p>
+<blockquote>
+<div><p>Probe subnetworks recursively.</p>
+</div></blockquote>
+<p><strong>probe_options: dict, optional (Default: None)</strong></p>
+<blockquote>
+<div><p>A dict of the form {nengo_object_class: [attributes_to_probe]}.
+If None, every probeable attribute of every object will be probed.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A dictionary that maps objects and their attributes to their probes.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>Probe the decoded output and spikes in all ensembles in a network and
+its subnetworks:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Network</span><span class="p">()</span> <span class="k">as</span> <span class="n">model</span><span class="p">:</span>
+    <span class="n">ens1</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Ensemble</span><span class="p">(</span><span class="n">n_neurons</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">node1</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="n">node1</span><span class="p">,</span> <span class="n">ens1</span><span class="p">)</span>
+    <span class="n">subnet</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Network</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;subnet&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">subnet</span><span class="p">:</span>
+        <span class="n">ens2</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Ensemble</span><span class="p">(</span><span class="n">n_neurons</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">node2</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">probe_options</span> <span class="o">=</span> <span class="p">{</span><span class="n">nengo</span><span class="o">.</span><span class="n">Ensemble</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;decoded_output&#39;</span><span class="p">,</span> <span class="s1">&#39;spikes&#39;</span><span class="p">]}</span>
+<span class="n">probes</span> <span class="o">=</span> <span class="n">probe_all</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">probe_options</span><span class="o">=</span><span class="n">probe_options</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+            
+  <div class="footer-relations">
+    
+      <div class="pull-left">
+        <a class="btn btn-default" href="learning_rules.html" title="previous chapter (use the left arrow)">Learning rules</a>
+      </div>
+    
+      <div class="pull-right">
+        <a class="btn btn-default" href="neurons.html" title="next chapter (use the right arrow)">Neuron types</a>
+      </div>
+    </div>
+    <div class="clearer"></div>
+  
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="neurons.html" title="Neuron types"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="learning_rules.html" title="Learning rules"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo extras 0.3.0 docs</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

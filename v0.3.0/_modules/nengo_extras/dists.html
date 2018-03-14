@@ -1,0 +1,358 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>nengo_extras.dists &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<link rel="stylesheet" type="text/css" href="../../_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    ../../index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>nengo_extras.dists</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for nengo_extras.dists</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">nengo.dists</span> <span class="k">import</span> <span class="n">Distribution</span>
+<span class="kn">from</span> <span class="nn">nengo.params</span> <span class="k">import</span> <span class="n">NdarrayParam</span><span class="p">,</span> <span class="n">NumberParam</span><span class="p">,</span> <span class="n">TupleParam</span>
+
+
+<div class="viewcode-block" id="gaussian_icdf"><a class="viewcode-back" href="../../dists.html#nengo_extras.dists.gaussian_icdf">[docs]</a><span class="k">def</span> <span class="nf">gaussian_icdf</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">scipy.stats</span> <span class="k">as</span> <span class="nn">sps</span>
+
+    <span class="k">def</span> <span class="nf">icdf</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">sps</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">std</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">mean</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">icdf</span></div>
+
+
+<div class="viewcode-block" id="loggaussian_icdf"><a class="viewcode-back" href="../../dists.html#nengo_extras.dists.loggaussian_icdf">[docs]</a><span class="k">def</span> <span class="nf">loggaussian_icdf</span><span class="p">(</span><span class="n">log_mean</span><span class="p">,</span> <span class="n">log_std</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">e</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">scipy.stats</span> <span class="k">as</span> <span class="nn">sps</span>
+
+    <span class="n">mean</span> <span class="o">=</span> <span class="n">base</span><span class="o">**</span><span class="n">log_mean</span>
+    <span class="n">log_std2</span> <span class="o">=</span> <span class="n">log_std</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">icdf</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">sps</span><span class="o">.</span><span class="n">lognorm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">log_std2</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">mean</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">icdf</span></div>
+
+
+<div class="viewcode-block" id="uniform_icdf"><a class="viewcode-back" href="../../dists.html#nengo_extras.dists.uniform_icdf">[docs]</a><span class="k">def</span> <span class="nf">uniform_icdf</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">icdf</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">p</span> <span class="o">*</span> <span class="p">(</span><span class="n">high</span> <span class="o">-</span> <span class="n">low</span><span class="p">)</span> <span class="o">+</span> <span class="n">low</span>
+
+    <span class="k">return</span> <span class="n">icdf</span></div>
+
+
+<div class="viewcode-block" id="Concatenate"><a class="viewcode-back" href="../../dists.html#nengo_extras.dists.Concatenate">[docs]</a><span class="k">class</span> <span class="nc">Concatenate</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Concatenate distributions to form an independent multivariate&quot;&quot;&quot;</span>
+
+    <span class="n">distributions</span> <span class="o">=</span> <span class="n">TupleParam</span><span class="p">(</span><span class="s1">&#39;distributions&#39;</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">NumberParam</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">distributions</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Concatenate</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">distributions</span> <span class="o">=</span> <span class="n">distributions</span>
+
+        <span class="c1"># --- determine dimensionality</span>
+        <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">distributions</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">d</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">dist</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span> <span class="k">for</span> <span class="n">dist</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">distributions</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="MultivariateCopula"><a class="viewcode-back" href="../../dists.html#nengo_extras.dists.MultivariateCopula">[docs]</a><span class="k">class</span> <span class="nc">MultivariateCopula</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generalized multivariate distribution.</span>
+
+<span class="sd">    Uses the copula method to sample from a general multivariate distribution,</span>
+<span class="sd">    given marginal distributions and copula covariances [1]_.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    marginal_icdfs : iterable</span>
+<span class="sd">        List of functions, each one being the inverse CDF of the marginal</span>
+<span class="sd">        distribution across that dimension.</span>
+<span class="sd">    rho : array_like (optional)</span>
+<span class="sd">        Array of copula covariances [1]_ between parameters. Defaults to</span>
+<span class="sd">        the identity matrix (independent parameters).</span>
+
+<span class="sd">    See also</span>
+<span class="sd">    --------</span>
+<span class="sd">    gaussian_icdf, loggaussian_icdf, uniform_icdf</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Copula (probability theory). Wikipedia.</span>
+<span class="sd">       https://en.wikipedia.org/wiki/Copula_(probability_theory%29</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">marginal_icdfs</span> <span class="o">=</span> <span class="n">TupleParam</span><span class="p">(</span><span class="s1">&#39;marginal_icdfs&#39;</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">NdarrayParam</span><span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">),</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">marginal_icdfs</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">scipy.stats</span>  <span class="c1"># we need this for sampling</span>
+        <span class="k">assert</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">MultivariateCopula</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marginal_icdfs</span> <span class="o">=</span> <span class="n">marginal_icdfs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">=</span> <span class="n">rho</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">marginal_icdfs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">callable</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">marginal_icdfs</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`marginal_icdfs` must be a list of callables&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`rho` must be a </span><span class="si">%d</span><span class="s2"> x </span><span class="si">%d</span><span class="s2"> array&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">d</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="o">.</span><span class="n">T</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;`rho` must be a symmetrical positive-definite array&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">scipy.stats</span> <span class="k">as</span> <span class="nn">sps</span>
+
+        <span class="k">assert</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">d</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">marginal_icdfs</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">marginal_icdfs</span><span class="p">)</span>
+
+        <span class="c1"># normalize rho</span>
+        <span class="n">rho</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span>
+        <span class="n">stds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">rho</span><span class="p">))</span>
+        <span class="n">rho</span> <span class="o">=</span> <span class="n">rho</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">stds</span><span class="p">,</span> <span class="n">stds</span><span class="p">)</span>
+
+        <span class="c1"># sample from copula</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">sps</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">sps</span><span class="o">.</span><span class="n">multivariate_normal</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">cov</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">))</span>
+
+        <span class="c1"># apply marginal inverse CDFs</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+            <span class="n">x</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marginal_icdfs</span><span class="p">[</span><span class="n">i</span><span class="p">](</span><span class="n">x</span><span class="p">[:,</span> <span class="n">i</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">x</span></div>
+
+
+<div class="viewcode-block" id="MultivariateGaussian"><a class="viewcode-back" href="../../dists.html#nengo_extras.dists.MultivariateGaussian">[docs]</a><span class="k">class</span> <span class="nc">MultivariateGaussian</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
+    <span class="n">mean</span> <span class="o">=</span> <span class="n">NdarrayParam</span><span class="p">(</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+    <span class="n">cov</span> <span class="o">=</span> <span class="n">NdarrayParam</span><span class="p">(</span><span class="s1">&#39;cov&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">cov</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MultivariateGaussian</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean</span> <span class="o">=</span> <span class="n">mean</span>
+        <span class="n">cov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cov</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cov</span> <span class="o">=</span> <span class="p">(</span><span class="n">cov</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">)</span> <span class="k">if</span> <span class="n">cov</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">cov</span><span class="p">)</span> <span class="k">if</span> <span class="n">cov</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">cov</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">d</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span>
+        <span class="k">return</span> <span class="n">rng</span><span class="o">.</span><span class="n">multivariate_normal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cov</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Mixture"><a class="viewcode-back" href="../../dists.html#nengo_extras.dists.Mixture">[docs]</a><span class="k">class</span> <span class="nc">Mixture</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
+    <span class="n">distributions</span> <span class="o">=</span> <span class="n">TupleParam</span><span class="p">(</span><span class="s1">&#39;distributions&#39;</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">NdarrayParam</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">distributions</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Mixture</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">distributions</span> <span class="o">=</span> <span class="n">distributions</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">Distribution</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">distributions</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;All elements in `distributions` must be Distributions&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">p</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distributions</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;`p` must be a vector with one element per distribution&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`p` must be all non-negative&quot;</span><span class="p">)</span>
+            <span class="n">p</span> <span class="o">/=</span> <span class="n">p</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p</span>
+
+    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="p">):</span>
+        <span class="n">dd</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">d</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">dd</span><span class="p">))</span>
+
+        <span class="n">ndims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distributions</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">ndims</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span>
+             <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">ndims</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">))</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="n">ndims</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">samples</span><span class="p">[</span><span class="n">i</span> <span class="o">==</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">distributions</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">d</span><span class="o">=</span><span class="n">dd</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">samples</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">samples</span></div>
+
+
+<div class="viewcode-block" id="Tile"><a class="viewcode-back" href="../../dists.html#nengo_extras.dists.Tile">[docs]</a><span class="k">class</span> <span class="nc">Tile</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Choose values in order from an array</span>
+
+<span class="sd">    This distribution is not random, but rather tiles an array to be a</span>
+<span class="sd">    particular size. This is useful for example if you want to pass an array</span>
+<span class="sd">    for a neuron parameter, but are not sure how many neurons there will be.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    values : array_like</span>
+<span class="sd">        The values to tile.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">values</span> <span class="o">=</span> <span class="n">NdarrayParam</span><span class="p">(</span><span class="s1">&#39;values&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Tile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">values</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">values</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;Tile(values=</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="p">):</span>
+        <span class="n">out1</span> <span class="o">=</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">d</span>
+        <span class="n">nv</span><span class="p">,</span> <span class="n">dv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="n">nv</span> <span class="ow">or</span> <span class="n">d</span> <span class="o">&gt;</span> <span class="n">dv</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">/</span> <span class="n">nv</span><span class="p">)),</span>
+                                           <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">/</span> <span class="n">dv</span><span class="p">))))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span>
+
+        <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="p">[:</span><span class="n">n</span><span class="p">,</span> <span class="p">:</span><span class="n">d</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">values</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">out1</span> <span class="k">else</span> <span class="n">values</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

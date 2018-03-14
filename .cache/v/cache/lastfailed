@@ -1,0 +1,4 @@
+{
+  "nengo_extras/tests/test_deepnetworks.py::test_convlayer_theano[False]": true,
+  "nengo_extras/tests/test_examples.py::test_loads_ipynb_ext[/home/tbekolay/Code/nengo_extras/examples/vision/mnist_single_layer]": true
+}

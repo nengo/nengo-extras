@@ -1,0 +1,291 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>Distributions &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Learning rules" href="learning_rules.html" />
+    <link rel="prev" title="ImageNet ILSVRC-2012 classifier with a spiking CNN" href="examples/cuda_convnet/imagenet_spiking_cnn.html" />
+<link rel="stylesheet" type="text/css" href="_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="learning_rules.html" title="Learning rules"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="examples/cuda_convnet/imagenet_spiking_cnn.html" title="ImageNet ILSVRC-2012 classifier with a spiking CNN"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo extras 0.3.0 docs</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="index.html">Docs</a></li>
+              
+              <li>Distributions</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="distributions">
+<h1>Distributions<a class="headerlink" href="#distributions" title="Permalink to this headline">¶</a></h1>
+<p>These distributions can be used in any place that
+<a class="reference external" href="https://www.nengo.ai/nengo/frontend_api.html#distributions">Nengo distributions</a>
+can be used.</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.dists.Concatenate" title="nengo_extras.dists.Concatenate"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.dists.Concatenate</span></code></a>(distributions)</td>
+<td>Concatenate distributions to form an independent multivariate</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.dists.MultivariateCopula" title="nengo_extras.dists.MultivariateCopula"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.dists.MultivariateCopula</span></code></a>(…[,&nbsp;rho])</td>
+<td>Generalized multivariate distribution.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.dists.MultivariateGaussian" title="nengo_extras.dists.MultivariateGaussian"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.dists.MultivariateGaussian</span></code></a>(…)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.dists.Mixture" title="nengo_extras.dists.Mixture"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.dists.Mixture</span></code></a>(distributions[,&nbsp;p])</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.dists.Tile" title="nengo_extras.dists.Tile"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.dists.Tile</span></code></a>(values)</td>
+<td>Choose values in order from an array</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.dists.gaussian_icdf" title="nengo_extras.dists.gaussian_icdf"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.dists.gaussian_icdf</span></code></a>(mean,&nbsp;std)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.dists.loggaussian_icdf" title="nengo_extras.dists.loggaussian_icdf"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.dists.loggaussian_icdf</span></code></a>(…[,&nbsp;base])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.dists.uniform_icdf" title="nengo_extras.dists.uniform_icdf"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.dists.uniform_icdf</span></code></a>(low,&nbsp;high)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="nengo_extras.dists.Concatenate">
+<em class="property">class </em><code class="descclassname">nengo_extras.dists.</code><code class="descname">Concatenate</code><span class="sig-paren">(</span><em>distributions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/dists.html#Concatenate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.dists.Concatenate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Concatenate distributions to form an independent multivariate</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.dists.MultivariateCopula">
+<em class="property">class </em><code class="descclassname">nengo_extras.dists.</code><code class="descname">MultivariateCopula</code><span class="sig-paren">(</span><em>marginal_icdfs</em>, <em>rho=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/dists.html#MultivariateCopula"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.dists.MultivariateCopula" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generalized multivariate distribution.</p>
+<p>Uses the copula method to sample from a general multivariate distribution,
+given marginal distributions and copula covariances <a class="reference internal" href="#r1111" id="id1">[R1111]</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>marginal_icdfs</strong> : iterable</p>
+<blockquote>
+<div><p>List of functions, each one being the inverse CDF of the marginal
+distribution across that dimension.</p>
+</div></blockquote>
+<p><strong>rho</strong> : array_like (optional)</p>
+<blockquote class="last">
+<div><p>Array of copula covariances <a class="reference internal" href="#r1111" id="id2">[R1111]</a> between parameters. Defaults to
+the identity matrix (independent parameters).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#nengo_extras.dists.gaussian_icdf" title="nengo_extras.dists.gaussian_icdf"><code class="xref py py-obj docutils literal"><span class="pre">gaussian_icdf</span></code></a>, <a class="reference internal" href="#nengo_extras.dists.loggaussian_icdf" title="nengo_extras.dists.loggaussian_icdf"><code class="xref py py-obj docutils literal"><span class="pre">loggaussian_icdf</span></code></a>, <a class="reference internal" href="#nengo_extras.dists.uniform_icdf" title="nengo_extras.dists.uniform_icdf"><code class="xref py py-obj docutils literal"><span class="pre">uniform_icdf</span></code></a></p>
+</div>
+<p class="rubric">References</p>
+<table class="docutils citation" frame="void" id="r1111" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[R1111]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>, <a class="fn-backref" href="#id3">3</a>)</em> Copula (probability theory). Wikipedia.
+<a class="reference external" href="https://en.wikipedia.org/wiki/Copula_(probability_theory%29">https://en.wikipedia.org/wiki/Copula_(probability_theory%29</a></td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.dists.MultivariateGaussian">
+<em class="property">class </em><code class="descclassname">nengo_extras.dists.</code><code class="descname">MultivariateGaussian</code><span class="sig-paren">(</span><em>mean</em>, <em>cov</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/dists.html#MultivariateGaussian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.dists.MultivariateGaussian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.dists.Mixture">
+<em class="property">class </em><code class="descclassname">nengo_extras.dists.</code><code class="descname">Mixture</code><span class="sig-paren">(</span><em>distributions</em>, <em>p=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/dists.html#Mixture"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.dists.Mixture" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.dists.Tile">
+<em class="property">class </em><code class="descclassname">nengo_extras.dists.</code><code class="descname">Tile</code><span class="sig-paren">(</span><em>values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/dists.html#Tile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.dists.Tile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose values in order from an array</p>
+<p>This distribution is not random, but rather tiles an array to be a
+particular size. This is useful for example if you want to pass an array
+for a neuron parameter, but are not sure how many neurons there will be.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>values</strong> : array_like</p>
+<blockquote class="last">
+<div><p>The values to tile.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.dists.gaussian_icdf">
+<code class="descclassname">nengo_extras.dists.</code><code class="descname">gaussian_icdf</code><span class="sig-paren">(</span><em>mean</em>, <em>std</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/dists.html#gaussian_icdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.dists.gaussian_icdf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.dists.loggaussian_icdf">
+<code class="descclassname">nengo_extras.dists.</code><code class="descname">loggaussian_icdf</code><span class="sig-paren">(</span><em>log_mean</em>, <em>log_std</em>, <em>base=2.718281828459045</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/dists.html#loggaussian_icdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.dists.loggaussian_icdf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.dists.uniform_icdf">
+<code class="descclassname">nengo_extras.dists.</code><code class="descname">uniform_icdf</code><span class="sig-paren">(</span><em>low</em>, <em>high</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/dists.html#uniform_icdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.dists.uniform_icdf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+            
+  <div class="footer-relations">
+    
+      <div class="pull-left">
+        <a class="btn btn-default" href="examples/cuda_convnet/imagenet_spiking_cnn.html" title="previous chapter (use the left arrow)">ImageNet ILSVRC-2012 classifier with a spiking CNN</a>
+      </div>
+    
+      <div class="pull-right">
+        <a class="btn btn-default" href="learning_rules.html" title="next chapter (use the right arrow)">Learning rules</a>
+      </div>
+    </div>
+    <div class="clearer"></div>
+  
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="learning_rules.html" title="Learning rules"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="examples/cuda_convnet/imagenet_spiking_cnn.html" title="ImageNet ILSVRC-2012 classifier with a spiking CNN"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo extras 0.3.0 docs</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

@@ -1,0 +1,376 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>Vision models &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Encoding for image recognition" href="examples/mnist_single_layer.html" />
+    <link rel="prev" title="Neuron types" href="neurons.html" />
+<link rel="stylesheet" type="text/css" href="_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="examples/mnist_single_layer.html" title="Encoding for image recognition"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="neurons.html" title="Neuron types"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo extras 0.3.0 docs</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="neurons.html">Neuron types</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Vision models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/mnist_single_layer.html">Encoding for image recognition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#camera-input">Camera input</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/cuda_convnet/webcam_spiking_cnn.html">Classifying webcam images</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="index.html">Docs</a></li>
+              
+              <li>Vision models</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="vision-models">
+<h1>Vision models<a class="headerlink" href="#vision-models" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/mnist_single_layer.html">Encoding for image recognition</a></li>
+</ul>
+</div>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.vision.Gabor" title="nengo_extras.vision.Gabor"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.vision.Gabor</span></code></a>([theta,&nbsp;high,&nbsp;…])</td>
+<td>Describes a random generator for Gabor filters.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.vision.Mask" title="nengo_extras.vision.Mask"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.vision.Mask</span></code></a>(image_shape)</td>
+<td>Describes a sparse receptive-field mask for encoders.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.vision.ciw_encoders" title="nengo_extras.vision.ciw_encoders"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.vision.ciw_encoders</span></code></a>(n_encoders,&nbsp;…)</td>
+<td>Computed Input Weights (CIW) method for encoders from data.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.vision.cd_encoders_biases" title="nengo_extras.vision.cd_encoders_biases"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.vision.cd_encoders_biases</span></code></a>(…)</td>
+<td>Constrained difference (CD) method for encoders from data.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.vision.percentile_biases" title="nengo_extras.vision.percentile_biases"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.vision.percentile_biases</span></code></a>(…[,&nbsp;…])</td>
+<td>Pick biases such that neurons are active for a percentile of inputs.</td>
+</tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="nengo_extras.vision.Gabor">
+<em class="property">class </em><code class="descclassname">nengo_extras.vision.</code><code class="descname">Gabor</code><span class="sig-paren">(</span><em>theta=Uniform(low=-3.141592653589793</em>, <em>high=3.141592653589793)</em>, <em>freq=Uniform(low=0.2</em>, <em>high=2)</em>, <em>phase=Uniform(low=-3.141592653589793</em>, <em>high=3.141592653589793)</em>, <em>sigma_x=Choice(options=array([0.45]))</em>, <em>sigma_y=Choice(options=array([0.45]))</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/vision.html#Gabor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.vision.Gabor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Describes a random generator for Gabor filters.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.vision.Mask">
+<em class="property">class </em><code class="descclassname">nengo_extras.vision.</code><code class="descname">Mask</code><span class="sig-paren">(</span><em>image_shape</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/vision.html#Mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.vision.Mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Describes a sparse receptive-field mask for encoders.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>image_shape</strong> : 2- or 3-tuple</p>
+<blockquote class="last">
+<div><p>Shape of the input image, either (height, witdh) or
+(channels, height, width).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.vision.ciw_encoders">
+<code class="descclassname">nengo_extras.vision.</code><code class="descname">ciw_encoders</code><span class="sig-paren">(</span><em>n_encoders</em>, <em>trainX</em>, <em>trainY</em>, <em>rng=&lt;module 'numpy.random' from '/home/tbekolay/.virtualenvs/nengo3/lib/python3.6/site-packages/numpy/random/__init__.py'&gt;</em>, <em>normalize_data=True</em>, <em>normalize_encoders=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/vision.html#ciw_encoders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.vision.ciw_encoders" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computed Input Weights (CIW) method for encoders from data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>n_encoders</strong> : int</p>
+<blockquote>
+<div><p>Number of encoders to generate.</p>
+</div></blockquote>
+<p><strong>trainX</strong> : (n_samples, n_dimensions) array-like</p>
+<blockquote>
+<div><p>Training features.</p>
+</div></blockquote>
+<p><strong>trainY</strong> : (n_samples,) array-like</p>
+<blockquote>
+<div><p>Training labels.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>encoders</strong> : (n_encoders, n_dimensions) array</p>
+<blockquote class="last">
+<div><p>Generated encoders.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<table class="docutils citation" frame="void" id="r1919" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[R1919]</a></td><td>McDonnell, M. D., Tissera, M. D., Vladusich, T., Van Schaik, A.,
+Tapson, J., &amp; Schwenker, F. (2015). Fast, simple and accurate
+handwritten digit classification by training shallow neural network
+classifiers with the “Extreme learning machine” algorithm. PLoS ONE,
+10(8), 1-20. doi:10.1371/journal.pone.0134254</td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.vision.cd_encoders_biases">
+<code class="descclassname">nengo_extras.vision.</code><code class="descname">cd_encoders_biases</code><span class="sig-paren">(</span><em>n_encoders</em>, <em>trainX</em>, <em>trainY</em>, <em>rng=&lt;module 'numpy.random' from '/home/tbekolay/.virtualenvs/nengo3/lib/python3.6/site-packages/numpy/random/__init__.py'&gt;</em>, <em>mask=None</em>, <em>norm_min=0.05</em>, <em>norm_tries=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/vision.html#cd_encoders_biases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.vision.cd_encoders_biases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constrained difference (CD) method for encoders from data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>n_encoders</strong> : int</p>
+<blockquote>
+<div><p>Number of encoders to generate.</p>
+</div></blockquote>
+<p><strong>trainX</strong> : (n_samples, n_dimensions) array-like</p>
+<blockquote>
+<div><p>Training features.</p>
+</div></blockquote>
+<p><strong>trainY</strong> : (n_samples,) array-like</p>
+<blockquote>
+<div><p>Training labels.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>encoders</strong> : (n_encoders, n_dimensions) array</p>
+<blockquote>
+<div><p>Generated encoders.</p>
+</div></blockquote>
+<p><strong>biases</strong> : (n_encoders,) array</p>
+<blockquote class="last">
+<div><p>Generated biases. These are biases assuming <code class="docutils literal"><span class="pre">f</span> <span class="pre">=</span> <span class="pre">G[E</span> <span class="pre">*</span> <span class="pre">X</span> <span class="pre">+</span> <span class="pre">b]</span></code>,
+and are therefore more like Nengo’s <code class="docutils literal"><span class="pre">intercepts</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<table class="docutils citation" frame="void" id="r2121" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[R2121]</a></td><td>McDonnell, M. D., Tissera, M. D., Vladusich, T., Van Schaik, A.,
+Tapson, J., &amp; Schwenker, F. (2015). Fast, simple and accurate
+handwritten digit classification by training shallow neural network
+classifiers with the “Extreme learning machine” algorithm. PLoS ONE,
+10(8), 1-20. doi:10.1371/journal.pone.0134254</td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.vision.percentile_biases">
+<code class="descclassname">nengo_extras.vision.</code><code class="descname">percentile_biases</code><span class="sig-paren">(</span><em>encoders</em>, <em>trainX</em>, <em>percentile=50</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/vision.html#percentile_biases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.vision.percentile_biases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pick biases such that neurons are active for a percentile of inputs.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.convnet.PresentJitteredImages">
+<em class="property">class </em><code class="descclassname">nengo_extras.convnet.</code><code class="descname">PresentJitteredImages</code><span class="sig-paren">(</span><em>images</em>, <em>presentation_time</em>, <em>output_shape</em>, <em>jitter_std=None</em>, <em>jitter_tau=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/convnet.html#PresentJitteredImages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.convnet.PresentJitteredImages" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="section" id="camera-input">
+<h2>Camera input<a class="headerlink" href="#camera-input" title="Permalink to this headline">¶</a></h2>
+<p>To use these classes, you will have to install
+GStreamer and some Python dependencies:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo apt install python-gst-1.0
+pip install vext vext.gi
+</pre></div>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/cuda_convnet/webcam_spiking_cnn.html">Classifying webcam images</a></li>
+</ul>
+</div>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.camera.CameraPipeline" title="nengo_extras.camera.CameraPipeline"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.camera.CameraPipeline</span></code></a>([device,&nbsp;…])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.camera.CameraData" title="nengo_extras.camera.CameraData"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.camera.CameraData</span></code></a>(width,&nbsp;height)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.camera.Camera" title="nengo_extras.camera.Camera"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.camera.Camera</span></code></a>([width,&nbsp;height,&nbsp;…])</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="nengo_extras.camera.CameraPipeline">
+<em class="property">class </em><code class="descclassname">nengo_extras.camera.</code><code class="descname">CameraPipeline</code><span class="sig-paren">(</span><em>device='/dev/video0'</em>, <em>width=640</em>, <em>height=480</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/camera.html#CameraPipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.camera.CameraPipeline" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.camera.CameraData">
+<em class="property">class </em><code class="descclassname">nengo_extras.camera.</code><code class="descname">CameraData</code><span class="sig-paren">(</span><em>width</em>, <em>height</em>, <em>channels=3</em>, <em>keep_aspect=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/camera.html#CameraData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.camera.CameraData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.camera.Camera">
+<em class="property">class </em><code class="descclassname">nengo_extras.camera.</code><code class="descname">Camera</code><span class="sig-paren">(</span><em>width=256</em>, <em>height=256</em>, <em>offset=-128</em>, <em>device='/dev/video0'</em>, <em>cam_width=640</em>, <em>cam_height=480</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/camera.html#Camera"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.camera.Camera" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+            
+  <div class="footer-relations">
+    
+      <div class="pull-left">
+        <a class="btn btn-default" href="neurons.html" title="previous chapter (use the left arrow)">Neuron types</a>
+      </div>
+    
+      <div class="pull-right">
+        <a class="btn btn-default" href="examples/mnist_single_layer.html" title="next chapter (use the right arrow)">Encoding for image recognition</a>
+      </div>
+    </div>
+    <div class="clearer"></div>
+  
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="examples/mnist_single_layer.html" title="Encoding for image recognition"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="neurons.html" title="Neuron types"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo extras 0.3.0 docs</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

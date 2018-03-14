@@ -1,0 +1,667 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>Creating spike raster plots &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Visualizing the ImageNet classifier" href="cuda_convnet/imagenet_visualization.html" />
+    <link rel="prev" title="Visualizing Nengo networks with Gephi" href="../gephi-tutorial.html" />
+<link rel="stylesheet" type="text/css" href="../_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="cuda_convnet/imagenet_visualization.html" title="Visualizing the ImageNet classifier"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../gephi-tutorial.html" title="Visualizing Nengo networks with Gephi"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../visualization.html" accesskey="U">Visualization tools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    ../index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vision.html">Vision models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../visualization.html">Visualization tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../gephi-tutorial.html">Visualizing Nengo networks with Gephi</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Creating spike raster plots</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Build-and-run-a-model">Build and run a model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Simple-spike-raster-plot">Simple spike raster plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Improved-plot">Improved plot</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_convnet/imagenet_visualization.html">Visualizing the ImageNet classifier</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../visualization.html#graphviz-diagrams">GraphViz diagrams</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../visualization.html#image-manipulation">Image manipulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../visualization.html#matplotlib-plots">Matplotlib plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../visualization.html#tkinter-guis">TkInter GUIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../visualization.html#gephi-visualization">Gephi visualization</a></li>
+</ul>
+</li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../index.html">Docs</a></li>
+              
+                <li><a href="../visualization.html">Visualization tools</a></li>
+              
+              <li>Creating spike raster plots</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 9ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+</style>
+<div class="section" id="Creating-spike-raster-plots">
+<h1>Creating spike raster plots<a class="headerlink" href="#Creating-spike-raster-plots" title="Permalink to this headline">¶</a></h1>
+<p>This example demonstrates how spike raster plots can be easily created
+with nengo_extras.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">nengo</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">nengo_extras.plot_spikes</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">cluster</span><span class="p">,</span> <span class="n">merge</span><span class="p">,</span> <span class="n">plot_spikes</span><span class="p">,</span> <span class="n">preprocess_spikes</span><span class="p">,</span> <span class="n">sample_by_variance</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="Build-and-run-a-model">
+<h2>Build and run a model<a class="headerlink" href="#Build-and-run-a-model" title="Permalink to this headline">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="k">with</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Network</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">as</span> <span class="n">model</span><span class="p">:</span>
+    <span class="n">inp</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">t</span><span class="p">)])</span>
+    <span class="n">ens</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Ensemble</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">nengo</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">ens</span><span class="p">)</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="n">ens</span><span class="p">,</span> <span class="n">synapse</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+    <span class="n">p_spikes</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="n">ens</span><span class="o">.</span><span class="n">neurons</span><span class="p">,</span> <span class="s1">&#39;spikes&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="k">with</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Simulator</span><span class="p">(</span><span class="n">model</span><span class="p">)</span> <span class="k">as</span> <span class="n">sim</span><span class="p">:</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mf">5.</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script>
+    if (Jupyter.version.split(".")[0] < 5) {
+        var pb = document.getElementById("dfea0370-828d-4464-91b5-e5d75895a961");
+        var text = document.createTextNode(
+            "HMTL progress bar requires Jupyter Notebook >= " +
+            "5.0 or Jupyter Lab. Alternatively, you can use " +
+            "TerminalProgressBar().");
+        pb.parentNode.insertBefore(text, pb);
+    }
+</script>
+<div id="dfea0370-828d-4464-91b5-e5d75895a961" style="
+    width: 100%;
+    border: 1px solid #cfcfcf;
+    border-radius: 4px;
+    text-align: center;
+    position: relative;">
+  <div class="pb-text" style="
+      position: absolute;
+      width: 100%;">
+    0%
+  </div>
+  <div class="pb-fill" style="
+      background-color: #bdd2e6;
+      width: 0%;">
+    <style type="text/css" scoped="scoped">
+        @keyframes pb-fill-anim {
+            0% { background-position: 0 0; }
+            100% { background-position: 100px 0; }
+        }
+    </style>
+    &nbsp;
+  </div>
+</div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div></div>
+<script type="text/javascript">
+var element = document.currentScript.previousSibling.previousSibling;
+
+              (function () {
+                  var root = document.getElementById('dfea0370-828d-4464-91b5-e5d75895a961');
+                  var text = root.getElementsByClassName('pb-text')[0];
+                  var fill = root.getElementsByClassName('pb-fill')[0];
+
+                  text.innerHTML = 'Build finished in 0:00:01.';
+
+            fill.style.width = '100%';
+            fill.style.animation = 'pb-fill-anim 2s linear infinite';
+            fill.style.backgroundSize = '100px 100%';
+            fill.style.backgroundImage = 'repeating-linear-gradient(' +
+                '90deg, #bdd2e6, #edf2f8 40%, #bdd2e6 80%, #bdd2e6)';
+
+
+                fill.style.animation = 'none';
+                fill.style.backgroundImage = 'none';
+
+              })();
+
+</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script>
+    if (Jupyter.version.split(".")[0] < 5) {
+        var pb = document.getElementById("cd48bebc-f551-4900-99b4-87f2343abaaa");
+        var text = document.createTextNode(
+            "HMTL progress bar requires Jupyter Notebook >= " +
+            "5.0 or Jupyter Lab. Alternatively, you can use " +
+            "TerminalProgressBar().");
+        pb.parentNode.insertBefore(text, pb);
+    }
+</script>
+<div id="cd48bebc-f551-4900-99b4-87f2343abaaa" style="
+    width: 100%;
+    border: 1px solid #cfcfcf;
+    border-radius: 4px;
+    text-align: center;
+    position: relative;">
+  <div class="pb-text" style="
+      position: absolute;
+      width: 100%;">
+    0%
+  </div>
+  <div class="pb-fill" style="
+      background-color: #bdd2e6;
+      width: 0%;">
+    <style type="text/css" scoped="scoped">
+        @keyframes pb-fill-anim {
+            0% { background-position: 0 0; }
+            100% { background-position: 100px 0; }
+        }
+    </style>
+    &nbsp;
+  </div>
+</div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div></div>
+<script type="text/javascript">
+var element = document.currentScript.previousSibling.previousSibling;
+
+              (function () {
+                  var root = document.getElementById('cd48bebc-f551-4900-99b4-87f2343abaaa');
+                  var text = root.getElementsByClassName('pb-text')[0];
+                  var fill = root.getElementsByClassName('pb-fill')[0];
+
+                  text.innerHTML = 'Simulation finished in 0:00:01.';
+
+            if (100.0 > 0.) {
+                fill.style.transition = 'width 0.1s linear';
+            } else {
+                fill.style.transition = 'none';
+            }
+
+            fill.style.width = '100.0%';
+            fill.style.animation = 'none';
+            fill.style.backgroundImage = 'none'
+
+
+                fill.style.animation = 'none';
+                fill.style.backgroundImage = 'none';
+
+              })();
+
+</script></div>
+</div>
+</div>
+<div class="section" id="Simple-spike-raster-plot">
+<h2>Simple spike raster plot<a class="headerlink" href="#Simple-spike-raster-plot" title="Permalink to this headline">¶</a></h2>
+<p>We can use the <code class="docutils literal"><span class="pre">plot_spikes</span></code> function to create a simple spike raster
+plot.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">trange</span><span class="p">(),</span> <span class="n">sim</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">p</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">plot_spikes</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">trange</span><span class="p">(),</span> <span class="n">sim</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">p_spikes</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Time [s]&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Neuron number&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>Out[4]:
+</pre></div>
+</div>
+<div class="output_area highlight-none"><div class="highlight"><pre>
+<span></span>Text(0,0.5,&#39;Neuron number&#39;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_plot_spikes_6_1.png" src="../_images/examples_plot_spikes_6_1.png" />
+</div>
+</div>
+</div>
+<div class="section" id="Improved-plot">
+<h2>Improved plot<a class="headerlink" href="#Improved-plot" title="Permalink to this headline">¶</a></h2>
+<p>We can create a more informative plot with some preprocessing of the
+spike trains. Specifically, we subsample interesting ones and sort them
+by similarity. Usually, the preprocessing done with the
+<code class="docutils literal"><span class="pre">preprocess_spikes</span></code> function works well.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">trange</span><span class="p">(),</span> <span class="n">sim</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">p</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">plot_spikes</span><span class="p">(</span><span class="o">*</span><span class="n">preprocess_spikes</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">trange</span><span class="p">(),</span> <span class="n">sim</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">p_spikes</span><span class="p">]))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Time [s]&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Neuron number&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>Out[5]:
+</pre></div>
+</div>
+<div class="output_area highlight-none"><div class="highlight"><pre>
+<span></span>Text(0,0.5,&#39;Neuron number&#39;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_plot_spikes_8_1.png" src="../_images/examples_plot_spikes_8_1.png" />
+</div>
+</div>
+<p>There are some arguments that can be passed to <code class="docutils literal"><span class="pre">preprocess_spikes</span></code> for
+fine tuning. But sometimes it is necessary to change what things are
+done during the preprocessing. The <code class="docutils literal"><span class="pre">nengo_extras.plot_spikes</span></code> module
+provides a number of lower level functions to construct specific
+preprocessing pipelines. This example recreates what
+<code class="docutils literal"><span class="pre">preprocess_spikes</span></code> does.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">trange</span><span class="p">(),</span> <span class="n">sim</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">p</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">plot_spikes</span><span class="p">(</span>
+    <span class="o">*</span><span class="n">merge</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">cluster</span><span class="p">(</span>
+            <span class="o">*</span><span class="n">sample_by_variance</span><span class="p">(</span>
+                <span class="n">sim</span><span class="o">.</span><span class="n">trange</span><span class="p">(),</span> <span class="n">sim</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">p_spikes</span><span class="p">],</span>
+                <span class="n">num</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">filter_width</span><span class="o">=.</span><span class="mi">02</span><span class="p">),</span>
+            <span class="n">filter_width</span><span class="o">=.</span><span class="mi">002</span><span class="p">),</span>
+        <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Time [s]&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Neuron number&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>Out[6]:
+</pre></div>
+</div>
+<div class="output_area highlight-none"><div class="highlight"><pre>
+<span></span>Text(0,0.5,&#39;Neuron number&#39;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_plot_spikes_10_1.png" src="../_images/examples_plot_spikes_10_1.png" />
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+            
+  <div class="footer-relations">
+    
+      <div class="pull-left">
+        <a class="btn btn-default" href="../gephi-tutorial.html" title="previous chapter (use the left arrow)">Visualizing Nengo networks with Gephi</a>
+      </div>
+    
+      <div class="pull-right">
+        <a class="btn btn-default" href="cuda_convnet/imagenet_visualization.html" title="next chapter (use the right arrow)">Visualizing the ImageNet classifier</a>
+      </div>
+    </div>
+    <div class="clearer"></div>
+  
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="cuda_convnet/imagenet_visualization.html" title="Visualizing the ImageNet classifier"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../gephi-tutorial.html" title="Visualizing Nengo networks with Gephi"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../visualization.html" >Visualization tools</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

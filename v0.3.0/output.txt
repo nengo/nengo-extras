@@ -1,0 +1,3 @@
+index.rst:11: [local] Nengo
+index.rst:37: [redirected with Found] https://github.com/nengo/nengo-extras/issues/new to https://github.com/login?return_to=https%3A%2F%2Fgithub.com%2Fnengo%2Fnengo-extras%2Fissues%2Fnew
+networks.rst:6: [local] :doc:networks

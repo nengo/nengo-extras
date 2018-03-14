@@ -1,0 +1,464 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>nengo_extras.keras &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<link rel="stylesheet" type="text/css" href="../../_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    ../../index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>nengo_extras.keras</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for nengo_extras.keras</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">keras</span>
+<span class="kn">import</span> <span class="nn">nengo</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">nengo_extras.deepnetworks</span>
+
+
+<div class="viewcode-block" id="SoftLIF"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.keras.SoftLIF">[docs]</a><span class="k">class</span> <span class="nc">SoftLIF</span><span class="p">(</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">tau_rc</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">tau_ref</span><span class="o">=</span><span class="mf">0.002</span><span class="p">,</span>
+                 <span class="n">noise_model</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">tau_s</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">supports_masking</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">=</span> <span class="n">sigma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span> <span class="o">=</span> <span class="n">amplitude</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tau_rc</span> <span class="o">=</span> <span class="n">tau_rc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tau_ref</span> <span class="o">=</span> <span class="n">tau_ref</span>
+
+        <span class="k">if</span> <span class="n">noise_model</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="s1">&#39;alpharc&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unrecognized noise model&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">noise_model</span> <span class="o">=</span> <span class="n">noise_model</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tau_s</span> <span class="o">=</span> <span class="n">tau_s</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tau_rc</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_s</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-4</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;tau_rc and tau_s must be different&quot;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">SoftLIF</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">keras</span> <span class="k">import</span> <span class="n">backend</span> <span class="k">as</span> <span class="n">K</span>
+        <span class="k">if</span> <span class="n">K</span><span class="o">.</span><span class="n">backend</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;tensorflow&#39;</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+            <span class="n">expm1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expm1</span>
+            <span class="n">log1p</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">log1p</span>
+            <span class="n">where</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">where</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">theano.tensor</span> <span class="k">as</span> <span class="nn">tt</span>
+            <span class="n">expm1</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">expm1</span>
+            <span class="n">log1p</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">log1p</span>
+            <span class="n">where</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">switch</span>
+
+        <span class="c1"># compute non-noisy output</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span>
+        <span class="n">x_valid</span> <span class="o">=</span> <span class="n">xs</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">20</span>
+        <span class="n">xs_safe</span> <span class="o">=</span> <span class="n">where</span><span class="p">(</span><span class="n">x_valid</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">K</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">xs</span><span class="p">))</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">softplus</span><span class="p">(</span><span class="n">xs_safe</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_ref</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_rc</span><span class="o">*</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">x_valid</span><span class="p">,</span> <span class="n">log1p</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">j</span><span class="p">),</span> <span class="o">-</span><span class="n">xs</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">))</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="o">/</span><span class="n">p</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_model</span> <span class="o">==</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">r</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_model</span> <span class="o">==</span> <span class="s1">&#39;alpharc&#39;</span><span class="p">:</span>
+            <span class="c1"># compute noisy output for forward pass</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_rc</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_s</span>
+            <span class="n">u01</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">random_uniform</span><span class="p">(</span><span class="n">K</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">u01</span> <span class="o">*</span> <span class="n">p</span>
+            <span class="n">q_rc</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">t</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_rc</span><span class="p">)</span>
+            <span class="n">q_s</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">t</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_s</span><span class="p">)</span>
+            <span class="n">r_rc1</span> <span class="o">=</span> <span class="o">-</span><span class="n">expm1</span><span class="p">(</span><span class="o">-</span><span class="n">p</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_rc</span><span class="p">)</span>  <span class="c1"># 1 - exp(-p/tau_rc)</span>
+            <span class="n">r_s1</span> <span class="o">=</span> <span class="o">-</span><span class="n">expm1</span><span class="p">(</span><span class="o">-</span><span class="n">p</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_s</span><span class="p">)</span>  <span class="c1"># 1 - exp(-p/tau_s)</span>
+
+            <span class="n">pt</span> <span class="o">=</span> <span class="n">where</span><span class="p">(</span><span class="n">p</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">tau_s</span><span class="p">,</span> <span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">r_s1</span><span class="p">),</span> <span class="n">K</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+            <span class="n">qt</span> <span class="o">=</span> <span class="n">where</span><span class="p">(</span><span class="n">t</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">tau_s</span><span class="p">,</span> <span class="n">q_s</span><span class="o">*</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">pt</span><span class="p">),</span> <span class="n">K</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+            <span class="n">rt</span> <span class="o">=</span> <span class="n">qt</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tau_s</span> <span class="o">*</span> <span class="n">d</span> <span class="o">*</span> <span class="n">r_s1</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">rn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_rc</span><span class="o">*</span><span class="p">(</span><span class="n">q_rc</span><span class="o">/</span><span class="p">(</span><span class="n">d</span><span class="o">*</span><span class="n">d</span><span class="o">*</span><span class="n">r_rc1</span><span class="p">)</span> <span class="o">-</span> <span class="n">q_s</span><span class="o">/</span><span class="p">(</span><span class="n">d</span><span class="o">*</span><span class="n">d</span><span class="o">*</span><span class="n">r_s1</span><span class="p">))</span> <span class="o">-</span> <span class="n">rt</span>
+
+            <span class="c1"># r + stop_gradient(rn - r) = rn on forward pass, r on backwards</span>
+            <span class="k">return</span> <span class="n">r</span> <span class="o">+</span> <span class="n">K</span><span class="o">.</span><span class="n">stop_gradient</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="o">*</span><span class="n">rn</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span> <span class="s1">&#39;amplitude&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span>
+                  <span class="s1">&#39;tau_rc&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_rc</span><span class="p">,</span> <span class="s1">&#39;tau_ref&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_ref</span><span class="p">}</span>
+        <span class="n">base_config</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">SoftLIF</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">base_config</span><span class="o">.</span><span class="n">items</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span></div>
+
+
+<span class="n">_custom_objects</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;SoftLIF&#39;</span><span class="p">:</span> <span class="n">SoftLIF</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="load_model_pair"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.keras.load_model_pair">[docs]</a><span class="k">def</span> <span class="nf">load_model_pair</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">custom_objects</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">custom_objects</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">custom_objects</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">json_path</span> <span class="o">=</span> <span class="n">filepath</span> <span class="o">+</span> <span class="s1">&#39;.json&#39;</span>
+    <span class="n">h5_path</span> <span class="o">=</span> <span class="n">filepath</span> <span class="o">+</span> <span class="s1">&#39;.h5&#39;</span>
+
+    <span class="n">combined_customs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">_custom_objects</span><span class="p">)</span>
+    <span class="n">combined_customs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">custom_objects</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">keras</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">model_from_json</span><span class="p">(</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="n">custom_objects</span><span class="o">=</span><span class="n">combined_customs</span><span class="p">)</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="n">h5_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model</span></div>
+
+
+<div class="viewcode-block" id="save_model_pair"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.keras.save_model_pair">[docs]</a><span class="k">def</span> <span class="nf">save_model_pair</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">json_path</span> <span class="o">=</span> <span class="n">filepath</span> <span class="o">+</span> <span class="s1">&#39;.json&#39;</span>
+    <span class="n">h5_path</span> <span class="o">=</span> <span class="n">filepath</span> <span class="o">+</span> <span class="s1">&#39;.h5&#39;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">json_path</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Path already exists: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filepath</span><span class="p">)</span>
+
+    <span class="n">json_string</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_string</span><span class="p">)</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">save_weights</span><span class="p">(</span><span class="n">h5_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">kmodel_compute_shapes</span><span class="p">(</span><span class="n">kmodel</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kmodel</span><span class="p">,</span> <span class="n">keras</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Sequential</span><span class="p">)</span>
+
+    <span class="n">shapes</span> <span class="o">=</span> <span class="p">[</span><span class="n">input_shape</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">kmodel</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">compute_output_shape</span><span class="p">(</span><span class="n">shapes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">shapes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">shapes</span>
+
+
+<div class="viewcode-block" id="SequentialNetwork"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.keras.SequentialNetwork">[docs]</a><span class="k">class</span> <span class="nc">SequentialNetwork</span><span class="p">(</span><span class="n">nengo_extras</span><span class="o">.</span><span class="n">deepnetworks</span><span class="o">.</span><span class="n">SequentialNetwork</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">synapse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lif_type</span><span class="o">=</span><span class="s1">&#39;lif&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SequentialNetwork</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">keras</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Sequential</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">synapse</span> <span class="o">=</span> <span class="n">synapse</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lif_type</span> <span class="o">=</span> <span class="n">lif_type</span>
+
+        <span class="c1"># -- build model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_data_layer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">input_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_add_layer</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">layer</span><span class="o">.</span><span class="n">input_mask</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="k">assert</span> <span class="n">layer</span><span class="o">.</span><span class="n">input_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span>
+
+        <span class="n">layer_adder</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_activation_layer</span><span class="p">,</span>
+            <span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_dense_layer</span><span class="p">,</span>
+            <span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dropout</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_dropout_layer</span><span class="p">,</span>
+            <span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Flatten</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_flatten_layer</span><span class="p">,</span>
+            <span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Convolution2D</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_conv2d_layer</span><span class="p">,</span>
+            <span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">AveragePooling2D</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_avgpool2d_layer</span><span class="p">,</span>
+            <span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">MaxPooling2D</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_maxpool2d_layer</span><span class="p">,</span>
+            <span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">noise</span><span class="o">.</span><span class="n">GaussianNoise</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_gaussian_noise_layer</span><span class="p">,</span>
+            <span class="n">SoftLIF</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_softlif_layer</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="nb">type</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span><span class="o">.</span><span class="vm">__mro__</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">layer_adder</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">layer_adder</span><span class="p">[</span><span class="bp">cls</span><span class="p">](</span><span class="n">layer</span><span class="p">)</span>
+
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Cannot build layer type </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span>
+                                  <span class="nb">type</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_dense_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="n">weights</span><span class="p">,</span> <span class="n">biases</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get_weights</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_full_layer</span><span class="p">(</span><span class="n">weights</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">layer</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_conv2d_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">keras.backend</span> <span class="k">as</span> <span class="nn">K</span>
+        <span class="n">shape_in</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">input_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">filters</span><span class="p">,</span> <span class="n">biases</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get_weights</span><span class="p">()</span>
+        <span class="n">strides</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">strides</span>
+
+        <span class="k">assert</span> <span class="n">layer</span><span class="o">.</span><span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_first&#39;</span>
+        <span class="n">nc</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">shape_in</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">filters</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">K</span><span class="o">.</span><span class="n">backend</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;theano&#39;</span><span class="p">:</span>
+            <span class="n">filters</span> <span class="o">=</span> <span class="n">filters</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># theano has flipped filters</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="n">filters</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># to make contiguous</span>
+
+        <span class="n">nf</span><span class="p">,</span> <span class="n">nc2</span><span class="p">,</span> <span class="n">si</span><span class="p">,</span> <span class="n">sj</span> <span class="o">=</span> <span class="n">filters</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">assert</span> <span class="n">nc</span> <span class="o">==</span> <span class="n">nc2</span><span class="p">,</span> <span class="s2">&quot;Filter channels must match input channels&quot;</span>
+
+        <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">padding</span> <span class="o">==</span> <span class="s1">&#39;valid&#39;</span><span class="p">:</span>
+            <span class="n">padding</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">layer</span><span class="o">.</span><span class="n">padding</span> <span class="o">==</span> <span class="s1">&#39;same&#39;</span><span class="p">:</span>
+            <span class="n">padding</span> <span class="o">=</span> <span class="p">((</span><span class="n">si</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="n">sj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unrecognized padding </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">layer</span><span class="o">.</span><span class="n">padding</span><span class="p">)</span>
+
+        <span class="n">conv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_conv_layer</span><span class="p">(</span>
+            <span class="n">shape_in</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
+            <span class="n">border</span><span class="o">=</span><span class="s1">&#39;floor&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">layer</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">conv</span><span class="o">.</span><span class="n">size_out</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">output_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">return</span> <span class="n">conv</span>
+
+    <span class="k">def</span> <span class="nf">_add_pool2d_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">shape_in</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">input_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">pool_size</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">pool_size</span>
+        <span class="n">strides</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">strides</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_pool_layer</span><span class="p">(</span><span class="n">shape_in</span><span class="p">,</span> <span class="n">pool_size</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+                                   <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">layer</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_avgpool2d_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_pool2d_layer</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;avg&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_maxpool2d_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_pool2d_layer</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;max&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_activation_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">activation</span> <span class="ow">is</span> <span class="n">keras</span><span class="o">.</span><span class="n">activations</span><span class="o">.</span><span class="n">softmax</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_softmax_layer</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+
+        <span class="c1"># add normal activation layer</span>
+        <span class="n">activation_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">keras</span><span class="o">.</span><span class="n">activations</span><span class="o">.</span><span class="n">relu</span><span class="p">:</span> <span class="n">nengo</span><span class="o">.</span><span class="n">neurons</span><span class="o">.</span><span class="n">RectifiedLinear</span><span class="p">(),</span>
+            <span class="n">keras</span><span class="o">.</span><span class="n">activations</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">:</span> <span class="n">nengo</span><span class="o">.</span><span class="n">neurons</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">(),</span>
+            <span class="p">}</span>
+        <span class="n">neuron_type</span> <span class="o">=</span> <span class="n">activation_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">activation</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">neuron_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unrecognized activation type </span><span class="si">%r</span><span class="s2">&quot;</span>
+                             <span class="o">%</span> <span class="n">layer</span><span class="o">.</span><span class="n">activation</span><span class="p">)</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">input_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_neuron_layer</span><span class="p">(</span>
+            <span class="n">n</span><span class="p">,</span> <span class="n">neuron_type</span><span class="o">=</span><span class="n">neuron_type</span><span class="p">,</span> <span class="n">synapse</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">synapse</span><span class="p">,</span>
+            <span class="n">gain</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">layer</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_softlif_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.neurons</span> <span class="k">import</span> <span class="n">SoftLIFRate</span>
+
+        <span class="n">taus</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">tau_rc</span><span class="o">=</span><span class="n">layer</span><span class="o">.</span><span class="n">tau_rc</span><span class="p">,</span> <span class="n">tau_ref</span><span class="o">=</span><span class="n">layer</span><span class="o">.</span><span class="n">tau_ref</span><span class="p">)</span>
+        <span class="n">lif_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lif_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">lif_type</span> <span class="o">==</span> <span class="s1">&#39;lif&#39;</span><span class="p">:</span>
+            <span class="n">neuron_type</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">LIF</span><span class="p">(</span><span class="o">**</span><span class="n">taus</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">lif_type</span> <span class="o">==</span> <span class="s1">&#39;lifrate&#39;</span><span class="p">:</span>
+            <span class="n">neuron_type</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">LIFRate</span><span class="p">(</span><span class="o">**</span><span class="n">taus</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">lif_type</span> <span class="o">==</span> <span class="s1">&#39;softlifrate&#39;</span><span class="p">:</span>
+            <span class="n">neuron_type</span> <span class="o">=</span> <span class="n">SoftLIFRate</span><span class="p">(</span><span class="n">sigma</span><span class="o">=</span><span class="n">layer</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span> <span class="o">**</span><span class="n">taus</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Unrecognized LIF type </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">lif_type</span><span class="p">)</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">input_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_neuron_layer</span><span class="p">(</span>
+            <span class="n">n</span><span class="p">,</span> <span class="n">neuron_type</span><span class="o">=</span><span class="n">neuron_type</span><span class="p">,</span> <span class="n">synapse</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">synapse</span><span class="p">,</span>
+            <span class="n">gain</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="n">layer</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">layer</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_softmax_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># non-neural, we can do without it</span>
+        <span class="c1"># return self.add_softmax_layer(</span>
+        <span class="c1">#     np.prod(layer.input_shape[1:]), name=layer.name)</span>
+
+    <span class="k">def</span> <span class="nf">_add_dropout_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># keras scales by dropout rate, so we don&#39;t have to</span>
+
+    <span class="k">def</span> <span class="nf">_add_flatten_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># no computation, just reshaping, so ignore</span>
+
+    <span class="k">def</span> <span class="nf">_add_gaussian_noise_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># no noise during testing</span></div>
+
+
+<div class="viewcode-block" id="LSUVinit"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.keras.LSUVinit">[docs]</a><span class="k">def</span> <span class="nf">LSUVinit</span><span class="p">(</span><span class="n">kmodel</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">t_max</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Layer-sequential unit-variance initialization.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Mishkin, D., &amp; Matas, J. (2016). All you need is a good init.</span>
+<span class="sd">       In ICLR 2016 (pp. 1-13).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">keras.layers</span> <span class="k">import</span> <span class="n">Convolution2D</span><span class="p">,</span> <span class="n">LocallyConnected2D</span>
+    <span class="kn">import</span> <span class="nn">keras.backend</span> <span class="k">as</span> <span class="nn">K</span>
+    <span class="c1"># f = K.function([kmodel.layers[0].input, K.learning_phase()],</span>
+    <span class="c1">#                [klayer.output])</span>
+
+    <span class="c1"># --- orthogonalize weights</span>
+    <span class="k">def</span> <span class="nf">orthogonalize</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">X</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="n">U</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">full_matrices</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">kmodel</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get_weights</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">W</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">weights</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">Convolution2D</span><span class="p">):</span>
+            <span class="n">Wv</span> <span class="o">=</span> <span class="n">W</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">LocallyConnected2D</span><span class="p">):</span>
+            <span class="n">Wv</span> <span class="o">=</span> <span class="n">W</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">W</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span>
+            <span class="n">Wv</span> <span class="o">=</span> <span class="n">W</span>
+
+        <span class="n">Wv</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">orthogonalize</span><span class="p">(</span><span class="n">Wv</span><span class="p">)</span>
+        <span class="n">layer</span><span class="o">.</span><span class="n">set_weights</span><span class="p">((</span><span class="n">W</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+
+    <span class="c1"># --- adjust variances</span>
+    <span class="n">s_input</span> <span class="o">=</span> <span class="n">kmodel</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">input</span>
+    <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">kmodel</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get_weights</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">W</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">weights</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">function</span><span class="p">([</span><span class="n">s_input</span><span class="p">,</span> <span class="n">K</span><span class="o">.</span><span class="n">learning_phase</span><span class="p">()],</span> <span class="p">[</span><span class="n">layer</span><span class="o">.</span><span class="n">output</span><span class="p">])</span>
+        <span class="n">learning_phase</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># 0 == testing, 1 == training</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">t_max</span><span class="p">):</span>
+            <span class="n">Y</span> <span class="o">=</span> <span class="n">f</span><span class="p">([</span><span class="n">X</span><span class="p">,</span> <span class="n">learning_phase</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">Ystd</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">Ystd</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Ystd</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="n">W</span> <span class="o">/=</span> <span class="n">Ystd</span>
+            <span class="n">layer</span><span class="o">.</span><span class="n">set_weights</span><span class="p">((</span><span class="n">W</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Layer </span><span class="si">%r</span><span class="s2"> did not converge after </span><span class="si">%d</span><span class="s2"> iterations (Ystd=</span><span class="si">%0.3e</span><span class="s2">)&quot;</span>
+                  <span class="o">%</span> <span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">t_max</span><span class="p">,</span> <span class="n">Ystd</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

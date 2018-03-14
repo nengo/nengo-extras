@@ -1,0 +1,795 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>nengo_extras.deepnetworks &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<link rel="stylesheet" type="text/css" href="../../_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    ../../index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>nengo_extras.deepnetworks</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for nengo_extras.deepnetworks</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Tools for running deep networks in Nengo</span>
+
+<span class="sd">Notes:</span>
+<span class="sd">- Layers with weights make copies of said weights, both so that they are</span>
+<span class="sd">  independent (if the model is later updated), and so they are contiguous.</span>
+<span class="sd">  (Contiguity is required in Nengo when arrays are hashed during build.)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">nengo</span>
+<span class="kn">from</span> <span class="nn">nengo.params</span> <span class="k">import</span> <span class="n">Default</span>
+<span class="kn">from</span> <span class="nn">nengo.utils.network</span> <span class="k">import</span> <span class="n">with_self</span>
+
+<span class="kn">from</span> <span class="nn">.convnet</span> <span class="k">import</span> <span class="n">Conv2d</span><span class="p">,</span> <span class="n">Pool2d</span><span class="p">,</span> <span class="n">softmax</span>
+<span class="kn">from</span> <span class="nn">.neurons</span> <span class="k">import</span> <span class="n">SoftLIFRate</span>
+
+
+<div class="viewcode-block" id="Network"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.deepnetworks.Network">[docs]</a><span class="k">class</span> <span class="nc">Network</span><span class="p">(</span><span class="n">nengo</span><span class="o">.</span><span class="n">Network</span><span class="p">):</span>
+    <span class="nd">@with_self</span>
+    <span class="k">def</span> <span class="nf">add_data_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">DataLayer</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="nd">@with_self</span>
+    <span class="k">def</span> <span class="nf">add_neuron_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">NeuronLayer</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="nd">@with_self</span>
+    <span class="k">def</span> <span class="nf">add_softmax_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">SoftmaxLayer</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="nd">@with_self</span>
+    <span class="k">def</span> <span class="nf">add_dropout_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">keep</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">DropoutLayer</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">keep</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="nd">@with_self</span>
+    <span class="k">def</span> <span class="nf">add_full_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">FullLayer</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="nd">@with_self</span>
+    <span class="k">def</span> <span class="nf">add_local_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">LocalLayer</span><span class="p">(</span><span class="n">input_shape</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="nd">@with_self</span>
+    <span class="k">def</span> <span class="nf">add_conv_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">ConvLayer</span><span class="p">(</span><span class="n">input_shape</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="nd">@with_self</span>
+    <span class="k">def</span> <span class="nf">add_pool_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">,</span> <span class="n">pool_size</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">PoolLayer</span><span class="p">(</span><span class="n">input_shape</span><span class="p">,</span> <span class="n">pool_size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SequentialNetwork"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.deepnetworks.SequentialNetwork">[docs]</a><span class="k">class</span> <span class="nc">SequentialNetwork</span><span class="p">(</span><span class="n">Network</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SequentialNetwork</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layers_by_name</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">input</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">None</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">input</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">output</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">None</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+
+    <span class="nd">@with_self</span>
+    <span class="k">def</span> <span class="nf">add_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">Layer</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">layer</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span>
+
+        <span class="k">if</span> <span class="n">inputs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
+
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
+            <span class="n">nengo</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span>
+                <span class="n">i</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">layer</span><span class="o">.</span><span class="n">input</span><span class="p">,</span> <span class="n">synapse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">layer</span><span class="o">.</span><span class="n">pre_args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers_by_name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layers_by_name</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">layer</span>
+
+        <span class="k">return</span> <span class="n">layer</span>
+
+    <span class="k">def</span> <span class="nf">layers_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span>
+
+        <span class="k">assert</span> <span class="n">end</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">end</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">output_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers_to</span><span class="p">(</span><span class="n">output_layer</span><span class="p">):</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">y</span>
+
+    <span class="k">def</span> <span class="nf">theano</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sx</span><span class="p">,</span> <span class="n">output_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># ensure we have Theano</span>
+        <span class="kn">import</span> <span class="nn">theano</span>
+
+        <span class="n">sy</span> <span class="o">=</span> <span class="n">sx</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers_to</span><span class="p">(</span><span class="n">output_layer</span><span class="p">):</span>
+            <span class="n">sy</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">theano</span><span class="p">(</span><span class="n">sy</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">sy</span>
+
+    <span class="k">def</span> <span class="nf">theano_compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">output_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">256</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">theano</span>
+        <span class="kn">import</span> <span class="nn">theano.tensor</span> <span class="k">as</span> <span class="nn">tt</span>
+        <span class="n">sx</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+        <span class="n">sy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theano</span><span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">output_layer</span><span class="o">=</span><span class="n">output_layer</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">theano</span><span class="o">.</span><span class="n">function</span><span class="p">([</span><span class="n">sx</span><span class="p">],</span> <span class="n">sy</span><span class="p">,</span> <span class="n">allow_input_downcast</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">y0</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">[:</span><span class="n">batch_size</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">y0</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">y0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">y0</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">y0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">y0</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">y</span><span class="p">[:</span><span class="n">batch_size</span><span class="p">]</span> <span class="o">=</span> <span class="n">y0</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
+                <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">batch_size</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">batch_size</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">y</span></div>
+
+
+<span class="c1"># class TreeNetwork(Network):</span>
+<span class="c1">#     def __init__(self, **kwargs):</span>
+<span class="c1">#         super(TreeNetwork, self).__init__(**kwargs)</span>
+
+<span class="c1">#         self.inputs = {}  # name -&gt; input object</span>
+<span class="c1">#         self.outputs = {}  # name -&gt; output object</span>
+<span class="c1">#         self.layer_inputs = {}  # mapping layer to its input layers</span>
+<span class="c1">#         self.layers_by_name = {}</span>
+
+<span class="c1">#     @property</span>
+<span class="c1">#     def layers(self):</span>
+<span class="c1">#         return list(self.layer_inputs)</span>
+
+<span class="c1">#     @with_self</span>
+<span class="c1">#     def add_layer(self, inputs, layer, name=None):</span>
+<span class="c1">#         assert isinstance(layer, Layer)</span>
+<span class="c1">#         assert layer not in self.layer_inputs</span>
+<span class="c1">#         for i in inputs:</span>
+<span class="c1">#             assert i in self.layer_inputs</span>
+<span class="c1">#             nengo.Connection(</span>
+<span class="c1">#                 i.output, layer.input, synapse=None, **layer.pre_args)</span>
+
+<span class="c1">#         self.layer_inputs[layer] = tuple(inputs)</span>
+<span class="c1">#         if name is not None:</span>
+<span class="c1">#             assert name not in self.layers_by_name</span>
+<span class="c1">#             self.layers_by_name[name] = layer</span>
+
+<span class="c1">#         return layer</span>
+
+<span class="c1">#     @with_self</span>
+<span class="c1">#     def add_named_input(self, name, d, **kwargs):</span>
+<span class="c1">#         kwargs.setdefault(&#39;label&#39;, name)</span>
+<span class="c1">#         layer = DataLayer(d, **kwargs)</span>
+<span class="c1">#         self.inputs[name] = layer.input</span>
+<span class="c1">#         return self.add_layer(layer, inputs=(), name=name)</span>
+
+<span class="c1">#     def add_named_output(self, name, obj):</span>
+<span class="c1">#         output = obj.output</span>
+<span class="c1">#         self.outputs[name] = output</span>
+<span class="c1">#         return output</span>
+
+<span class="c1">#     def compute(self, inputs, output):</span>
+<span class="c1">#         raise NotImplementedError(</span>
+<span class="c1">#             &quot;Layers currently only handle one input for compute&quot;)</span>
+
+<span class="c1">#         assert isinstance(inputs, dict)</span>
+
+<span class="c1">#         def as_layer(x):</span>
+<span class="c1">#             if isinstance(x, str):</span>
+<span class="c1">#                 return self.layers_by_name[x]</span>
+<span class="c1">#             else:</span>
+<span class="c1">#                 assert x in self.layer_inputs</span>
+<span class="c1">#                 return x</span>
+
+<span class="c1">#         if any(isinstance(i, str) for i in inputs):</span>
+<span class="c1">#             inputs = dict((as_layer(k), v) for k, v in inputs.items())</span>
+<span class="c1">#         else:</span>
+<span class="c1">#             assert all(i in self.layer_inputs for i in inputs)</span>
+<span class="c1">#         output = as_layer(output)</span>
+
+<span class="c1">#         layer_inputs = [inputs[i] if i in inputs else self.compute(inputs, i)</span>
+<span class="c1">#                         for i in self.layer_inputs[output]]</span>
+<span class="c1">#         assert len(layer_inputs) == 1</span>
+<span class="c1">#         return output.compute(layer_inputs[0])</span>
+
+
+<div class="viewcode-block" id="Layer"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.deepnetworks.Layer">[docs]</a><span class="k">class</span> <span class="nc">Layer</span><span class="p">(</span><span class="n">nengo</span><span class="o">.</span><span class="n">Network</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Layer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pre_args</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># kwargs for incoming connections</span>
+        <span class="c1"># self.post_args = {}  # kwargs for outgoing connections</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">input</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">output</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">size_in</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">size_out</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shape_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size_in</span><span class="p">,)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shape_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size_out</span><span class="p">,)</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">theano</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sx</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">theano_compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">theano</span>
+        <span class="kn">import</span> <span class="nn">theano.tensor</span> <span class="k">as</span> <span class="nn">tt</span>
+        <span class="n">sx</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">matrix</span><span class="p">()</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">theano</span><span class="o">.</span><span class="n">function</span><span class="p">([</span><span class="n">sx</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">theano</span><span class="p">(</span><span class="n">sx</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">y</span>
+
+    <span class="k">def</span> <span class="nf">_compute_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;x&#39; must be at least 1D&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_in</span>
+            <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_in</span>
+        <span class="k">return</span> <span class="n">x</span></div>
+
+
+<div class="viewcode-block" id="NodeLayer"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.deepnetworks.NodeLayer">[docs]</a><span class="k">class</span> <span class="nc">NodeLayer</span><span class="p">(</span><span class="n">Layer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">size_in</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">NodeLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">node</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">,</span> <span class="n">size_in</span><span class="o">=</span><span class="n">size_in</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_node&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">input</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">output</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span></div>
+
+
+<div class="viewcode-block" id="NeuronLayer"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.deepnetworks.NeuronLayer">[docs]</a><span class="k">class</span> <span class="nc">NeuronLayer</span><span class="p">(</span><span class="n">Layer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">neuron_type</span><span class="o">=</span><span class="n">Default</span><span class="p">,</span> <span class="n">synapse</span><span class="o">=</span><span class="n">Default</span><span class="p">,</span>
+                 <span class="n">gain</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">NeuronLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ensemble</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Ensemble</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">neuron_type</span><span class="o">=</span><span class="n">neuron_type</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ensemble</span><span class="o">.</span><span class="n">gain</span> <span class="o">=</span> <span class="n">_vectorize</span><span class="p">(</span><span class="n">gain</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="s1">&#39;gain&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ensemble</span><span class="o">.</span><span class="n">bias</span> <span class="o">=</span> <span class="n">_vectorize</span><span class="p">(</span><span class="n">bias</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="s1">&#39;bias&#39;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">size_in</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ensemble</span><span class="o">.</span><span class="n">neurons</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">amplitude</span><span class="p">,</span>
+                <span class="n">synapse</span><span class="o">=</span><span class="n">synapse</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ensemble</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_ensemble&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_output&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">input</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensemble</span><span class="o">.</span><span class="n">neurons</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">output</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">neurons</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensemble</span><span class="o">.</span><span class="n">neurons</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">amplitude</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">transform</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">bias</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensemble</span><span class="o">.</span><span class="n">bias</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensemble</span><span class="o">.</span><span class="n">gain</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">neuron_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensemble</span><span class="o">.</span><span class="n">neuron_type</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">synapse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">synapse</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_input</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">neuron_type</span><span class="o">.</span><span class="n">rates</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gain</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">theano</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sx</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">theano</span>
+        <span class="kn">import</span> <span class="nn">theano.tensor</span> <span class="k">as</span> <span class="nn">tt</span>
+        <span class="n">floatX</span> <span class="o">=</span> <span class="n">theano</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">floatX</span>
+        <span class="n">gain</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gain</span><span class="p">,</span> <span class="n">floatX</span><span class="p">)</span>
+        <span class="n">bias</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="n">floatX</span><span class="p">)</span>
+        <span class="n">amp</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="n">floatX</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">amp</span> <span class="o">*</span> <span class="n">neuron_theano</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">neuron_type</span><span class="p">,</span> <span class="n">gain</span><span class="o">*</span><span class="n">sx</span> <span class="o">+</span> <span class="n">bias</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DataLayer"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.deepnetworks.DataLayer">[docs]</a><span class="k">class</span> <span class="nc">DataLayer</span><span class="p">(</span><span class="n">NodeLayer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">size_in</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_out</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">theano</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sx</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">sx</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">sx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_out</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="SoftmaxLayer"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.deepnetworks.SoftmaxLayer">[docs]</a><span class="k">class</span> <span class="nc">SoftmaxLayer</span><span class="p">(</span><span class="n">NodeLayer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SoftmaxLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">output</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">softmax</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">size_in</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_input</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">softmax</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">theano</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sx</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">theano.tensor</span> <span class="k">as</span> <span class="nn">tt</span>
+        <span class="k">assert</span> <span class="n">sx</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="n">tt</span><span class="o">.</span><span class="n">nnet</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">sx</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DropoutLayer"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.deepnetworks.DropoutLayer">[docs]</a><span class="k">class</span> <span class="nc">DropoutLayer</span><span class="p">(</span><span class="n">NodeLayer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">keep</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DropoutLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">size_in</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pre_args</span><span class="p">[</span><span class="s1">&#39;transform&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">keep</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">keep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_args</span><span class="p">[</span><span class="s1">&#39;transform&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_input</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">keep</span> <span class="o">*</span> <span class="n">x</span>
+
+    <span class="k">def</span> <span class="nf">theano</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sx</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">keep</span> <span class="o">*</span> <span class="n">sx</span></div>
+
+
+<div class="viewcode-block" id="FullLayer"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.deepnetworks.FullLayer">[docs]</a><span class="k">class</span> <span class="nc">FullLayer</span><span class="p">(</span><span class="n">NodeLayer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">weights</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="k">assert</span> <span class="n">biases</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">weights</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FullLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">size_in</span><span class="o">=</span><span class="n">weights</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>  <span class="c1"># copy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">biases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">biases</span><span class="p">)</span>  <span class="c1"># copy</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bias</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="n">biases</span><span class="p">)</span>
+            <span class="n">nengo</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="n">synapse</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pre_args</span><span class="p">[</span><span class="s1">&#39;transform&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_bias&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_input</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">biases</span>
+
+    <span class="k">def</span> <span class="nf">theano</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sx</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">theano.tensor</span> <span class="k">as</span> <span class="nn">tt</span>
+        <span class="k">assert</span> <span class="n">sx</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="n">tt</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">biases</span></div>
+
+
+<div class="viewcode-block" id="ProcessLayer"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.deepnetworks.ProcessLayer">[docs]</a><span class="k">class</span> <span class="nc">ProcessLayer</span><span class="p">(</span><span class="n">NodeLayer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">process</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">process</span><span class="p">,</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Process</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ProcessLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="n">process</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_step</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">output</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shape_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">shape_in</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shape_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">shape_out</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_input</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">make_step</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">size_in</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_out</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_step</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LocalLayer"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.deepnetworks.LocalLayer">[docs]</a><span class="k">class</span> <span class="nc">LocalLayer</span><span class="p">(</span><span class="n">ProcessLayer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span>
+                 <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">filters</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">6</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">filters</span><span class="p">)</span>  <span class="c1"># copy</span>
+        <span class="n">biases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">biases</span><span class="p">)</span>  <span class="c1"># copy</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Conv2d</span><span class="p">(</span><span class="n">input_shape</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span>
+                   <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">LocalLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">theano</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">theano.tensor</span> <span class="k">as</span> <span class="nn">tt</span>
+
+        <span class="n">filters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">filters</span>
+        <span class="n">biases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">biases</span>
+        <span class="n">nc</span><span class="p">,</span> <span class="n">nxi</span><span class="p">,</span> <span class="n">nxj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">shape_in</span>
+        <span class="n">nf</span><span class="p">,</span> <span class="n">nyi</span><span class="p">,</span> <span class="n">nyj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">shape_out</span>
+        <span class="n">si</span><span class="p">,</span> <span class="n">sj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="n">pi</span><span class="p">,</span> <span class="n">pj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">padding</span>
+        <span class="n">sti</span><span class="p">,</span> <span class="n">stj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">strides</span>
+
+        <span class="n">ys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">nc</span><span class="p">,</span> <span class="n">nxi</span><span class="p">,</span> <span class="n">nxj</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nyi</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nyj</span><span class="p">):</span>
+                <span class="n">i0</span> <span class="o">=</span> <span class="n">i</span><span class="o">*</span><span class="n">sti</span> <span class="o">-</span> <span class="n">pi</span>
+                <span class="n">j0</span> <span class="o">=</span> <span class="n">j</span><span class="o">*</span><span class="n">stj</span> <span class="o">-</span> <span class="n">pj</span>
+                <span class="n">i1</span><span class="p">,</span> <span class="n">j1</span> <span class="o">=</span> <span class="n">i0</span> <span class="o">+</span> <span class="n">si</span><span class="p">,</span> <span class="n">j0</span> <span class="o">+</span> <span class="n">sj</span>
+                <span class="n">sli</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="n">i0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">nxi</span> <span class="o">+</span> <span class="n">si</span> <span class="o">-</span> <span class="n">i1</span><span class="p">,</span> <span class="n">si</span><span class="p">))</span>
+                <span class="n">slj</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="n">j0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">nxj</span> <span class="o">+</span> <span class="n">sj</span> <span class="o">-</span> <span class="n">j1</span><span class="p">,</span> <span class="n">sj</span><span class="p">))</span>
+                <span class="n">w</span> <span class="o">=</span> <span class="n">filters</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="p">:,</span> <span class="n">sli</span><span class="p">,</span> <span class="n">slj</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nf</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">xij</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="p">:,</span> <span class="nb">max</span><span class="p">(</span><span class="n">i0</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span><span class="nb">min</span><span class="p">(</span><span class="n">i1</span><span class="p">,</span> <span class="n">nxi</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">j0</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span><span class="nb">min</span><span class="p">(</span><span class="n">j1</span><span class="p">,</span> <span class="n">nxj</span><span class="p">)]</span>
+                <span class="n">ys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tt</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">xij</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)),</span> <span class="n">w</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+
+        <span class="n">y</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">nyi</span><span class="p">,</span> <span class="n">nyj</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">nf</span><span class="p">))</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">y</span> <span class="o">+=</span> <span class="n">biases</span>
+        <span class="k">return</span> <span class="n">y</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">nf</span><span class="o">*</span><span class="n">nyi</span><span class="o">*</span><span class="n">nyj</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ConvLayer"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.deepnetworks.ConvLayer">[docs]</a><span class="k">class</span> <span class="nc">ConvLayer</span><span class="p">(</span><span class="n">ProcessLayer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span>
+                 <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="s1">&#39;ceil&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">filters</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">filters</span><span class="p">)</span>  <span class="c1"># copy</span>
+        <span class="n">biases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">biases</span><span class="p">)</span>  <span class="c1"># copy</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Conv2d</span><span class="p">(</span><span class="n">input_shape</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">biases</span><span class="p">,</span>
+                   <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="n">border</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ConvLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">theano</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">theano.tensor</span> <span class="k">as</span> <span class="nn">tt</span>
+
+        <span class="n">filters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">filters</span>
+        <span class="n">biases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">biases</span>
+        <span class="n">nc</span><span class="p">,</span> <span class="n">nxi</span><span class="p">,</span> <span class="n">nxj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">shape_in</span>
+        <span class="n">nf</span><span class="p">,</span> <span class="n">nyi</span><span class="p">,</span> <span class="n">nyj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">shape_out</span>
+        <span class="n">si</span><span class="p">,</span> <span class="n">sj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="n">pi</span><span class="p">,</span> <span class="n">pj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">padding</span>
+        <span class="n">sti</span><span class="p">,</span> <span class="n">stj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">strides</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">nc</span><span class="p">,</span> <span class="n">nxi</span><span class="p">,</span> <span class="n">nxj</span><span class="p">))</span>
+
+        <span class="n">nxi2</span> <span class="o">=</span> <span class="n">nyi</span><span class="o">*</span><span class="n">sti</span> <span class="o">+</span> <span class="n">si</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">pi</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">nxj2</span> <span class="o">=</span> <span class="n">nyj</span><span class="o">*</span><span class="n">stj</span> <span class="o">+</span> <span class="n">sj</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">pj</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">border</span> <span class="o">==</span> <span class="s1">&#39;ceil&#39;</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nxi2</span> <span class="o">&gt;</span> <span class="n">nxi</span> <span class="ow">or</span> <span class="n">nxj2</span> <span class="o">&gt;</span> <span class="n">nxj</span><span class="p">):</span>
+            <span class="n">xx</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">nc</span><span class="p">,</span> <span class="n">nxi2</span><span class="p">,</span> <span class="n">nxj2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">set_subtensor</span><span class="p">(</span><span class="n">xx</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="n">nxi</span><span class="p">,</span> <span class="p">:</span><span class="n">nxj</span><span class="p">],</span> <span class="n">x</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">nxi</span> <span class="o">==</span> <span class="n">nxi2</span> <span class="ow">and</span> <span class="n">nxj</span> <span class="o">==</span> <span class="n">nxj2</span>
+
+        <span class="n">y</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">nnet</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span>
+                           <span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">nc</span><span class="p">,</span> <span class="n">nxi2</span><span class="p">,</span> <span class="n">nxj2</span><span class="p">),</span>
+                           <span class="n">filter_shape</span><span class="o">=</span><span class="p">(</span><span class="n">nf</span><span class="p">,</span> <span class="n">nc</span><span class="p">,</span> <span class="n">si</span><span class="p">,</span> <span class="n">sj</span><span class="p">),</span>
+                           <span class="n">border_mode</span><span class="o">=</span><span class="p">(</span><span class="n">pi</span><span class="p">,</span> <span class="n">pj</span><span class="p">),</span>
+                           <span class="n">subsample</span><span class="o">=</span><span class="p">(</span><span class="n">sti</span><span class="p">,</span> <span class="n">stj</span><span class="p">),</span>
+                           <span class="n">filter_flip</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">y</span> <span class="o">+=</span> <span class="n">biases</span>
+        <span class="k">return</span> <span class="n">y</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">nf</span><span class="o">*</span><span class="n">nyi</span><span class="o">*</span><span class="n">nyj</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="PoolLayer"><a class="viewcode-back" href="../../deeplearning.html#nengo_extras.deepnetworks.PoolLayer">[docs]</a><span class="k">class</span> <span class="nc">PoolLayer</span><span class="p">(</span><span class="n">ProcessLayer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">,</span> <span class="n">pool_size</span><span class="p">,</span>
+                 <span class="n">strides</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;avg&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;full&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Pool2d</span><span class="p">(</span><span class="n">input_shape</span><span class="p">,</span> <span class="n">pool_size</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+                   <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PoolLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">theano</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">theano.tensor</span> <span class="k">as</span> <span class="nn">tt</span>
+        <span class="kn">import</span> <span class="nn">theano.tensor.signal.pool</span>
+
+        <span class="n">pool_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">pool_size</span>
+        <span class="n">strides</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">strides</span>
+        <span class="n">nc</span><span class="p">,</span> <span class="n">nxi</span><span class="p">,</span> <span class="n">nxj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">shape_in</span>
+        <span class="n">nc</span><span class="p">,</span> <span class="n">nyi</span><span class="p">,</span> <span class="n">nyj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">shape_out</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">max</span><span class="o">=</span><span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="n">avg</span><span class="o">=</span><span class="s1">&#39;average_exc_pad&#39;</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">kind</span><span class="p">]</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">nc</span><span class="p">,</span> <span class="n">nxi</span><span class="p">,</span> <span class="n">nxj</span><span class="p">))</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">pool_2d</span><span class="p">(</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">pool_size</span><span class="p">,</span> <span class="n">ignore_border</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">st</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">y</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">nc</span><span class="o">*</span><span class="n">nyi</span><span class="o">*</span><span class="n">nyj</span><span class="p">))</span></div>
+
+
+<span class="c1"># class NEFLayer(nengo.Network):</span>
+<span class="c1">#     def __init__(self, n, d_in, d_out, synapse=Default, eval_points=Default,</span>
+<span class="c1">#                  function=Default, solver=Default,</span>
+<span class="c1">#                  label=None, seed=None, add_to_container=None, **ens_kwargs):</span>
+<span class="c1">#         super(nengo.Network, self).__init__(</span>
+<span class="c1">#             label=label, seed=seed, add_to_container=add_to_container)</span>
+
+<span class="c1">#         with self:</span>
+<span class="c1">#             self.ensemble = nengo.Ensemble(n, d_in, **ens_kwargs)</span>
+<span class="c1">#             self.output = nengo.Node(size_in=d_out)</span>
+<span class="c1">#             self.connection = nengo.Connection(</span>
+<span class="c1">#                 self.ensemble, self.output, synapse=synapse,</span>
+<span class="c1">#                 eval_points=eval_points, function=function, solver=solver)</span>
+
+<span class="c1">#         if label is not None:</span>
+<span class="c1">#             self.ensemble.label = &#39;%s_ensemble&#39; % label</span>
+<span class="c1">#             self.output.label = &#39;%s_output&#39; % label</span>
+
+<span class="c1">#     @property</span>
+<span class="c1">#     def input(self):</span>
+<span class="c1">#         return self.ensemble.neurons</span>
+
+<span class="c1">#     @property</span>
+<span class="c1">#     def amplitude(self):</span>
+<span class="c1">#         return self.connection.transform</span>
+
+<span class="c1">#     @property</span>
+<span class="c1">#     def neuron_type(self):</span>
+<span class="c1">#         return self.ensemble.neuron_type</span>
+
+<span class="c1">#     @property</span>
+<span class="c1">#     def synapse(self):</span>
+<span class="c1">#         return self.connection.synapse</span>
+
+
+<span class="c1"># def _get_network_attr(obj, attr):</span>
+<span class="c1">#     if isinstance(obj, nengo.Network) and hasattr(obj, attr):</span>
+<span class="c1">#         return getattr(obj, attr)</span>
+<span class="c1">#     else:</span>
+<span class="c1">#         return obj</span>
+
+
+<span class="k">def</span> <span class="nf">_vectorize</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">value</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">n</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> must be length 1 or </span><span class="si">%d</span><span class="s2"> (got </span><span class="si">%d</span><span class="s2">)&quot;</span>
+                         <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">neuron_theano</span><span class="p">(</span><span class="n">neuron_type</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">theano</span>
+    <span class="kn">import</span> <span class="nn">theano.tensor</span> <span class="k">as</span> <span class="nn">tt</span>
+    <span class="n">floatX</span> <span class="o">=</span> <span class="n">theano</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">floatX</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">neuron_type</span><span class="p">,</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Direct</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">neuron_type</span><span class="p">,</span> <span class="n">nengo</span><span class="o">.</span><span class="n">neurons</span><span class="o">.</span><span class="n">RectifiedLinear</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">tt</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">neuron_type</span><span class="p">,</span> <span class="n">nengo</span><span class="o">.</span><span class="n">neurons</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">tt</span><span class="o">.</span><span class="n">nnet</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">neuron_type</span><span class="p">,</span> <span class="n">SoftLIFRate</span><span class="p">):</span>  <span class="c1"># before LIF since subclass</span>
+        <span class="c1"># do not apply amplitude, since this is done elsewhere!</span>
+        <span class="n">tau_ref</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">neuron_type</span><span class="o">.</span><span class="n">tau_ref</span><span class="p">,</span> <span class="n">floatX</span><span class="p">)</span>
+        <span class="n">tau_rc</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">neuron_type</span><span class="o">.</span><span class="n">tau_rc</span><span class="p">,</span> <span class="n">floatX</span><span class="p">)</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">neuron_type</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span> <span class="n">floatX</span><span class="p">)</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">nnet</span><span class="o">.</span><span class="n">softplus</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">*</span> <span class="n">sigma</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">tau_ref</span> <span class="o">+</span> <span class="n">tau_rc</span><span class="o">*</span><span class="n">tt</span><span class="o">.</span><span class="n">log1p</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">j</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">tt</span><span class="o">.</span><span class="n">switch</span><span class="p">(</span><span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">neuron_type</span><span class="p">,</span> <span class="p">(</span><span class="n">nengo</span><span class="o">.</span><span class="n">LIF</span><span class="p">,</span> <span class="n">nengo</span><span class="o">.</span><span class="n">LIFRate</span><span class="p">)):</span>
+        <span class="n">tau_ref</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">neuron_type</span><span class="o">.</span><span class="n">tau_ref</span><span class="p">,</span> <span class="n">floatX</span><span class="p">)</span>
+        <span class="n">tau_rc</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">neuron_type</span><span class="o">.</span><span class="n">tau_rc</span><span class="p">,</span> <span class="n">floatX</span><span class="p">)</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="p">(</span><span class="n">tau_ref</span> <span class="o">+</span> <span class="n">tau_rc</span><span class="o">*</span><span class="n">tt</span><span class="o">.</span><span class="n">log1p</span><span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="n">j</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">tt</span><span class="o">.</span><span class="n">switch</span><span class="p">(</span><span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Neuron type </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">neuron_type</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

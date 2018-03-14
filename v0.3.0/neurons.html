@@ -1,0 +1,315 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>Neuron types &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Vision models" href="vision.html" />
+    <link rel="prev" title="Networks" href="networks.html" />
+<link rel="stylesheet" type="text/css" href="_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="vision.html" title="Vision models"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="networks.html" title="Networks"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo extras 0.3.0 docs</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networks.html">Networks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Neuron types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#utilities">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="index.html">Docs</a></li>
+              
+              <li>Neuron types</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="neuron-types">
+<h1>Neuron types<a class="headerlink" href="#neuron-types" title="Permalink to this headline">¶</a></h1>
+<p>These neuron types can be used in any place that
+<a class="reference external" href="https://www.nengo.ai/nengo/frontend_api.html#neuron-types">Nengo neuron types</a>
+can be used.</p>
+<dl class="class">
+<dt id="nengo_extras.neurons.SoftLIFRate">
+<em class="property">class </em><code class="descclassname">nengo_extras.neurons.</code><code class="descname">SoftLIFRate</code><span class="sig-paren">(</span><em>sigma=1.0</em>, <em>**lif_args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/neurons.html#SoftLIFRate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.neurons.SoftLIFRate" title="Permalink to this definition">¶</a></dt>
+<dd><p>LIF neuron with smoothing around the firing threshold.</p>
+<p>This is a rate version of the LIF neuron whose tuning curve has a
+continuous first derivative, due to the smoothing around the firing
+threshold. It can be used as a substitute for LIF neurons in deep networks
+during training, and then replaced with LIF neurons when running
+the network <a class="reference internal" href="#r1313" id="id1">[R1313]</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>sigma</strong> : float</p>
+<blockquote>
+<div><p>Amount of smoothing around the firing threshold. Larger values mean
+more smoothing.</p>
+</div></blockquote>
+<p><strong>amplitude</strong> : float</p>
+<blockquote>
+<div><p>Scaling factor on the output. If 1 (default), output rates correspond
+to LIF neuron model rates.</p>
+</div></blockquote>
+<p><strong>tau_rc</strong> : float</p>
+<blockquote>
+<div><p>Membrane RC time constant, in seconds. Affects how quickly the membrane
+voltage decays to zero in the absence of input (larger = slower decay).</p>
+</div></blockquote>
+<p><strong>tau_ref</strong> : float</p>
+<blockquote class="last">
+<div><p>Absolute refractory period, in seconds. This is how long the
+membrane voltage is held at zero after a spike.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<table class="docutils citation" frame="void" id="r1313" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[R1313]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>)</em> E. Hunsberger &amp; C. Eliasmith (2015). Spiking Deep Networks with
+LIF Neurons. arXiv Preprint, 1510. <a class="reference external" href="https://arxiv.org/abs/1510.08829">https://arxiv.org/abs/1510.08829</a></td></tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="nengo_extras.neurons.SoftLIFRate.step_math">
+<code class="descname">step_math</code><span class="sig-paren">(</span><em>dt</em>, <em>J</em>, <em>output</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/neurons.html#SoftLIFRate.step_math"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.neurons.SoftLIFRate.step_math" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute rates in Hz for input current (incl. bias)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.neurons.FastLIF">
+<em class="property">class </em><code class="descclassname">nengo_extras.neurons.</code><code class="descname">FastLIF</code><span class="sig-paren">(</span><em>tau_rc=0.02</em>, <em>tau_ref=0.002</em>, <em>min_voltage=0</em>, <em>amplitude=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/neurons.html#FastLIF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.neurons.FastLIF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Faster version of the leaky integrate-and-fire (LIF) neuron model.</p>
+<p>This neuron model is faster than <code class="docutils literal"><span class="pre">LIF</span></code> but does not produce the ideal
+firing rate for larger <code class="docutils literal"><span class="pre">dt</span></code> due to linearization of the tuning curves.</p>
+</dd></dl>
+
+<div class="section" id="utilities">
+<h2>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="nengo_extras.neurons.spikes2events">
+<code class="descclassname">nengo_extras.neurons.</code><code class="descname">spikes2events</code><span class="sig-paren">(</span><em>t</em>, <em>spikes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/neurons.html#spikes2events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.neurons.spikes2events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an event-based representation of spikes (i.e. spike times)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.neurons.rates_isi">
+<code class="descclassname">nengo_extras.neurons.</code><code class="descname">rates_isi</code><span class="sig-paren">(</span><em>t</em>, <em>spikes</em>, <em>midpoint=False</em>, <em>interp='zero'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/neurons.html#rates_isi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.neurons.rates_isi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate firing rates from spikes using ISIs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>t</strong> : (M,) array_like</p>
+<blockquote>
+<div><p>The times at which raw spike data (spikes) is defined.</p>
+</div></blockquote>
+<p><strong>spikes</strong> : (M, N) array_like</p>
+<blockquote>
+<div><p>The raw spike data from N neurons.</p>
+</div></blockquote>
+<p><strong>midpoint</strong> : bool, optional</p>
+<blockquote>
+<div><p>If true, place interpolation points at midpoints of ISIs. Otherwise,
+the points are placed at the beginning of ISIs.</p>
+</div></blockquote>
+<p><strong>interp</strong> : string, optional</p>
+<blockquote>
+<div><p>Interpolation type, passed to <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html#scipy.interpolate.interp1d" title="(in SciPy v1.1.0)"><code class="xref py py-obj docutils literal"><span class="pre">scipy.interpolate.interp1d</span></code></a> as the
+<code class="docutils literal"><span class="pre">kind</span></code> parameter.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>rates</strong> : (M, N) array_like</p>
+<blockquote class="last">
+<div><p>The estimated neuron firing rates.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.neurons.rates_kernel">
+<code class="descclassname">nengo_extras.neurons.</code><code class="descname">rates_kernel</code><span class="sig-paren">(</span><em>t</em>, <em>spikes</em>, <em>kind='gauss'</em>, <em>tau=0.04</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/neurons.html#rates_kernel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.neurons.rates_kernel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate firing rates from spikes using a kernel.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>t</strong> : (M,) array_like</p>
+<blockquote>
+<div><p>The times at which raw spike data (spikes) is defined.</p>
+</div></blockquote>
+<p><strong>spikes</strong> : (M, N) array_like</p>
+<blockquote>
+<div><p>The raw spike data from N neurons.</p>
+</div></blockquote>
+<p><strong>kind</strong> : str {‘expon’, ‘gauss’, ‘expogauss’, ‘alpha’}, optional</p>
+<blockquote>
+<div><p>The type of kernel to use. ‘expon’ is an exponential kernel, ‘gauss’ is
+a Gaussian (normal) kernel, ‘expogauss’ is an exponential followed by
+a Gaussian, and ‘alpha’ is an alpha function kernel.</p>
+</div></blockquote>
+<p><strong>tau</strong> : float</p>
+<blockquote class="last">
+<div><p>The time constant for the kernel. The optimal value will depend on the
+firing rate of the neurons, with a longer tau preferred for lower
+firing rates. The default value of 0.04 works well across a wide range
+of firing rates.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+            
+  <div class="footer-relations">
+    
+      <div class="pull-left">
+        <a class="btn btn-default" href="networks.html" title="previous chapter (use the left arrow)">Networks</a>
+      </div>
+    
+      <div class="pull-right">
+        <a class="btn btn-default" href="vision.html" title="next chapter (use the right arrow)">Vision models</a>
+      </div>
+    </div>
+    <div class="clearer"></div>
+  
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="vision.html" title="Vision models"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="networks.html" title="Networks"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo extras 0.3.0 docs</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

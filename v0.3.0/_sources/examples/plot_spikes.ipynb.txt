@@ -1,0 +1,167 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Creating spike raster plots\n",
+    "\n",
+    "This example demonstrates how spike raster plots\n",
+    "can be easily created with nengo_extras."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "%matplotlib inline\n",
+    "import matplotlib.pyplot as plt\n",
+    "import nengo\n",
+    "import numpy as np\n",
+    "\n",
+    "from nengo_extras.plot_spikes import (\n",
+    "    cluster, merge, plot_spikes, preprocess_spikes, sample_by_variance)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Build and run a model"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "with nengo.Network(seed=1) as model:\n",
+    "    inp = nengo.Node(lambda t: [np.sin(t), np.cos(t)])\n",
+    "    ens = nengo.Ensemble(500, 2)\n",
+    "    nengo.Connection(inp, ens)\n",
+    "\n",
+    "    p = nengo.Probe(ens, synapse=0.01)\n",
+    "    p_spikes = nengo.Probe(ens.neurons, 'spikes')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "with nengo.Simulator(model) as sim:\n",
+    "    sim.run(5.)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Simple spike raster plot\n",
+    "\n",
+    "We can use the `plot_spikes` function to create a simple spike raster plot."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plt.figure()\n",
+    "\n",
+    "plt.subplot(2, 1, 1)\n",
+    "plt.plot(sim.trange(), sim.data[p])\n",
+    "\n",
+    "plt.subplot(2, 1, 2)\n",
+    "plot_spikes(sim.trange(), sim.data[p_spikes])\n",
+    "plt.xlabel(\"Time [s]\")\n",
+    "plt.ylabel(\"Neuron number\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Improved plot\n",
+    "\n",
+    "We can create a more informative plot\n",
+    "with some preprocessing of the spike trains.\n",
+    "Specifically, we subsample interesting ones and sort them by similarity.\n",
+    "Usually, the preprocessing done\n",
+    "with the `preprocess_spikes` function works well."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plt.figure()\n",
+    "\n",
+    "plt.subplot(2, 1, 1)\n",
+    "plt.plot(sim.trange(), sim.data[p])\n",
+    "\n",
+    "plt.subplot(2, 1, 2)\n",
+    "plot_spikes(*preprocess_spikes(sim.trange(), sim.data[p_spikes]))\n",
+    "plt.xlabel(\"Time [s]\")\n",
+    "plt.ylabel(\"Neuron number\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "There are some arguments that can be passed\n",
+    "to `preprocess_spikes` for fine tuning.\n",
+    "But sometimes it is necessary to change\n",
+    "what things are done during the preprocessing.\n",
+    "The `nengo_extras.plot_spikes` module\n",
+    "provides a number of lower level functions\n",
+    "to construct specific preprocessing pipelines.\n",
+    "This example recreates what `preprocess_spikes` does."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plt.figure()\n",
+    "\n",
+    "plt.subplot(2, 1, 1)\n",
+    "plt.plot(sim.trange(), sim.data[p])\n",
+    "\n",
+    "plt.subplot(2, 1, 2)\n",
+    "plot_spikes(\n",
+    "    *merge(\n",
+    "        *cluster(\n",
+    "            *sample_by_variance(\n",
+    "                sim.trange(), sim.data[p_spikes],\n",
+    "                num=200, filter_width=.02),\n",
+    "            filter_width=.002),\n",
+    "        num=50))\n",
+    "plt.xlabel(\"Time [s]\")\n",
+    "plt.ylabel(\"Neuron number\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "language_info": {
+   "name": "python",
+   "pygments_lexer": "ipython3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 1
+}

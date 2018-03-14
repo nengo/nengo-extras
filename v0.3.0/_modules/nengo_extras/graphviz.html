@@ -1,0 +1,200 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>nengo_extras.graphviz &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<link rel="stylesheet" type="text/css" href="../../_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    ../../index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>nengo_extras.graphviz</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for nengo_extras.graphviz</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="net_diagram"><a class="viewcode-back" href="../../visualization.html#nengo_extras.graphviz.net_diagram">[docs]</a><span class="k">def</span> <span class="nf">net_diagram</span><span class="p">(</span><span class="n">net</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a .dot file showing nodes, ensmbles, and connections.</span>
+
+<span class="sd">    This can be useful for debugging and testing builders that manipulate</span>
+<span class="sd">    the model graph before construction.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    net : Network</span>
+<span class="sd">        A network from which objects and connections will be extracted.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    text : string</span>
+<span class="sd">        Text content of the desired .dot file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">objs</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">all_nodes</span> <span class="o">+</span> <span class="n">net</span><span class="o">.</span><span class="n">all_ensembles</span>
+    <span class="k">return</span> <span class="n">obj_conn_diagram</span><span class="p">(</span><span class="n">objs</span><span class="p">,</span> <span class="n">net</span><span class="o">.</span><span class="n">all_connections</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="obj_conn_diagram"><a class="viewcode-back" href="../../visualization.html#nengo_extras.graphviz.obj_conn_diagram">[docs]</a><span class="k">def</span> <span class="nf">obj_conn_diagram</span><span class="p">(</span><span class="n">objs</span><span class="p">,</span> <span class="n">connections</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a .dot file showing nodes, ensmbles, and connections.</span>
+
+<span class="sd">    This can be useful for debugging and testing builders that manipulate</span>
+<span class="sd">    the model graph before construction.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    objs : list of Nodes and Ensembles</span>
+<span class="sd">        All the nodes and ensembles in the model.</span>
+<span class="sd">    connections : list of Connections</span>
+<span class="sd">        All the connections in the model.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    text : string</span>
+<span class="sd">        Text content of the desired .dot file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;digraph G {&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;  &quot;</span><span class="si">%d</span><span class="s1">&quot; [label=&quot;</span><span class="si">%s</span><span class="s1">&quot;];&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">obj</span><span class="o">.</span><span class="n">label</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="n">transform</span><span class="p">):</span>
+        <span class="c1"># determine the label for a connection based on its transform</span>
+        <span class="n">transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">transform</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">transform</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">x</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">transform</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">connections</span><span class="p">:</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;  &quot;</span><span class="si">%d</span><span class="s1">&quot; -&gt; &quot;</span><span class="si">%d</span><span class="s1">&quot; [label=&quot;</span><span class="si">%s</span><span class="s1">&quot;];&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">id</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">pre_obj</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">post_obj</span><span class="p">),</span> <span class="n">label</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">transform</span><span class="p">)))</span>
+    <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

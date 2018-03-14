@@ -1,0 +1,304 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>nengo_extras.camera &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<link rel="stylesheet" type="text/css" href="../../_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    ../../index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>nengo_extras.camera</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for nengo_extras.camera</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">BytesIO</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">import</span> <span class="nn">nengo</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="CameraPipeline"><a class="viewcode-back" href="../../vision.html#nengo_extras.camera.CameraPipeline">[docs]</a><span class="k">class</span> <span class="nc">CameraPipeline</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s1">&#39;/dev/video0&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">640</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">480</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">gi</span>
+        <span class="n">gi</span><span class="o">.</span><span class="n">require_version</span><span class="p">(</span><span class="s1">&#39;Gst&#39;</span><span class="p">,</span> <span class="s1">&#39;1.0&#39;</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">gi.repository</span> <span class="k">import</span> <span class="n">Gst</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gst</span> <span class="o">=</span> <span class="n">Gst</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parse</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sink</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jpeg</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_gst</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">init_gst</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gst</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gst</span><span class="o">.</span><span class="n">Pipeline</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;camera&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gst</span><span class="o">.</span><span class="n">ElementFactory</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;v4l2src&quot;</span><span class="p">,</span> <span class="s2">&quot;source&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s2">&quot;device&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parse</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gst</span><span class="o">.</span><span class="n">ElementFactory</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;jpegparse&quot;</span><span class="p">,</span> <span class="s2">&quot;parse&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sink</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gst</span><span class="o">.</span><span class="n">ElementFactory</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;appsink&quot;</span><span class="p">,</span> <span class="s2">&quot;sink&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sink</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s2">&quot;drop&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sink</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s2">&quot;max-buffers&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sink</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s2">&quot;emit-signals&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sink</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s2">&quot;sync&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sink</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;new-sample&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_from_sink</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sink</span><span class="p">)</span>
+
+        <span class="n">caps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gst</span><span class="o">.</span><span class="n">caps_from_string</span><span class="p">(</span>
+            <span class="s1">&#39;image/jpeg,width=</span><span class="si">%d</span><span class="s1">,height=</span><span class="si">%d</span><span class="s1">,framerate=30/1&#39;</span> <span class="o">%</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">link_filtered</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">,</span> <span class="n">caps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sink</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">frame_from_sink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sink</span><span class="p">):</span>
+        <span class="n">sample</span> <span class="o">=</span> <span class="n">sink</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s2">&quot;pull-sample&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sample</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">buffer</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">get_buffer</span><span class="p">()</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">extract_dup</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">buffer</span><span class="o">.</span><span class="n">get_size</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">jpeg</span> <span class="o">=</span> <span class="n">string</span>
+
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Gst</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="n">PAUSED</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Gst</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="n">PLAYING</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Gst</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="n">NULL</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CameraData"><a class="viewcode-back" href="../../vision.html#nengo_extras.camera.CameraData">[docs]</a><span class="k">class</span> <span class="nc">CameraData</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">keep_aspect</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">PIL.Image</span>
+        <span class="kn">import</span> <span class="nn">PIL.ImageFile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PILImage</span> <span class="o">=</span> <span class="n">PIL</span><span class="o">.</span><span class="n">Image</span>
+
+        <span class="n">PIL</span><span class="o">.</span><span class="n">ImageFile</span><span class="o">.</span><span class="n">LOAD_TRUNCATED_IMAGES</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">width</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="n">height</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span> <span class="o">=</span> <span class="n">channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keep_aspect</span> <span class="o">=</span> <span class="n">keep_aspect</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jpeg</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">set_jpeg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">jpeg</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jpeg</span> <span class="o">=</span> <span class="n">jpeg</span>
+
+        <span class="n">buffer</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+        <span class="n">buffer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">jpeg</span><span class="p">)</span>
+        <span class="n">buffer</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">PILImage</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">buffer</span><span class="p">)</span>
+        <span class="n">camshape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">image</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">width</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">keep_aspect</span><span class="p">:</span>
+            <span class="n">aspect</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span>
+
+            <span class="n">crop0</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">camshape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">camshape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">aspect</span><span class="p">)</span>
+            <span class="n">cropshape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">crop0</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">crop0</span><span class="o">*</span><span class="n">aspect</span><span class="p">)])</span>
+            <span class="n">crop_a</span> <span class="o">=</span> <span class="p">(</span><span class="n">camshape</span> <span class="o">-</span> <span class="n">cropshape</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="n">crop_b</span> <span class="o">=</span> <span class="n">crop_a</span> <span class="o">+</span> <span class="n">cropshape</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">crop</span><span class="p">((</span><span class="n">crop_a</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">crop_a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">crop_b</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">crop_b</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">))</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>  <span class="c1"># put color channel first</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="n">array</span></div>
+
+
+<div class="viewcode-block" id="Camera"><a class="viewcode-back" href="../../vision.html#nengo_extras.camera.Camera">[docs]</a><span class="k">class</span> <span class="nc">Camera</span><span class="p">(</span><span class="n">nengo</span><span class="o">.</span><span class="n">Process</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">offset</span><span class="o">=-</span><span class="mi">128</span><span class="p">,</span>
+                 <span class="n">device</span><span class="o">=</span><span class="s1">&#39;/dev/video0&#39;</span><span class="p">,</span> <span class="n">cam_width</span><span class="o">=</span><span class="mi">640</span><span class="p">,</span> <span class="n">cam_height</span><span class="o">=</span><span class="mi">480</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">CameraPipeline</span><span class="p">(</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">cam_width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">cam_height</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">offset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">framerate</span> <span class="o">=</span> <span class="mf">0.1</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Camera</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">default_size_in</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">default_size_out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">make_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape_in</span><span class="p">,</span> <span class="n">shape_out</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">rng</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">shape_in</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)</span>
+        <span class="k">assert</span> <span class="n">shape_out</span> <span class="o">==</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,)</span>
+
+        <span class="c1"># pipeline = CameraPipeline(self.device)</span>
+        <span class="n">pipeline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">CameraData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">)</span>
+        <span class="n">zero_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">))</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset</span>
+        <span class="n">framerate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">framerate</span>
+
+        <span class="k">def</span> <span class="nf">step_camera</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+            <span class="n">pipeline</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="n">data</span><span class="o">.</span><span class="n">time</span> <span class="o">&gt;</span> <span class="n">framerate</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">set_jpeg</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">jpeg</span><span class="p">)</span>
+
+            <span class="n">array</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">array</span> <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">array</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">zero_image</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">array</span> <span class="o">+</span> <span class="n">offset</span>
+            <span class="k">return</span> <span class="n">array</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">step_camera</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

@@ -1,0 +1,367 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>nengo_extras.vision &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<link rel="stylesheet" type="text/css" href="../../_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    ../../index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>nengo_extras.vision</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for nengo_extras.vision</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">nengo.dists</span> <span class="k">import</span> <span class="n">Choice</span><span class="p">,</span> <span class="n">Uniform</span><span class="p">,</span> <span class="n">DistributionParam</span>
+<span class="kn">from</span> <span class="nn">nengo.params</span> <span class="k">import</span> <span class="n">FrozenObject</span><span class="p">,</span> <span class="n">TupleParam</span>
+<span class="kn">from</span> <span class="nn">nengo.utils.compat</span> <span class="k">import</span> <span class="nb">range</span>
+<span class="kn">import</span> <span class="nn">nengo.utils.numpy</span> <span class="k">as</span> <span class="nn">npext</span>
+
+
+<div class="viewcode-block" id="Gabor"><a class="viewcode-back" href="../../vision.html#nengo_extras.vision.Gabor">[docs]</a><span class="k">class</span> <span class="nc">Gabor</span><span class="p">(</span><span class="n">FrozenObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Describes a random generator for Gabor filters.&quot;&quot;&quot;</span>
+
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">DistributionParam</span><span class="p">(</span><span class="s1">&#39;theta&#39;</span><span class="p">)</span>
+    <span class="n">freq</span> <span class="o">=</span> <span class="n">DistributionParam</span><span class="p">(</span><span class="s1">&#39;freq&#39;</span><span class="p">)</span>
+    <span class="n">phase</span> <span class="o">=</span> <span class="n">DistributionParam</span><span class="p">(</span><span class="s1">&#39;phase&#39;</span><span class="p">)</span>
+    <span class="n">sigma_x</span> <span class="o">=</span> <span class="n">DistributionParam</span><span class="p">(</span><span class="s1">&#39;sigma_x&#39;</span><span class="p">)</span>
+    <span class="n">sigma_y</span> <span class="o">=</span> <span class="n">DistributionParam</span><span class="p">(</span><span class="s1">&#39;sigma_y&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">Uniform</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="n">Uniform</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+                 <span class="n">phase</span><span class="o">=</span><span class="n">Uniform</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span>
+                 <span class="n">sigma_x</span><span class="o">=</span><span class="n">Choice</span><span class="p">([</span><span class="mf">0.45</span><span class="p">]),</span> <span class="n">sigma_y</span><span class="o">=</span><span class="n">Choice</span><span class="p">([</span><span class="mf">0.45</span><span class="p">])):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Gabor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">theta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">=</span> <span class="n">freq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma_x</span> <span class="o">=</span> <span class="n">sigma_x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma_y</span> <span class="o">=</span> <span class="n">sigma_y</span>
+
+    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="mf">1.</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="n">thetas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">phases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">sigma_xs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_x</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">sigma_ys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_y</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+        <span class="n">c</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">thetas</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">thetas</span><span class="p">)</span>
+        <span class="n">X1</span> <span class="o">=</span> <span class="n">X</span> <span class="o">*</span> <span class="n">c</span> <span class="o">+</span> <span class="n">Y</span> <span class="o">*</span> <span class="n">s</span>
+        <span class="n">Y1</span> <span class="o">=</span> <span class="o">-</span><span class="n">X</span> <span class="o">*</span> <span class="n">s</span> <span class="o">+</span> <span class="n">Y</span> <span class="o">*</span> <span class="n">c</span>
+
+        <span class="n">gabors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">((</span><span class="n">X1</span> <span class="o">/</span> <span class="n">sigma_xs</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">Y1</span> <span class="o">/</span> <span class="n">sigma_ys</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">gabors</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="n">freqs</span> <span class="o">*</span> <span class="n">X1</span> <span class="o">+</span> <span class="n">phases</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">norm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">gabors</span> <span class="o">*=</span> <span class="n">norm</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">gabors</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">gabors</span></div>
+
+
+<div class="viewcode-block" id="Mask"><a class="viewcode-back" href="../../vision.html#nengo_extras.vision.Mask">[docs]</a><span class="k">class</span> <span class="nc">Mask</span><span class="p">(</span><span class="n">FrozenObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Describes a sparse receptive-field mask for encoders.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image_shape : 2- or 3-tuple</span>
+<span class="sd">        Shape of the input image, either (height, witdh) or</span>
+<span class="sd">        (channels, height, width).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">image_shape</span> <span class="o">=</span> <span class="n">TupleParam</span><span class="p">(</span><span class="s1">&#39;image_shape&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_shape</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Mask</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">image_shape</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">image_shape</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span>
+                       <span class="n">image_shape</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image_shape</span> <span class="o">=</span> <span class="n">image_shape</span>
+
+    <span class="k">def</span> <span class="nf">_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">rng</span><span class="p">):</span>
+        <span class="n">diff_shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="c1"># find random positions for top-left corner of each RF</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="n">diff_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="n">diff_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span>
+
+    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="p">,</span> <span class="n">flatten</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">shape</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">shape</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
+
+        <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">rng</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;bool&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">mask</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span><span class="n">i</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">+</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">j</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span><span class="n">j</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">+</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="n">mask</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">flatten</span> <span class="k">else</span> <span class="n">mask</span>
+
+    <span class="k">def</span> <span class="nf">populate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="p">,</span> <span class="n">flatten</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">filters</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">filters</span><span class="o">.</span><span class="n">ndim</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+        <span class="n">n</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span> <span class="n">filters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">filters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="n">channels</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">filters</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="n">filters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">channels</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">rng</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">filters</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">output</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span><span class="n">i</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">+</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">j</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span><span class="n">j</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">+</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">filters</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">output</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">flatten</span> <span class="k">else</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="ciw_encoders"><a class="viewcode-back" href="../../vision.html#nengo_extras.vision.ciw_encoders">[docs]</a><span class="k">def</span> <span class="nf">ciw_encoders</span><span class="p">(</span><span class="n">n_encoders</span><span class="p">,</span> <span class="n">trainX</span><span class="p">,</span> <span class="n">trainY</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="p">,</span>
+                 <span class="n">normalize_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalize_encoders</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Computed Input Weights (CIW) method for encoders from data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    n_encoders : int</span>
+<span class="sd">        Number of encoders to generate.</span>
+<span class="sd">    trainX : (n_samples, n_dimensions) array-like</span>
+<span class="sd">        Training features.</span>
+<span class="sd">    trainY : (n_samples,) array-like</span>
+<span class="sd">        Training labels.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    encoders : (n_encoders, n_dimensions) array</span>
+<span class="sd">        Generated encoders.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] McDonnell, M. D., Tissera, M. D., Vladusich, T., Van Schaik, A.,</span>
+<span class="sd">       Tapson, J., &amp; Schwenker, F. (2015). Fast, simple and accurate</span>
+<span class="sd">       handwritten digit classification by training shallow neural network</span>
+<span class="sd">       classifiers with the &quot;Extreme learning machine&quot; algorithm. PLoS ONE,</span>
+<span class="sd">       10(8), 1-20. doi:10.1371/journal.pone.0134254</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">trainX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">trainY</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">trainX</span> <span class="o">=</span> <span class="n">trainX</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">trainX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">trainY</span> <span class="o">=</span> <span class="n">trainY</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">classes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">trainY</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">n_encoders</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="n">n_enc_per_class</span> <span class="o">=</span> <span class="n">n_encoders</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span>
+
+    <span class="c1"># normalize</span>
+    <span class="k">if</span> <span class="n">normalize_data</span><span class="p">:</span>
+        <span class="n">trainX</span> <span class="o">=</span> <span class="p">(</span><span class="n">trainX</span> <span class="o">-</span> <span class="n">trainX</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">/</span> <span class="n">trainX</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+        <span class="c1"># trainX = (trainX - trainX.mean(axis=0)) / trainX.std()</span>
+        <span class="c1"># trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0) + 1e-8)</span>
+
+    <span class="c1"># generate</span>
+    <span class="n">encoders</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">:</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">trainX</span><span class="p">[</span><span class="n">trainY</span> <span class="o">==</span> <span class="n">label</span><span class="p">]</span>
+        <span class="n">plusminus</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n_enc_per_class</span><span class="p">))</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">plusminus</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
+        <span class="n">encoders</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+
+    <span class="n">encoders</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">encoders</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">normalize_encoders</span><span class="p">:</span>
+        <span class="n">encoders</span> <span class="o">/=</span> <span class="n">npext</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">encoders</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">encoders</span></div>
+
+
+<div class="viewcode-block" id="cd_encoders_biases"><a class="viewcode-back" href="../../vision.html#nengo_extras.vision.cd_encoders_biases">[docs]</a><span class="k">def</span> <span class="nf">cd_encoders_biases</span><span class="p">(</span><span class="n">n_encoders</span><span class="p">,</span> <span class="n">trainX</span><span class="p">,</span> <span class="n">trainY</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">norm_min</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">norm_tries</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Constrained difference (CD) method for encoders from data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    n_encoders : int</span>
+<span class="sd">        Number of encoders to generate.</span>
+<span class="sd">    trainX : (n_samples, n_dimensions) array-like</span>
+<span class="sd">        Training features.</span>
+<span class="sd">    trainY : (n_samples,) array-like</span>
+<span class="sd">        Training labels.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    encoders : (n_encoders, n_dimensions) array</span>
+<span class="sd">        Generated encoders.</span>
+<span class="sd">    biases : (n_encoders,) array</span>
+<span class="sd">        Generated biases. These are biases assuming ``f = G[E * X + b]``,</span>
+<span class="sd">        and are therefore more like Nengo&#39;s ``intercepts``.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] McDonnell, M. D., Tissera, M. D., Vladusich, T., Van Schaik, A.,</span>
+<span class="sd">       Tapson, J., &amp; Schwenker, F. (2015). Fast, simple and accurate</span>
+<span class="sd">       handwritten digit classification by training shallow neural network</span>
+<span class="sd">       classifiers with the &quot;Extreme learning machine&quot; algorithm. PLoS ONE,</span>
+<span class="sd">       10(8), 1-20. doi:10.1371/journal.pone.0134254</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">trainX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">trainY</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">trainX</span> <span class="o">=</span> <span class="n">trainX</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">trainX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">trainY</span> <span class="o">=</span> <span class="n">trainY</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">trainX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">classes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">trainY</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">n_encoders</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+
+    <span class="n">inds</span> <span class="o">=</span> <span class="p">[(</span><span class="n">trainY</span> <span class="o">==</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">]</span>
+    <span class="n">train_norm</span> <span class="o">=</span> <span class="n">npext</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">trainX</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+    <span class="n">encoders</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_encoders</span><span class="p">,</span> <span class="n">d</span><span class="p">))</span>
+    <span class="n">biases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_encoders</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_encoders</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">norm_tries</span><span class="p">):</span>
+            <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">trainX</span><span class="p">[</span><span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">inds</span><span class="p">[</span><span class="n">i</span><span class="p">])],</span> <span class="n">trainX</span><span class="p">[</span><span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">inds</span><span class="p">[</span><span class="n">j</span><span class="p">])]</span>
+            <span class="n">dab</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span>
+            <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">dab</span> <span class="o">*=</span> <span class="n">mask</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">ndab</span> <span class="o">=</span> <span class="n">npext</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dab</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+            <span class="k">if</span> <span class="n">ndab</span> <span class="o">&gt;=</span> <span class="n">norm_min</span> <span class="o">*</span> <span class="n">train_norm</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find valid encoder&quot;</span><span class="p">)</span>
+
+        <span class="n">encoders</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.</span> <span class="o">/</span> <span class="n">ndab</span><span class="p">)</span> <span class="o">*</span> <span class="n">dab</span>
+        <span class="n">biases</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">,</span> <span class="n">dab</span><span class="p">)</span> <span class="o">/</span> <span class="n">ndab</span>
+
+    <span class="k">return</span> <span class="n">encoders</span><span class="p">,</span> <span class="n">biases</span></div>
+
+
+<div class="viewcode-block" id="percentile_biases"><a class="viewcode-back" href="../../vision.html#nengo_extras.vision.percentile_biases">[docs]</a><span class="k">def</span> <span class="nf">percentile_biases</span><span class="p">(</span><span class="n">encoders</span><span class="p">,</span> <span class="n">trainX</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Pick biases such that neurons are active for a percentile of inputs.&quot;&quot;&quot;</span>
+    <span class="n">trainX</span> <span class="o">=</span> <span class="n">trainX</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">trainX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">trainX</span><span class="p">,</span> <span class="n">encoders</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">biases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">percentile</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">biases</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

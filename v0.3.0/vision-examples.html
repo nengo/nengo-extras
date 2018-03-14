@@ -1,0 +1,268 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>Vision examples &#8212; Nengo extras 0.1.1.dev0 docs</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.1.dev0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Encoding for image recognition" href="examples/mnist_single_layer.html" />
+    <link rel="prev" title="Vision models" href="vision.html" />
+<link rel="stylesheet" type="text/css" href="_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="examples/mnist_single_layer.html" title="Encoding for image recognition"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vision.html" title="Vision models"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo extras 0.1.1.dev0 docs</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    index.html" class="text-logo">Nengo extras 0.1</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deeplearning-examples.html">Deep learning examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processes.html">Processes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision.html">Vision models</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Vision examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#classifying-mnist-with-nengo">Classifying MNIST with Nengo</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/mnist_single_layer.html"> As a notebook</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization-examples.html">Visualization examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gephi-tutorial.html">Visualizing Nengo networks with Gephi</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="index.html">Docs</a></li>
+              
+              <li>Vision examples</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="vision-examples">
+<h1>Vision examples<a class="headerlink" href="#vision-examples" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="classifying-mnist-with-nengo">
+<h2>Classifying MNIST with Nengo<a class="headerlink" href="#classifying-mnist-with-nengo" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Single-layer NEF network applied to MNIST</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">nengo</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">nengo_extras.data</span> <span class="kn">import</span> <span class="n">load_mnist</span>
+<span class="kn">from</span> <span class="nn">nengo_extras.vision</span> <span class="kn">import</span> <span class="n">Gabor</span><span class="p">,</span> <span class="n">Mask</span>
+<span class="kn">from</span> <span class="nn">nengo_extras.gui</span> <span class="kn">import</span> <span class="n">image_display_function</span>
+
+
+<span class="k">def</span> <span class="nf">one_hot</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">labels</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">c</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">c</span><span class="p">))</span>
+    <span class="n">y</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">labels</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">y</span>
+
+
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span>
+
+
+<span class="c1"># --- load the data</span>
+<span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">),</span> <span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">)</span> <span class="o">=</span> <span class="n">load_mnist</span><span class="p">()</span>
+
+<span class="n">X_train</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">X_train</span> <span class="o">-</span> <span class="mi">1</span>  <span class="c1"># normalize to -1 to 1</span>
+<span class="n">X_test</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">X_test</span> <span class="o">-</span> <span class="mi">1</span>  <span class="c1"># normalize to -1 to 1</span>
+
+<span class="n">train_targets</span> <span class="o">=</span> <span class="n">one_hot</span><span class="p">(</span><span class="n">y_train</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">test_targets</span> <span class="o">=</span> <span class="n">one_hot</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># --- set up network parameters</span>
+<span class="n">n_vis</span> <span class="o">=</span> <span class="n">X_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">n_out</span> <span class="o">=</span> <span class="n">train_targets</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">n_hid</span> <span class="o">=</span> <span class="mi">1000</span>
+
+<span class="n">encoders</span> <span class="o">=</span> <span class="n">Gabor</span><span class="p">()</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">n_hid</span><span class="p">,</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
+<span class="n">encoders</span> <span class="o">=</span> <span class="n">Mask</span><span class="p">((</span><span class="mi">28</span><span class="p">,</span> <span class="mi">28</span><span class="p">))</span><span class="o">.</span><span class="n">populate</span><span class="p">(</span><span class="n">encoders</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">,</span> <span class="n">flatten</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="n">ens_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">eval_points</span><span class="o">=</span><span class="n">X_train</span><span class="p">,</span>
+    <span class="n">neuron_type</span><span class="o">=</span><span class="n">nengo</span><span class="o">.</span><span class="n">LIFRate</span><span class="p">(),</span>
+    <span class="n">intercepts</span><span class="o">=</span><span class="n">nengo</span><span class="o">.</span><span class="n">dists</span><span class="o">.</span><span class="n">Choice</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">]),</span>
+    <span class="n">max_rates</span><span class="o">=</span><span class="n">nengo</span><span class="o">.</span><span class="n">dists</span><span class="o">.</span><span class="n">Choice</span><span class="p">([</span><span class="mi">100</span><span class="p">]),</span>
+    <span class="n">encoders</span><span class="o">=</span><span class="n">encoders</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<span class="n">solver</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">solvers</span><span class="o">.</span><span class="n">LstsqL2</span><span class="p">(</span><span class="n">reg</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+
+<span class="n">presentation_time</span> <span class="o">=</span> <span class="mf">0.1</span>
+
+<span class="k">with</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Network</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span> <span class="k">as</span> <span class="n">model</span><span class="p">:</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">nengo</span><span class="o">.</span><span class="n">processes</span><span class="o">.</span><span class="n">PresentInput</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">presentation_time</span><span class="p">))</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Ensemble</span><span class="p">(</span><span class="n">n_hid</span><span class="p">,</span> <span class="n">n_vis</span><span class="p">,</span> <span class="o">**</span><span class="n">ens_params</span><span class="p">)</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">size_in</span><span class="o">=</span><span class="n">n_out</span><span class="p">)</span>
+    <span class="n">nengo</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">synapse</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">synapse</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">eval_points</span><span class="o">=</span><span class="n">X_train</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="n">train_targets</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">)</span>
+
+    <span class="c1"># --- image display</span>
+    <span class="n">image_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">28</span><span class="p">)</span>
+    <span class="n">display_f</span> <span class="o">=</span> <span class="n">image_display_function</span><span class="p">(</span><span class="n">image_shape</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+    <span class="n">display_node</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">display_f</span><span class="p">,</span> <span class="n">size_in</span><span class="o">=</span><span class="n">u</span><span class="o">.</span><span class="n">size_out</span><span class="p">)</span>
+    <span class="n">nengo</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">display_node</span><span class="p">,</span> <span class="n">synapse</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+    <span class="c1"># --- output spa display</span>
+    <span class="n">vocab_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ZERO&#39;</span><span class="p">,</span> <span class="s1">&#39;ONE&#39;</span><span class="p">,</span> <span class="s1">&#39;TWO&#39;</span><span class="p">,</span> <span class="s1">&#39;THREE&#39;</span><span class="p">,</span> <span class="s1">&#39;FOUR&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;FIVE&#39;</span><span class="p">,</span> <span class="s1">&#39;SIX&#39;</span><span class="p">,</span> <span class="s1">&#39;SEVEN&#39;</span><span class="p">,</span> <span class="s1">&#39;EIGHT&#39;</span><span class="p">,</span> <span class="s1">&#39;NINE&#39;</span><span class="p">]</span>
+    <span class="n">vocab_vectors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab_names</span><span class="p">))</span>
+
+    <span class="n">vocab</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">spa</span><span class="o">.</span><span class="n">Vocabulary</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab_names</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">vector</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">vocab_names</span><span class="p">,</span> <span class="n">vocab_vectors</span><span class="p">):</span>
+        <span class="n">vocab</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">vector</span><span class="p">)</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">nengo</span><span class="o">.</span><span class="n">Ensemble</span><span class="p">)</span>
+    <span class="n">config</span><span class="p">[</span><span class="n">nengo</span><span class="o">.</span><span class="n">Ensemble</span><span class="p">]</span><span class="o">.</span><span class="n">neuron_type</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Direct</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">config</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">spa</span><span class="o">.</span><span class="n">State</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab_names</span><span class="p">),</span> <span class="n">subdimensions</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">)</span>
+    <span class="n">nengo</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">output</span><span class="o">.</span><span class="n">input</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/mnist_single_layer.html"> As a notebook</a></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+            
+  <div class="footer-relations">
+    
+      <div class="pull-left">
+        <a class="btn btn-default" href="vision.html" title="previous chapter (use the left arrow)">Vision models</a>
+      </div>
+    
+      <div class="pull-right">
+        <a class="btn btn-default" href="examples/mnist_single_layer.html" title="next chapter (use the right arrow)">Encoding for image recognition</a>
+      </div>
+    </div>
+    <div class="clearer"></div>
+  
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="examples/mnist_single_layer.html" title="Encoding for image recognition"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vision.html" title="Vision models"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo extras 0.1.1.dev0 docs</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

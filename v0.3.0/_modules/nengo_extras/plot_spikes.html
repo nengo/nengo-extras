@@ -1,0 +1,371 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>nengo_extras.plot_spikes &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<link rel="stylesheet" type="text/css" href="../../_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    ../../index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>nengo_extras.plot_spikes</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for nengo_extras.plot_spikes</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Creation of informative spike raster plots.</span>
+
+<span class="sd">This module provides the `plot_spikes` function to easily create a spike raster</span>
+<span class="sd">plot. Often such a plot is more informative with some preprocessing on the</span>
+<span class="sd">spike trains that selects those with a high variance (i.e., changes in firing</span>
+<span class="sd">rate) and orders them according to similarity. Such a preprocessing is provided</span>
+<span class="sd">by the `preprocess_spikes` function. Thus, to create a quick spike raster plot</span>
+<span class="sd">with such preprocessing::</span>
+
+<span class="sd">    plot_spikes(*preprocess_spikes(t, spikes))</span>
+
+<span class="sd">Functions for the individual preprocessing steps (and some alternatives) can</span>
+<span class="sd">also be found in this model to allow to fine-tune the preprocessing according</span>
+<span class="sd">to the data.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<span class="n">cm_gray_r_a</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span>
+    <span class="s1">&#39;gray_r_a&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)])</span>
+
+
+<div class="viewcode-block" id="plot_spikes"><a class="viewcode-back" href="../../visualization.html#nengo_extras.plot_spikes.plot_spikes">[docs]</a><span class="k">def</span> <span class="nf">plot_spikes</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">spikes</span><span class="p">,</span> <span class="n">contrast_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plots a spike raster.</span>
+
+<span class="sd">    Will use an alpha channel by default which allows to plot colored regions</span>
+<span class="sd">    below the spike raster to add highlights. You can set the *cmap* keyword</span>
+<span class="sd">    argument to a different color map like *matplotlib.cm.gray_r* to get an</span>
+<span class="sd">    opaque spike raster.</span>
+
+<span class="sd">    Utilizes Matplotlib&#39;s *imshow*.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    t : (n,) array</span>
+<span class="sd">        Time indices of *spike* matrix. The indices are assumed to be</span>
+<span class="sd">        equidistant.</span>
+<span class="sd">    spikes : (n, m) array</span>
+<span class="sd">        Spike data for *m* neurons at *n* time points.</span>
+<span class="sd">    contrast_scale : float, optional</span>
+<span class="sd">        Scales the contrst of the spike raster. This value multiplied with the</span>
+<span class="sd">        maximum value in *spikes* will determine the minimum *spike* value to</span>
+<span class="sd">        appear black (or the corresponding color of the chosen colormap).</span>
+<span class="sd">    ax : matplotlib.axes.Axes, optional</span>
+<span class="sd">        Axes to plot onto. Uses the current axes by default.</span>
+<span class="sd">    kwargs : dict</span>
+<span class="sd">        Additional keyword arguments will be passed on to *imshow*.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    matplotlib.image.AxesImage</span>
+<span class="sd">        The spikeraster.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">spikes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">spikes</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;aspect&#39;</span><span class="p">,</span> <span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;cmap&#39;</span><span class="p">,</span> <span class="n">cm_gray_r_a</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;interpolation&#39;</span><span class="p">,</span> <span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;extent&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">spikes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+    <span class="n">spikeraster</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">spikes</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">spikeraster</span><span class="o">.</span><span class="n">set_clim</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">spikes</span><span class="p">)</span> <span class="o">*</span> <span class="n">contrast_scale</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">spikeraster</span></div>
+
+
+<div class="viewcode-block" id="preprocess_spikes"><a class="viewcode-back" href="../../visualization.html#nengo_extras.plot_spikes.preprocess_spikes">[docs]</a><span class="k">def</span> <span class="nf">preprocess_spikes</span><span class="p">(</span>
+        <span class="n">t</span><span class="p">,</span> <span class="n">spikes</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">sample_size</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">sample_filter_width</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
+        <span class="n">cluster_filter_width</span><span class="o">=</span><span class="mf">0.002</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Applies a default preprocessing to spike data for plotting.</span>
+
+<span class="sd">    This will first sample by variance, then cluster the spike trains, and</span>
+<span class="sd">    finally merge them. See `sample_by_variance`, `cluster`, and `merge` for</span>
+<span class="sd">    details.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    t : (n,) array</span>
+<span class="sd">        Time indices of *spike* matrix. The indices are assumed to be</span>
+<span class="sd">        equidistant.</span>
+<span class="sd">    spikes : (n, m) array</span>
+<span class="sd">        Spike data for *m* neurons at *n* time points.</span>
+<span class="sd">    num : int, optional</span>
+<span class="sd">        Number of spike trains to return after merging.</span>
+<span class="sd">    sample_size : int, optional</span>
+<span class="sd">        Number of spike trains to sample by variance.</span>
+<span class="sd">    sample_filter_width : float, optional</span>
+<span class="sd">        Gaussian filter width in seconds for sampling by variance.</span>
+<span class="sd">    cluster_filter_width : float, optional</span>
+<span class="sd">        Gaussian filter width in seconds for clustering.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple (t, selected_spikes)</span>
+<span class="sd">        Returns the time indices *t* and the preprocessed spike trains</span>
+<span class="sd">        *spikes*.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">merge</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">cluster</span><span class="p">(</span>
+            <span class="o">*</span><span class="n">sample_by_variance</span><span class="p">(</span>
+                <span class="n">t</span><span class="p">,</span> <span class="n">spikes</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">sample_size</span><span class="p">,</span> <span class="n">filter_width</span><span class="o">=</span><span class="n">sample_filter_width</span><span class="p">),</span>
+            <span class="n">filter_width</span><span class="o">=</span><span class="n">cluster_filter_width</span><span class="p">),</span>
+        <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="cluster"><a class="viewcode-back" href="../../visualization.html#nengo_extras.plot_spikes.cluster">[docs]</a><span class="k">def</span> <span class="nf">cluster</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">spikes</span><span class="p">,</span> <span class="n">filter_width</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Change order of spike trains to have similar ones close together.</span>
+
+<span class="sd">    Requires SciPy.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    t : (n,) array</span>
+<span class="sd">        Time indices of *spike* matrix. The indices are assumed to be</span>
+<span class="sd">        equidistant.</span>
+<span class="sd">    spikes : (n, m) array</span>
+<span class="sd">        Spike data for *m* neurons at *n* time points.</span>
+<span class="sd">    filter_width : float</span>
+<span class="sd">        Gaussian filter width in seconds, controls the time scale the</span>
+<span class="sd">        clustering is sensitive to.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple (t, selected_spikes)</span>
+<span class="sd">        Returns the time indices *t* and the selected spike trains *spikes*.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="k">import</span> <span class="n">linkage</span><span class="p">,</span> <span class="n">to_tree</span>
+    <span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="k">import</span> <span class="n">gaussian_filter1d</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">filtered</span> <span class="o">=</span> <span class="n">gaussian_filter1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asfarray</span><span class="p">(</span><span class="n">spikes</span><span class="p">),</span>
+                                 <span class="n">filter_width</span> <span class="o">/</span> <span class="n">dt</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">to_tree</span><span class="p">(</span><span class="n">linkage</span><span class="p">(</span><span class="n">filtered</span><span class="o">.</span><span class="n">T</span><span class="p">))</span><span class="o">.</span><span class="n">pre_order</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">spikes</span><span class="p">[:,</span> <span class="n">order</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="merge"><a class="viewcode-back" href="../../visualization.html#nengo_extras.plot_spikes.merge">[docs]</a><span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">spikes</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+    <span class="n">spikes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">spikes</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">spikes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">num</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">spikes</span>
+
+    <span class="n">blocksize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">spikes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">num</span><span class="p">))</span>
+    <span class="n">merged</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">spikes</span><span class="p">[:,</span> <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">blocksize</span><span class="p">):((</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">blocksize</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">)])</span><span class="o">.</span><span class="n">T</span>
+    <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">merged</span></div>
+
+
+<div class="viewcode-block" id="sample_by_variance"><a class="viewcode-back" href="../../visualization.html#nengo_extras.plot_spikes.sample_by_variance">[docs]</a><span class="k">def</span> <span class="nf">sample_by_variance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">spikes</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">filter_width</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Samples the spike trains with the highest variance.</span>
+
+<span class="sd">    Requires SciPy.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    t : (n,) array</span>
+<span class="sd">        Time indices of *spike* matrix. The indices are assumed to be</span>
+<span class="sd">        equidistant.</span>
+<span class="sd">    spikes : (n, m) array</span>
+<span class="sd">        Spike data for *m* neurons at *n* time points.</span>
+<span class="sd">    num : int</span>
+<span class="sd">        Number of spike trains to return.</span>
+<span class="sd">    filter_width : float</span>
+<span class="sd">        Gaussian filter width in seconds, controls the time scale the variance</span>
+<span class="sd">        calculation is sensitive to.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple (t, selected_spikes)</span>
+<span class="sd">        Returns the time indices *t* and the selected spike trains *spikes*.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="k">import</span> <span class="n">gaussian_filter1d</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">filtered</span> <span class="o">=</span> <span class="n">gaussian_filter1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asfarray</span><span class="p">(</span><span class="n">spikes</span><span class="p">),</span>
+                                 <span class="n">filter_width</span> <span class="o">/</span> <span class="n">dt</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">selected</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">filtered</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))[</span><span class="o">-</span><span class="mi">1</span><span class="p">:(</span><span class="o">-</span><span class="n">num</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">spikes</span><span class="p">[:,</span> <span class="n">selected</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="sample_by_activity"><a class="viewcode-back" href="../../visualization.html#nengo_extras.plot_spikes.sample_by_activity">[docs]</a><span class="k">def</span> <span class="nf">sample_by_activity</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">spikes</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">blocksize</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Samples the spike trains with the highest spiking activity.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    t : (n,) array</span>
+<span class="sd">        Time indices of *spike* matrix. The indices are assumed to be</span>
+<span class="sd">        equidistant.</span>
+<span class="sd">    spikes : (n, m) array</span>
+<span class="sd">        Spike data for *m* neurons at *n* time points.</span>
+<span class="sd">    num : int</span>
+<span class="sd">        Number of spike trains to return.</span>
+<span class="sd">    blocksize : int, optional</span>
+<span class="sd">        If not *None*, the spike trains will be divided into blocks of this</span>
+<span class="sd">        size and the highest activity spike trains are obtained for each block</span>
+<span class="sd">        individually.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple (t, selected_spikes)</span>
+<span class="sd">        Returns the time indices *t* and the selected spike trains *spikes*.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">spikes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">spikes</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">spikes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">num</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">spikes</span>
+
+    <span class="k">if</span> <span class="n">blocksize</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">blocksize</span> <span class="o">=</span> <span class="n">spikes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">selected</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">num</span><span class="p">))</span>
+    <span class="n">n_blocks</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">spikes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="n">blocksize</span><span class="p">))</span>
+    <span class="n">n_sel</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_blocks</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">):</span>
+        <span class="n">block</span> <span class="o">=</span> <span class="n">spikes</span><span class="p">[:,</span> <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">blocksize</span><span class="p">):((</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">blocksize</span><span class="p">)]</span>
+        <span class="n">activity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">selected</span><span class="p">[:,</span> <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">n_sel</span><span class="p">):((</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">n_sel</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">block</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">activity</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">:(</span><span class="o">-</span><span class="n">n_sel</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+
+    <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">selected</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

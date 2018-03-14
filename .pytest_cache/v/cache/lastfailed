@@ -1,0 +1,8 @@
+{
+  "nengo_extras/networks/tests/test_matrix_multiplication.py::test_matrix_mult": true,
+  "nengo_extras/tests/test_loihi_training.py::test_install_on_instantiation": true,
+  "nengo_extras/tests/test_loihi_training.py::test_nengo_dl_neuron_grads[neuron_type0]": true,
+  "nengo_extras/tests/test_loihi_training.py::test_nengo_dl_neuron_grads[neuron_type1]": true,
+  "nengo_extras/tests/test_loihi_training.py::test_nengo_dl_noise[neuron_type0]": true,
+  "nengo_extras/tests/test_loihi_training.py::test_nengo_dl_noise[neuron_type1]": true
+}

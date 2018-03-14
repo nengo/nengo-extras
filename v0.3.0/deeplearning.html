@@ -1,0 +1,885 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>Deep learning &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="MNIST classifier with Keras and Nengo" href="examples/keras/mnist_spiking_cnn.html" />
+    <link rel="prev" title="Nengo extras" href="index.html" />
+<link rel="stylesheet" type="text/css" href="_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="examples/keras/mnist_spiking_cnn.html" title="MNIST classifier with Keras and Nengo"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Nengo extras"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo extras 0.3.0 docs</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Deep learning</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/keras/mnist_spiking_cnn.html">MNIST classifier with Keras and Nengo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/cuda_convnet/cifar10_spiking_cnn.html">CIFAR-10 classifier with a spiking CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/cuda_convnet/imagenet_spiking_cnn.html">ImageNet ILSVRC-2012 classifier with a spiking CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#datasets">Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#keras">Keras</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#networks">Networks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#processes">Processes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="index.html">Docs</a></li>
+              
+              <li>Deep learning</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="deep-learning">
+<h1>Deep learning<a class="headerlink" href="#deep-learning" title="Permalink to this headline">¶</a></h1>
+<p>Classes and utilities for doing deep learning with Nengo.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">These utilities were created before <a class="reference external" href="https://www.nengo.ai/nengo-dl">Nengo DL</a>,
+which provides tighter integration between
+Nengo and TensorFlow.
+If you are new to Nengo or new to doing deep learning in Nengo,
+we recommend that you first check out <a class="reference external" href="https://www.nengo.ai/nengo-dl">Nengo DL</a>
+to see if it fits your use case.</p>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/keras/mnist_spiking_cnn.html">MNIST classifier with Keras and Nengo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/cuda_convnet/cifar10_spiking_cnn.html">CIFAR-10 classifier with a spiking CNN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/cuda_convnet/imagenet_spiking_cnn.html">ImageNet ILSVRC-2012 classifier with a spiking CNN</a></li>
+</ul>
+</div>
+<div class="section" id="datasets">
+<h2>Datasets<a class="headerlink" href="#datasets" title="Permalink to this headline">¶</a></h2>
+<p>The following functions make use of Nengo’s RC file
+to set the location for data downloads.
+See the <a class="reference external" href="https://www.nengo.ai/nengo/nengorc.html">Nengo configuration</a>
+documentation for instructions of editing RC files.
+Configuration settings are listed below.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="o">[</span>nengo_extras<span class="o">]</span>
+<span class="c1"># directory to store downloaded datasets</span>
+<span class="nv">data_dir</span> <span class="o">=</span> ~/data
+</pre></div>
+</div>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.data.get_cifar10_tar_gz" title="nengo_extras.data.get_cifar10_tar_gz"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.data.get_cifar10_tar_gz</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.data.get_cifar100_tar_gz" title="nengo_extras.data.get_cifar100_tar_gz"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.data.get_cifar100_tar_gz</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.data.get_ilsvrc2012_tar_gz" title="nengo_extras.data.get_ilsvrc2012_tar_gz"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.data.get_ilsvrc2012_tar_gz</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.data.get_mnist_pkl_gz" title="nengo_extras.data.get_mnist_pkl_gz"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.data.get_mnist_pkl_gz</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.data.get_svhn_tar_gz" title="nengo_extras.data.get_svhn_tar_gz"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.data.get_svhn_tar_gz</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.data.get_svhn_tar_gz" title="nengo_extras.data.get_svhn_tar_gz"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.data.get_svhn_tar_gz</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.data.load_cifar10" title="nengo_extras.data.load_cifar10"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.data.load_cifar10</span></code></a>([filepath,&nbsp;…])</td>
+<td>Load the CIFAR-10 dataset.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.data.load_cifar100" title="nengo_extras.data.load_cifar100"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.data.load_cifar100</span></code></a>([filepath,&nbsp;…])</td>
+<td>Load the CIFAR-100 dataset.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.data.load_ilsvrc2012" title="nengo_extras.data.load_ilsvrc2012"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.data.load_ilsvrc2012</span></code></a>([…])</td>
+<td>Load part of the ILSVRC 2012 (ImageNet) dataset.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.data.load_mnist" title="nengo_extras.data.load_mnist"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.data.load_mnist</span></code></a>([filepath,&nbsp;…])</td>
+<td>Load the MNIST dataset.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.data.load_svhn" title="nengo_extras.data.load_svhn"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.data.load_svhn</span></code></a>([filepath,&nbsp;…])</td>
+<td>Load the SVHN dataset.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.data.spasafe_name" title="nengo_extras.data.spasafe_name"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.data.spasafe_name</span></code></a>(name[,&nbsp;…])</td>
+<td>Make a name safe to use as a SPA semantic pointer name.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.data.spasafe_names" title="nengo_extras.data.spasafe_names"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.data.spasafe_names</span></code></a>(label_names)</td>
+<td>Make names safe to use as SPA semantic pointer names.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.data.one_hot_from_labels" title="nengo_extras.data.one_hot_from_labels"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.data.one_hot_from_labels</span></code></a>(labels)</td>
+<td>Turn integer labels into a one-hot encoding.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.data.ZCAWhiten" title="nengo_extras.data.ZCAWhiten"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.data.ZCAWhiten</span></code></a>([beta,&nbsp;gamma])</td>
+<td>ZCA Whitening</td>
+</tr>
+</tbody>
+</table>
+<dl class="function">
+<dt id="nengo_extras.data.get_cifar10_tar_gz">
+<code class="descclassname">nengo_extras.data.</code><code class="descname">get_cifar10_tar_gz</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/data.html#get_cifar10_tar_gz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.data.get_cifar10_tar_gz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.data.get_cifar100_tar_gz">
+<code class="descclassname">nengo_extras.data.</code><code class="descname">get_cifar100_tar_gz</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/data.html#get_cifar100_tar_gz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.data.get_cifar100_tar_gz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.data.get_ilsvrc2012_tar_gz">
+<code class="descclassname">nengo_extras.data.</code><code class="descname">get_ilsvrc2012_tar_gz</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/data.html#get_ilsvrc2012_tar_gz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.data.get_ilsvrc2012_tar_gz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.data.get_mnist_pkl_gz">
+<code class="descclassname">nengo_extras.data.</code><code class="descname">get_mnist_pkl_gz</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/data.html#get_mnist_pkl_gz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.data.get_mnist_pkl_gz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.data.get_svhn_tar_gz">
+<code class="descclassname">nengo_extras.data.</code><code class="descname">get_svhn_tar_gz</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/data.html#get_svhn_tar_gz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.data.get_svhn_tar_gz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descclassname">nengo_extras.data.</code><code class="descname">get_svhn_tar_gz</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/data.html#get_svhn_tar_gz"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.data.load_cifar10">
+<code class="descclassname">nengo_extras.data.</code><code class="descname">load_cifar10</code><span class="sig-paren">(</span><em>filepath=None</em>, <em>n_train=5</em>, <em>n_test=1</em>, <em>label_names=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/data.html#load_cifar10"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.data.load_cifar10" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the CIFAR-10 dataset.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filepath</strong> : str (optional, Default: None)</p>
+<blockquote>
+<div><p>Path to the previously downloaded ‘cifar-10-python.tar.gz’ file.
+If <code class="docutils literal"><span class="pre">None</span></code>, the file will be downloaded to the current directory.</p>
+</div></blockquote>
+<p><strong>n_train</strong> : int (optional, Default: 6)</p>
+<blockquote>
+<div><p>The number of training batches to load (max: 6).</p>
+</div></blockquote>
+<p><strong>n_test</strong> : int (optional, Default: 6)</p>
+<blockquote>
+<div><p>The number of testing batches to load (max: 1).</p>
+</div></blockquote>
+<p><strong>label_names</strong> : boolean (optional, Default: False)</p>
+<blockquote>
+<div><p>Whether to provide the category label names.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>train_set</strong> : (n_train, n_pixels) ndarray, (n_train,) ndarray</p>
+<blockquote>
+<div><p>A tuple of the training image array and label array.</p>
+</div></blockquote>
+<p><strong>test_set</strong> : (n_test, n_pixels) ndarray, (n_test,) ndarray</p>
+<blockquote>
+<div><p>A tuple of the testing image array and label array.</p>
+</div></blockquote>
+<p><strong>label_names</strong> : list</p>
+<blockquote class="last">
+<div><p>A list of the label names.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.data.load_cifar100">
+<code class="descclassname">nengo_extras.data.</code><code class="descname">load_cifar100</code><span class="sig-paren">(</span><em>filepath=None</em>, <em>fine_labels=True</em>, <em>label_names=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/data.html#load_cifar100"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.data.load_cifar100" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the CIFAR-100 dataset.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filepath</strong> : str (optional, Default: None)</p>
+<blockquote>
+<div><p>Path to the previously downloaded ‘cifar-100-python.tar.gz’ file.
+If <code class="docutils literal"><span class="pre">None</span></code>, the file will be downloaded to the current directory.</p>
+</div></blockquote>
+<p><strong>fine_labels</strong> : boolean (optional, Default: True)</p>
+<blockquote>
+<div><p>Whether to provide the fine labels or coarse labels.</p>
+</div></blockquote>
+<p><strong>label_names</strong> : boolean (optional, Default: False)</p>
+<blockquote>
+<div><p>Whether to provide the category label names.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>train_set</strong> : (n_train, n_pixels) ndarray, (n_train,) ndarray</p>
+<blockquote>
+<div><p>A tuple of the training image array and label array.</p>
+</div></blockquote>
+<p><strong>test_set</strong> : (n_test, n_pixels) ndarray, (n_test,) ndarray</p>
+<blockquote>
+<div><p>A tuple of the testing image array and label array.</p>
+</div></blockquote>
+<p><strong>label_names</strong> : list</p>
+<blockquote class="last">
+<div><p>A list of the label names.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.data.load_ilsvrc2012">
+<code class="descclassname">nengo_extras.data.</code><code class="descname">load_ilsvrc2012</code><span class="sig-paren">(</span><em>filepath=None</em>, <em>n_files=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/data.html#load_ilsvrc2012"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.data.load_ilsvrc2012" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load part of the ILSVRC 2012 (ImageNet) dataset.</p>
+<p>This loads a small section of the ImageNet Large Scale Visual Recognition
+Challenge (ILSVRC) 2012 dataset. The images are from the test portion of
+the dataset, and can be used to test pretrained classifiers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filepath</strong> : str (optional, Default: None)</p>
+<blockquote>
+<div><p>Path to the previously downloaded ‘ilsvrc-2012-batches-test3.tar.gz’.
+If <code class="docutils literal"><span class="pre">None</span></code>, the file will be downloaded to the current directory.</p>
+</div></blockquote>
+<p><strong>n_files</strong> : int (optional, Default: None)</p>
+<blockquote>
+<div><p>Number of files (batches) to load from the archive. Defaults to all.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>images</strong> : (n_images, nc, ny, nx) ndarray</p>
+<blockquote>
+<div><p>The loaded images. nc = number of channels, ny = height, nx = width</p>
+</div></blockquote>
+<p><strong>labels</strong> : (n_images,) ndarray</p>
+<blockquote>
+<div><p>The labels of the images.</p>
+</div></blockquote>
+<p><strong>data_mean</strong> : (nc, ny, nx) ndarray</p>
+<blockquote>
+<div><p>The mean of the images in the whole of the training set.</p>
+</div></blockquote>
+<p><strong>label_names</strong> : list</p>
+<blockquote class="last">
+<div><p>A list of the label names.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.data.load_mnist">
+<code class="descclassname">nengo_extras.data.</code><code class="descname">load_mnist</code><span class="sig-paren">(</span><em>filepath=None</em>, <em>validation=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/data.html#load_mnist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.data.load_mnist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the MNIST dataset.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filepath</strong> : str (optional, Default: None)</p>
+<blockquote>
+<div><p>Path to the previously downloaded ‘mnist.pkl.gz’ file.
+If <code class="docutils literal"><span class="pre">None</span></code>, the file will be downloaded to the current directory.</p>
+</div></blockquote>
+<p><strong>validation</strong> : boolean (optional, Default: False)</p>
+<blockquote>
+<div><p>Whether to provide the validation data as a separate set (True),
+or combine it into the training data (False).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>train_set</strong> : (n_train, n_pixels) ndarray, (n_train,) ndarray</p>
+<blockquote>
+<div><p>A tuple of the training image array and label array.</p>
+</div></blockquote>
+<p><strong>validation_set</strong> : (n_valid, n_pixels) ndarray, (n_valid,) ndarray</p>
+<blockquote>
+<div><p>A tuple of the validation image array and label array
+(if <code class="docutils literal"><span class="pre">validation</span></code>)</p>
+</div></blockquote>
+<p><strong>test_set</strong> : (n_test, n_pixels) ndarray, (n_test,) ndarray</p>
+<blockquote class="last">
+<div><p>A tuple of the testing image array and label array.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.data.load_svhn">
+<code class="descclassname">nengo_extras.data.</code><code class="descname">load_svhn</code><span class="sig-paren">(</span><em>filepath=None</em>, <em>n_train=9</em>, <em>n_test=3</em>, <em>data_mean=False</em>, <em>label_names=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/data.html#load_svhn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.data.load_svhn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the SVHN dataset.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filepath</strong> : str (optional, Default: None)</p>
+<blockquote>
+<div><p>Path to the previously downloaded ‘svhn-py-colmajor.tar.gz’ file.
+If <code class="docutils literal"><span class="pre">None</span></code>, the file will be downloaded to the current directory.</p>
+</div></blockquote>
+<p><strong>n_train</strong> : int (optional, Default: 6)</p>
+<blockquote>
+<div><p>The number of training batches to load (max: 6).</p>
+</div></blockquote>
+<p><strong>n_test</strong> : int (optional, Default: 6)</p>
+<blockquote>
+<div><p>The number of testing batches to load (max: 1).</p>
+</div></blockquote>
+<p><strong>label_names</strong> : boolean (optional, Default: False)</p>
+<blockquote>
+<div><p>Whether to provide the category label names.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>train_set</strong> : (n_train, n_pixels) ndarray, (n_train,) ndarray</p>
+<blockquote>
+<div><p>A tuple of the training image array and label array.</p>
+</div></blockquote>
+<p><strong>test_set</strong> : (n_test, n_pixels) ndarray, (n_test,) ndarray</p>
+<blockquote>
+<div><p>A tuple of the testing image array and label array.</p>
+</div></blockquote>
+<p><strong>label_names</strong> : list</p>
+<blockquote class="last">
+<div><p>A list of the label names.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.data.spasafe_name">
+<code class="descclassname">nengo_extras.data.</code><code class="descname">spasafe_name</code><span class="sig-paren">(</span><em>name</em>, <em>pre_comma_only=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/data.html#spasafe_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.data.spasafe_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a name safe to use as a SPA semantic pointer name.</p>
+<p>Ensure a name conforms with SPA name standards. Replaces hyphens and
+spaces with underscores, removes all other characters, and makes the
+first letter uppercase.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pre_comma_only</strong> : boolean</p>
+<blockquote class="last">
+<div><p>Only use the part of a name before a/the first comma.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.data.spasafe_names">
+<code class="descclassname">nengo_extras.data.</code><code class="descname">spasafe_names</code><span class="sig-paren">(</span><em>label_names</em>, <em>pre_comma_only=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/data.html#spasafe_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.data.spasafe_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make names safe to use as SPA semantic pointer names.</p>
+<p>Format a list of names to conform with SPA name standards. In addition
+to running each name through <code class="docutils literal"><span class="pre">spasafe_name</span></code>, this function numbers
+duplicate names so they are unique.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pre_comma_only</strong> : boolean</p>
+<blockquote class="last">
+<div><p>Only use the part of a name before a/the first comma.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.data.one_hot_from_labels">
+<code class="descclassname">nengo_extras.data.</code><code class="descname">one_hot_from_labels</code><span class="sig-paren">(</span><em>labels</em>, <em>classes=None</em>, <em>dtype=&lt;class 'float'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/data.html#one_hot_from_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.data.one_hot_from_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn integer labels into a one-hot encoding.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>labels</strong> : (n,) array</p>
+<blockquote>
+<div><p>Labels to turn into one-hot encoding.</p>
+</div></blockquote>
+<p><strong>classes</strong> : int or (n_classes,) array (optional)</p>
+<blockquote>
+<div><p>Classes for encoding. If integer and <code class="docutils literal"><span class="pre">labels.dtype</span></code> is integer, this
+is the number of classes in the encoding. If iterable, this is the
+list of classes to place in the one-hot (must be a superset of the
+unique elements in <code class="docutils literal"><span class="pre">labels</span></code>).</p>
+</div></blockquote>
+<p><strong>dtype</strong> : dtype (optional)</p>
+<blockquote class="last">
+<div><p>Data type of returned one-hot encoding (defaults to <code class="docutils literal"><span class="pre">float</span></code>).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.data.ZCAWhiten">
+<em class="property">class </em><code class="descclassname">nengo_extras.data.</code><code class="descname">ZCAWhiten</code><span class="sig-paren">(</span><em>beta=0.01</em>, <em>gamma=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/data.html#ZCAWhiten"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.data.ZCAWhiten" title="Permalink to this definition">¶</a></dt>
+<dd><p>ZCA Whitening</p>
+<p class="rubric">References</p>
+<table class="docutils citation" frame="void" id="r33" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[R33]</a></td><td>Krizhevsky, Alex. “Learning multiple layers of features from tiny
+images” (2009) MSc Thesis, Dept. of Comp. Science, Univ. of
+Toronto. pp. 48-49.</td></tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="nengo_extras.data.ZCAWhiten.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/data.html#ZCAWhiten.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.data.ZCAWhiten.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit whitening transform to training data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : array_like</p>
+<blockquote class="last">
+<div><p>Flattened data, with each row corresponding to one example</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="keras">
+<h2>Keras<a class="headerlink" href="#keras" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.keras.SoftLIF" title="nengo_extras.keras.SoftLIF"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.keras.SoftLIF</span></code></a>([sigma,&nbsp;…])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.keras.load_model_pair" title="nengo_extras.keras.load_model_pair"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.keras.load_model_pair</span></code></a>(filepath)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.keras.save_model_pair" title="nengo_extras.keras.save_model_pair"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.keras.save_model_pair</span></code></a>(model,&nbsp;…)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.keras.LSUVinit" title="nengo_extras.keras.LSUVinit"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.keras.LSUVinit</span></code></a>(kmodel,&nbsp;X[,&nbsp;…])</td>
+<td>Layer-sequential unit-variance initialization.</td>
+</tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="nengo_extras.keras.SoftLIF">
+<em class="property">class </em><code class="descclassname">nengo_extras.keras.</code><code class="descname">SoftLIF</code><span class="sig-paren">(</span><em>sigma=1.0</em>, <em>amplitude=1.0</em>, <em>tau_rc=0.02</em>, <em>tau_ref=0.002</em>, <em>noise_model='none'</em>, <em>tau_s=0.005</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/keras.html#SoftLIF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.keras.SoftLIF" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.keras.load_model_pair">
+<code class="descclassname">nengo_extras.keras.</code><code class="descname">load_model_pair</code><span class="sig-paren">(</span><em>filepath</em>, <em>custom_objects=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/keras.html#load_model_pair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.keras.load_model_pair" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.keras.save_model_pair">
+<code class="descclassname">nengo_extras.keras.</code><code class="descname">save_model_pair</code><span class="sig-paren">(</span><em>model</em>, <em>filepath</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/keras.html#save_model_pair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.keras.save_model_pair" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="nengo_extras.keras.LSUVinit">
+<code class="descclassname">nengo_extras.keras.</code><code class="descname">LSUVinit</code><span class="sig-paren">(</span><em>kmodel</em>, <em>X</em>, <em>tol=0.1</em>, <em>t_max=50</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/keras.html#LSUVinit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.keras.LSUVinit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Layer-sequential unit-variance initialization.</p>
+<p class="rubric">References</p>
+<table class="docutils citation" frame="void" id="r77" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[R77]</a></td><td>Mishkin, D., &amp; Matas, J. (2016). All you need is a good init.
+In ICLR 2016 (pp. 1-13).</td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="networks">
+<h2>Networks<a class="headerlink" href="#networks" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.deepnetworks.Network" title="nengo_extras.deepnetworks.Network"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.deepnetworks.Network</span></code></a>([label,&nbsp;…])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.deepnetworks.SequentialNetwork" title="nengo_extras.deepnetworks.SequentialNetwork"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.deepnetworks.SequentialNetwork</span></code></a>(…)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.keras.SequentialNetwork" title="nengo_extras.keras.SequentialNetwork"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.keras.SequentialNetwork</span></code></a>(model)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.deepnetworks.Layer" title="nengo_extras.deepnetworks.Layer"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.deepnetworks.Layer</span></code></a>(**kwargs)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.deepnetworks.NodeLayer" title="nengo_extras.deepnetworks.NodeLayer"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.deepnetworks.NodeLayer</span></code></a>([…])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.deepnetworks.NeuronLayer" title="nengo_extras.deepnetworks.NeuronLayer"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.deepnetworks.NeuronLayer</span></code></a>(n[,&nbsp;…])</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.deepnetworks.DataLayer" title="nengo_extras.deepnetworks.DataLayer"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.deepnetworks.DataLayer</span></code></a>(size,&nbsp;…)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.deepnetworks.SoftmaxLayer" title="nengo_extras.deepnetworks.SoftmaxLayer"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.deepnetworks.SoftmaxLayer</span></code></a>(size,&nbsp;…)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.deepnetworks.DropoutLayer" title="nengo_extras.deepnetworks.DropoutLayer"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.deepnetworks.DropoutLayer</span></code></a>(size,&nbsp;…)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.deepnetworks.FullLayer" title="nengo_extras.deepnetworks.FullLayer"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.deepnetworks.FullLayer</span></code></a>(weights,&nbsp;…)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.deepnetworks.ProcessLayer" title="nengo_extras.deepnetworks.ProcessLayer"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.deepnetworks.ProcessLayer</span></code></a>(…)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.deepnetworks.LocalLayer" title="nengo_extras.deepnetworks.LocalLayer"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.deepnetworks.LocalLayer</span></code></a>(…[,&nbsp;…])</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.deepnetworks.ConvLayer" title="nengo_extras.deepnetworks.ConvLayer"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.deepnetworks.ConvLayer</span></code></a>(…[,&nbsp;…])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#nengo_extras.deepnetworks.PoolLayer" title="nengo_extras.deepnetworks.PoolLayer"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.deepnetworks.PoolLayer</span></code></a>(…[,&nbsp;…])</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#nengo_extras.cuda_convnet.CudaConvnetNetwork" title="nengo_extras.cuda_convnet.CudaConvnetNetwork"><code class="xref py py-obj docutils literal"><span class="pre">nengo_extras.cuda_convnet.CudaConvnetNetwork</span></code></a>(model)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="nengo_extras.deepnetworks.Network">
+<em class="property">class </em><code class="descclassname">nengo_extras.deepnetworks.</code><code class="descname">Network</code><span class="sig-paren">(</span><em>label=None</em>, <em>seed=None</em>, <em>add_to_container=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/deepnetworks.html#Network"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.deepnetworks.Network" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.deepnetworks.SequentialNetwork">
+<em class="property">class </em><code class="descclassname">nengo_extras.deepnetworks.</code><code class="descname">SequentialNetwork</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/deepnetworks.html#SequentialNetwork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.deepnetworks.SequentialNetwork" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.keras.SequentialNetwork">
+<em class="property">class </em><code class="descclassname">nengo_extras.keras.</code><code class="descname">SequentialNetwork</code><span class="sig-paren">(</span><em>model</em>, <em>synapse=None</em>, <em>lif_type='lif'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/keras.html#SequentialNetwork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.keras.SequentialNetwork" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.deepnetworks.Layer">
+<em class="property">class </em><code class="descclassname">nengo_extras.deepnetworks.</code><code class="descname">Layer</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/deepnetworks.html#Layer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.deepnetworks.Layer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.deepnetworks.NodeLayer">
+<em class="property">class </em><code class="descclassname">nengo_extras.deepnetworks.</code><code class="descname">NodeLayer</code><span class="sig-paren">(</span><em>output=None</em>, <em>size_in=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/deepnetworks.html#NodeLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.deepnetworks.NodeLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.deepnetworks.NeuronLayer">
+<em class="property">class </em><code class="descclassname">nengo_extras.deepnetworks.</code><code class="descname">NeuronLayer</code><span class="sig-paren">(</span><em>n</em>, <em>neuron_type=Default</em>, <em>synapse=Default</em>, <em>gain=1.0</em>, <em>bias=0.0</em>, <em>amplitude=1.0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/deepnetworks.html#NeuronLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.deepnetworks.NeuronLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.deepnetworks.DataLayer">
+<em class="property">class </em><code class="descclassname">nengo_extras.deepnetworks.</code><code class="descname">DataLayer</code><span class="sig-paren">(</span><em>size</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/deepnetworks.html#DataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.deepnetworks.DataLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.deepnetworks.SoftmaxLayer">
+<em class="property">class </em><code class="descclassname">nengo_extras.deepnetworks.</code><code class="descname">SoftmaxLayer</code><span class="sig-paren">(</span><em>size</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/deepnetworks.html#SoftmaxLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.deepnetworks.SoftmaxLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.deepnetworks.DropoutLayer">
+<em class="property">class </em><code class="descclassname">nengo_extras.deepnetworks.</code><code class="descname">DropoutLayer</code><span class="sig-paren">(</span><em>size</em>, <em>keep</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/deepnetworks.html#DropoutLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.deepnetworks.DropoutLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.deepnetworks.FullLayer">
+<em class="property">class </em><code class="descclassname">nengo_extras.deepnetworks.</code><code class="descname">FullLayer</code><span class="sig-paren">(</span><em>weights</em>, <em>biases</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/deepnetworks.html#FullLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.deepnetworks.FullLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.deepnetworks.ProcessLayer">
+<em class="property">class </em><code class="descclassname">nengo_extras.deepnetworks.</code><code class="descname">ProcessLayer</code><span class="sig-paren">(</span><em>process</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/deepnetworks.html#ProcessLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.deepnetworks.ProcessLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.deepnetworks.LocalLayer">
+<em class="property">class </em><code class="descclassname">nengo_extras.deepnetworks.</code><code class="descname">LocalLayer</code><span class="sig-paren">(</span><em>input_shape</em>, <em>filters</em>, <em>biases</em>, <em>strides=1</em>, <em>padding=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/deepnetworks.html#LocalLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.deepnetworks.LocalLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.deepnetworks.ConvLayer">
+<em class="property">class </em><code class="descclassname">nengo_extras.deepnetworks.</code><code class="descname">ConvLayer</code><span class="sig-paren">(</span><em>input_shape</em>, <em>filters</em>, <em>biases</em>, <em>strides=1</em>, <em>padding=0</em>, <em>border='ceil'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/deepnetworks.html#ConvLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.deepnetworks.ConvLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.deepnetworks.PoolLayer">
+<em class="property">class </em><code class="descclassname">nengo_extras.deepnetworks.</code><code class="descname">PoolLayer</code><span class="sig-paren">(</span><em>input_shape</em>, <em>pool_size</em>, <em>strides=None</em>, <em>kind='avg'</em>, <em>mode='full'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/deepnetworks.html#PoolLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.deepnetworks.PoolLayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.cuda_convnet.CudaConvnetNetwork">
+<em class="property">class </em><code class="descclassname">nengo_extras.cuda_convnet.</code><code class="descname">CudaConvnetNetwork</code><span class="sig-paren">(</span><em>model</em>, <em>synapse=None</em>, <em>lif_type='lif'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/cuda_convnet.html#CudaConvnetNetwork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.cuda_convnet.CudaConvnetNetwork" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="processes">
+<h2>Processes<a class="headerlink" href="#processes" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="nengo_extras.convnet.Conv2d">
+<em class="property">class </em><code class="descclassname">nengo_extras.convnet.</code><code class="descname">Conv2d</code><span class="sig-paren">(</span><em>shape_in</em>, <em>filters</em>, <em>biases=None</em>, <em>strides=1</em>, <em>padding=0</em>, <em>border='ceil'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/convnet.html#Conv2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.convnet.Conv2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform 2-D (image) convolution on an input.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>shape_in</strong> : 3-tuple (n_channels, height, width)</p>
+<blockquote>
+<div><p>Shape of the input images: channels, height, width.</p>
+</div></blockquote>
+<p><strong>filters</strong> : array_like (n_filters, n_channels, f_height, f_width)</p>
+<blockquote>
+<div><p>Static filters to convolve with the input. Shape is number of filters,
+number of input channels, filter height, and filter width. Shape can
+also be (n_filters, height, width, n_channels, f_height, f_width)
+to apply different filters at each point in the image, where ‘height’
+and ‘width’ are the input image height and width.</p>
+</div></blockquote>
+<p><strong>biases</strong> : array_like (1,) or (n_filters,) or (n_filters, height, width)</p>
+<blockquote>
+<div><p>Biases to add to outputs. Can have one bias across the entire output
+space, one bias per filter, or a unique bias for each output pixel.</p>
+</div></blockquote>
+<p><strong>strides</strong> : 2-tuple (vertical, horizontal) or int</p>
+<blockquote>
+<div><p>Spacing between filter placements. If an integer
+is provided, the same spacing is used in both dimensions.</p>
+</div></blockquote>
+<p><strong>padding</strong> : 2-tuple (vertical, horizontal) or int</p>
+<blockquote class="last">
+<div><p>Amount of zero-padding around the outside of the input image. Padding
+is applied to both sides, e.g. <code class="docutils literal"><span class="pre">padding=(1,</span> <span class="pre">0)</span></code> will add one pixel
+of padding to the top and bottom, and none to the left and right.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo_extras.convnet.Pool2d">
+<em class="property">class </em><code class="descclassname">nengo_extras.convnet.</code><code class="descname">Pool2d</code><span class="sig-paren">(</span><em>shape_in</em>, <em>pool_size</em>, <em>strides=None</em>, <em>kind='avg'</em>, <em>mode='full'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo_extras/convnet.html#Pool2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo_extras.convnet.Pool2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform 2-D (image) pooling on an input.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>shape_in</strong> : 3-tuple (channels, height, width)</p>
+<blockquote>
+<div><p>Shape of the input image.</p>
+</div></blockquote>
+<p><strong>pool_size</strong> : 2-tuple (vertical, horizontal) or int</p>
+<blockquote>
+<div><p>Shape of the pooling region. If an integer is provided, the shape will
+be square with the given side length.</p>
+</div></blockquote>
+<p><strong>strides</strong> : 2-tuple (vertical, horizontal) or int</p>
+<blockquote>
+<div><p>Spacing between pooling placements. If <code class="docutils literal"><span class="pre">None</span></code> (default), will be
+equal to <code class="docutils literal"><span class="pre">pool_size</span></code> resulting in non-overlapping pooling.</p>
+</div></blockquote>
+<p><strong>kind</strong> : “avg” or “max”</p>
+<blockquote>
+<div><p>Type of pooling to perform: average pooling or max pooling.</p>
+</div></blockquote>
+<p><strong>mode</strong> : “full” or “valid”</p>
+<blockquote class="last">
+<div><p>If the input image does not divide into an integer number of pooling
+regions, whether to add partial pooling regions for the extra
+pixels (“full”), or discard extra input pixels (“valid”).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>shape_out</strong></td>
+<td>(3-tuple (channels, height, width)) Shape of the output image.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+            
+  <div class="footer-relations">
+    
+      <div class="pull-left">
+        <a class="btn btn-default" href="index.html" title="previous chapter (use the left arrow)">Nengo extras</a>
+      </div>
+    
+      <div class="pull-right">
+        <a class="btn btn-default" href="examples/keras/mnist_spiking_cnn.html" title="next chapter (use the right arrow)">MNIST classifier with Keras and Nengo</a>
+      </div>
+    </div>
+    <div class="clearer"></div>
+  
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="examples/keras/mnist_spiking_cnn.html" title="MNIST classifier with Keras and Nengo"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Nengo extras"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo extras 0.3.0 docs</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

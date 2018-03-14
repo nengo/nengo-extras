@@ -1,0 +1,716 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>nengo_extras.gexf &#8212; Nengo extras 0.3.0 docs</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/config/TeX-AMS-MML_HTMLorMML.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<link rel="stylesheet" type="text/css" href="../../_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    ../../index.html" class="text-logo">Nengo extras 0.3</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../learning_rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization tools</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>nengo_extras.gexf</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for nengo_extras.gexf</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Export to GEXF for visualization of networks in Gephi.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">date</span>
+<span class="kn">import</span> <span class="nn">weakref</span>
+<span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">et</span>
+
+<span class="kn">import</span> <span class="nn">nengo</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">nengo_spa</span> <span class="k">as</span> <span class="nn">spa</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">spa</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="DispatchTable"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gexf.DispatchTable">[docs]</a><span class="k">class</span> <span class="nc">DispatchTable</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A descriptor to dispatch to other methods depending on argument type.</span>
+
+<span class="sd">    How to use: assign the descriptor to a class attribute and use the</span>
+<span class="sd">    ``register`` decorator to declare which functions to dispatch to</span>
+<span class="sd">    for specific types::</span>
+
+<span class="sd">        class MyClass(object):</span>
+<span class="sd">            dispatch = DispatchTable()</span>
+
+<span class="sd">            @dispatch.register(TypeA)</span>
+<span class="sd">            def handle_type_a(self, obj_of_type_a):</span>
+<span class="sd">                # ...</span>
+
+<span class="sd">            @dispatch.register(TypeB)</span>
+<span class="sd">            def handle_type_b(self, obj_of_type_b):</span>
+<span class="sd">                # ...</span>
+
+<span class="sd">    To then call the method for the appropriate type::</span>
+
+<span class="sd">        inst = MyClass()</span>
+<span class="sd">        inst.dispatch(obj_of_type_a_or_b)</span>
+
+<span class="sd">    If multiple methods would match (e.g. if *TypeB* inherits from *TypeA*),</span>
+<span class="sd">    the most specific method will be used (to be precise: the first type in the</span>
+<span class="sd">    method resolution order with a registered method will be used).</span>
+
+<span class="sd">    The *DispatchTable* descriptor accepts another *DispatchTable* as argument</span>
+<span class="sd">    which will be used as a fallback. This allows to inherit the dispatch</span>
+<span class="sd">    table and selectively overwrite methods like so::</span>
+
+<span class="sd">        class Inherited(MyClass):</span>
+<span class="sd">            dispatch = DispatchTable(MyClass.dispatch)</span>
+
+<span class="sd">            @dispatch.register(TypeA)</span>
+<span class="sd">            def alternate_type_a_handler(self, obj_of_type_a):</span>
+<span class="sd">                # ...</span>
+
+<span class="sd">    Finally, dispatch methods can also be changed on a per-instance basis::</span>
+
+<span class="sd">        inst.dispatch.register(TypeA, inst_type_a_handler)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DispatchTable.InstDispatch"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gexf.DispatchTable.InstDispatch">[docs]</a>    <span class="k">class</span> <span class="nc">InstDispatch</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return value when accessing the dispatch table on an instance.&quot;&quot;&quot;</span>
+        <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">,</span> <span class="s1">&#39;inst&#39;</span><span class="p">,</span> <span class="s1">&#39;owner&#39;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">inst</span><span class="p">,</span> <span class="n">owner</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">param</span> <span class="o">=</span> <span class="n">param</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inst</span> <span class="o">=</span> <span class="n">inst</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">owner</span> <span class="o">=</span> <span class="n">owner</span>
+
+        <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+            <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__mro__</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">inst_type_table</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inst</span><span class="p">,</span> <span class="p">{}):</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">inst_type_table</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">inst</span><span class="p">][</span><span class="bp">cls</span><span class="p">](</span><span class="n">obj</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">type_table</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">type_table</span><span class="p">[</span><span class="bp">cls</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">inst</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">inst</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">owner</span><span class="p">)(</span><span class="n">obj</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Nothing to dispatch to for type </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)))</span>
+
+        <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inst</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">inst_type_table</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">inst_type_table</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">inst</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">weakref</span><span class="o">.</span><span class="n">WeakKeyDictionary</span><span class="p">())</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="o">.</span><span class="n">inst_type_table</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">inst</span><span class="p">]</span>
+            <span class="n">table</span><span class="p">[</span><span class="n">type_</span><span class="p">]</span> <span class="o">=</span> <span class="n">fn</span>
+            <span class="k">return</span> <span class="n">fn</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type_table</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">WeakKeyDictionary</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inst_type_table</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">WeakKeyDictionary</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+
+    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_register</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="n">type_</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">type_table</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type_table</span><span class="p">[</span><span class="n">type_</span><span class="p">]</span> <span class="o">=</span> <span class="n">fn</span>
+            <span class="k">return</span> <span class="n">fn</span>
+        <span class="k">return</span> <span class="n">_register</span>
+
+    <span class="k">def</span> <span class="nf">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inst</span><span class="p">,</span> <span class="n">owner</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">inst</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">InstDispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inst</span><span class="p">,</span> <span class="n">owner</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="HierarchicalLabeler"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gexf.HierarchicalLabeler">[docs]</a><span class="k">class</span> <span class="nc">HierarchicalLabeler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Obtains labels for objects in a Nengo network.</span>
+
+<span class="sd">    The names will include the network hierarchy.</span>
+
+<span class="sd">    Usage example::</span>
+
+<span class="sd">        labels = HierarchicalLabeler().get_labels(model)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dispatch</span> <span class="o">=</span> <span class="n">DispatchTable</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_names</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@dispatch</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Sequence</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_labels_from_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq</span><span class="p">):</span>
+        <span class="n">base_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="p">[</span><span class="n">seq</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">seq</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_found_name</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{base_name}</span><span class="s1">[</span><span class="si">{i}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">base_name</span><span class="o">=</span><span class="n">base_name</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">))</span>
+
+    <span class="nd">@dispatch</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Mapping</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_labels_from_mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mapping</span><span class="p">):</span>
+        <span class="n">base_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="p">[</span><span class="n">mapping</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">mapping</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_found_name</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{base_name}</span><span class="s1">[</span><span class="si">{k}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">base_name</span><span class="o">=</span><span class="n">base_name</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">))</span>
+
+    <span class="nd">@dispatch</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_labels_from_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@dispatch</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">nengo</span><span class="o">.</span><span class="n">Network</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_labels_from_network</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">net</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="p">:</span>
+            <span class="n">base_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="p">[</span><span class="n">net</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">base_name</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="n">check_last</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;ensembles&#39;</span><span class="p">,</span> <span class="s1">&#39;nodes&#39;</span><span class="p">,</span> <span class="s1">&#39;connections&#39;</span><span class="p">,</span> <span class="s1">&#39;networks&#39;</span><span class="p">,</span> <span class="s1">&#39;probes&#39;</span><span class="p">}</span>
+        <span class="n">check_never</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;all_ensembles&#39;</span><span class="p">,</span> <span class="s1">&#39;all_nodes&#39;</span><span class="p">,</span> <span class="s1">&#39;all_connections&#39;</span><span class="p">,</span> <span class="s1">&#39;all_networks&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;all_objects&#39;</span><span class="p">,</span> <span class="s1">&#39;all_probes&#39;</span><span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">net</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span> <span class="ow">and</span>
+                    <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">check_last</span> <span class="o">|</span> <span class="n">check_never</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_handle_found_name</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">base_name</span> <span class="o">+</span> <span class="n">name</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">check_last</span><span class="p">:</span>
+            <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_found_name</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">base_name</span> <span class="o">+</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_handle_found_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">nengo</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">NengoObject</span><span class="p">,</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Network</span><span class="p">))</span> <span class="ow">and</span>
+                <span class="n">obj</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_names</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">WeakKeyDictionary</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names</span></div>
+
+
+<span class="n">Attr</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;Attr&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;default&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="GexfConverter"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gexf.GexfConverter">[docs]</a><span class="k">class</span> <span class="nc">GexfConverter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Converts Nengo models into GEXF files.</span>
+
+<span class="sd">    This can be loaded in Gephi for visualization of the model graph.</span>
+
+<span class="sd">    Links:</span>
+
+<span class="sd">    * `Gephi &lt;https://gephi.org/&gt;`_</span>
+<span class="sd">    * `GEXF &lt;https://github.com/gephi/gexf/wiki&gt;`_</span>
+
+<span class="sd">    This class can be inherited from to customize the conversion or</span>
+<span class="sd">    alternatively the ``dispatch`` table can be changed on a</span>
+<span class="sd">    per-instance basis.</span>
+
+<span class="sd">    Note that probes are currently not included in the graph.</span>
+
+<span class="sd">    The following attributes will be stored on graph nodes:</span>
+
+<span class="sd">    * *type*: type of the Nengo object (e.g., *nengo.ensemble.Ensemble*),</span>
+<span class="sd">    * *net*: unique ID of the containing network,</span>
+<span class="sd">    * *net_label*: (possibly non-unique) label of the containing network,</span>
+<span class="sd">    * *size_in*: input size,</span>
+<span class="sd">    * *size_out*: output_size,</span>
+<span class="sd">    * *radius*: ensemble radius (unset for other nodes),</span>
+<span class="sd">    * *n_neurons*: number of neurons (0 for non-ensembles),</span>
+<span class="sd">    * *neuron_type*: string representation of the neuron type (unset for</span>
+<span class="sd">      non-ensembles).</span>
+
+<span class="sd">    The following attributes will be stored on graph edges:</span>
+
+<span class="sd">    * *pre_type*: type of the connection&#39;s pre object (e.g.,</span>
+<span class="sd">      *nengo.ensemble.Neurons*),</span>
+<span class="sd">    * *post_type*: type of the connection&#39;s post object (e.g.,</span>
+<span class="sd">      *nengo.ensemble.Neurons*),</span>
+<span class="sd">    * *synapse*: string representation of the synapse,</span>
+<span class="sd">    * *tau*: the tau parameter of the synapse if existent,</span>
+<span class="sd">    * *function*: string representation of the connection&#39;s function,</span>
+<span class="sd">    * *transform*: string representation of the connection&#39;s transform,</span>
+<span class="sd">    * *scalar_transform*: float representation of the transform if it is a</span>
+<span class="sd">      scalar,</span>
+<span class="sd">    * *learning_rule_type*: string representation of the connection&#39;s learning</span>
+<span class="sd">      rule type.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    labeler : optional</span>
+<span class="sd">        Object with a ``get_labels`` method that returns a dictionary mapping</span>
+<span class="sd">        model objects to labels. If not given, a new `HierarchicalLabeler`</span>
+<span class="sd">        will be used.</span>
+<span class="sd">    hierarchical : bool, optional (default: False)</span>
+<span class="sd">        Whether to include information of the network hierarchy in the file.</span>
+<span class="sd">        Support for hierarchical graphs was removed in Gephi 0.9 and</span>
+<span class="sd">        hierarchical networks will be automatically flattened which leaves an</span>
+<span class="sd">        unconnected node for every network.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    Basic usage to write a GEXF file::</span>
+
+<span class="sd">        GexfConverter().convert(model).write(&#39;model.gexf&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dispatch</span> <span class="o">=</span> <span class="n">DispatchTable</span><span class="p">()</span>
+
+    <span class="n">node_attrs</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">((</span>
+        <span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="n">Attr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s1">&#39;net&#39;</span><span class="p">,</span> <span class="n">Attr</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;long&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s1">&#39;net_label&#39;</span><span class="p">,</span> <span class="n">Attr</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s1">&#39;size_in&#39;</span><span class="p">,</span> <span class="n">Attr</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s1">&#39;size_out&#39;</span><span class="p">,</span> <span class="n">Attr</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s1">&#39;radius&#39;</span><span class="p">,</span> <span class="n">Attr</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;float&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s1">&#39;n_neurons&#39;</span><span class="p">,</span> <span class="n">Attr</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;integer&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s1">&#39;neuron_type&#39;</span><span class="p">,</span> <span class="n">Attr</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+        <span class="p">))</span>
+    <span class="n">edge_attrs</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">((</span>
+        <span class="p">(</span><span class="s1">&#39;pre_type&#39;</span><span class="p">,</span> <span class="n">Attr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s1">&#39;post_type&#39;</span><span class="p">,</span> <span class="n">Attr</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s1">&#39;synapse&#39;</span><span class="p">,</span> <span class="n">Attr</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s1">&#39;tau&#39;</span><span class="p">,</span> <span class="n">Attr</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;float&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s1">&#39;function&#39;</span><span class="p">,</span> <span class="n">Attr</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">,</span> <span class="n">Attr</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s1">&#39;scalar_transform&#39;</span><span class="p">,</span> <span class="n">Attr</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;float&#39;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s1">&#39;learning_rule_type&#39;</span><span class="p">,</span> <span class="n">Attr</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+    <span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labeler</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hierarchical</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">labeler</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">labeler</span> <span class="o">=</span> <span class="n">HierarchicalLabeler</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labeler</span> <span class="o">=</span> <span class="n">labeler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hierarchical</span> <span class="o">=</span> <span class="n">hierarchical</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="s1">&#39;draft&#39;</span>
+
+        <span class="c1"># State used during processing of a model</span>
+        <span class="c1"># WeakKeyDict so we don&#39;t prevent garbage collection after conversion</span>
+        <span class="c1"># finished.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">WeakKeyDictionary</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_net</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="GexfConverter.convert"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gexf.GexfConverter.convert">[docs]</a>    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert a model to GEXF format.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        xml.etree.ElementTree.ElementTree</span>
+<span class="sd">            Converted model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">labeler</span><span class="o">.</span><span class="n">get_labels</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="p">[</span><span class="n">model</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;model&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_document</span><span class="p">(</span><span class="n">model</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GexfConverter.make_document"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gexf.GexfConverter.make_document">[docs]</a>    <span class="k">def</span> <span class="nf">make_document</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create the GEXF XML document from *model*.</span>
+
+<span class="sd">        This method is exposed so it can be overwritten in inheriting classes.</span>
+<span class="sd">        Invoke `convert` instead of this method to convert a model.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        xml.etree.ElementTree.ElementTree</span>
+<span class="sd">            Converted model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+        <span class="n">tag_version</span> <span class="o">=</span> <span class="n">version</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span>
+        <span class="n">gexf</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;gexf&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">&#39;xmlns&#39;</span><span class="p">:</span> <span class="s1">&#39;http://www.gexf.net/&#39;</span> <span class="o">+</span> <span class="n">tag_version</span><span class="p">,</span>
+            <span class="s1">&#39;xmlns:xsi&#39;</span><span class="p">:</span> <span class="s1">&#39;http://www.w3.org/2001/XMLSchema-instance&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;xsi:schemaLocation&#39;</span><span class="p">:</span> <span class="p">(</span>
+                <span class="s1">&#39;http://www.gexf.net/&#39;</span> <span class="o">+</span> <span class="n">tag_version</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span>
+                <span class="s1">&#39;http://www.gexf.net/&#39;</span> <span class="o">+</span> <span class="n">tag_version</span> <span class="o">+</span> <span class="s1">&#39;/gexf.xsd&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="n">version</span>
+        <span class="p">})</span>
+
+        <span class="n">meta</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">gexf</span><span class="p">,</span> <span class="s1">&#39;meta&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">&#39;lastmodifieddate&#39;</span><span class="p">:</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()})</span>
+        <span class="n">creator</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="s1">&#39;creator&#39;</span><span class="p">)</span>
+        <span class="n">creator</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_typename</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">gexf</span><span class="p">,</span> <span class="s1">&#39;graph&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;defaultedgetype&#39;</span><span class="p">:</span> <span class="s1">&#39;directed&#39;</span><span class="p">})</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">make_attr_defs</span><span class="p">(</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_attrs</span><span class="p">))</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">make_attr_defs</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_attrs</span><span class="p">))</span>
+
+        <span class="n">graph</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">model</span><span class="p">))</span>
+
+        <span class="n">edges</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;edges&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">all_connections</span><span class="p">:</span>
+            <span class="n">elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">elem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">et</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">(</span><span class="n">gexf</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GexfConverter.make_attr_defs"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gexf.GexfConverter.make_attr_defs">[docs]</a>    <span class="k">def</span> <span class="nf">make_attr_defs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">defs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate an attribute definition block.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cls : str</span>
+<span class="sd">            Class the attribute definitions are for (&#39;node&#39; or &#39;edge&#39;).</span>
+<span class="sd">        defs : dict</span>
+<span class="sd">            Attribute definitions. Maps attribute names to `Attr` instances.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        xml.etree.ElementTree.Element</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">attributes</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;attributes&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="bp">cls</span><span class="p">})</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">defs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">attr</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">attributes</span><span class="p">,</span> <span class="s1">&#39;attribute&#39;</span><span class="p">,</span> <span class="p">{</span>
+                <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
+                <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
+            <span class="p">})</span>
+            <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">default</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="s1">&#39;default&#39;</span><span class="p">)</span>
+                <span class="n">default</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">attributes</span></div>
+
+<div class="viewcode-block" id="GexfConverter.make_attrs"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gexf.GexfConverter.make_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">make_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">defs</span><span class="p">,</span> <span class="n">attrs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generates a block of attribute values.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        defs : dict</span>
+<span class="sd">            Attribute definitions. Maps attribute names to `Attr` instances.</span>
+<span class="sd">        attrs : dict</span>
+<span class="sd">            Mapping of attribute names to assigned values.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        xml.etree.ElementTree.Element</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;attvalues&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">k</span> <span class="ow">in</span> <span class="n">defs</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">attrs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">defs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">attrs</span> <span class="ow">and</span> <span class="n">attrs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">et</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;attvalue&#39;</span><span class="p">,</span> <span class="p">{</span>
+                    <span class="s1">&#39;for&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
+                    <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span>
+                <span class="p">}))</span>
+        <span class="k">return</span> <span class="n">values</span></div>
+
+<div class="viewcode-block" id="GexfConverter.make_node"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gexf.GexfConverter.make_node">[docs]</a>    <span class="k">def</span> <span class="nf">make_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="o">**</span><span class="n">attrs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate a node for *obj* with attributes *attrs*.&quot;&quot;&quot;</span>
+        <span class="n">tag_attrib</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">obj</span><span class="p">))}</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="p">:</span>
+            <span class="n">tag_attrib</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="n">tag_attrib</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">attrs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">make_attrs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_attrs</span><span class="p">,</span> <span class="n">attrs</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">node</span></div>
+
+<div class="viewcode-block" id="GexfConverter.make_edge"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gexf.GexfConverter.make_edge">[docs]</a>    <span class="k">def</span> <span class="nf">make_edge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="o">**</span><span class="n">attrs</span><span class="p">):</span>
+        <span class="s2">&quot;Edge for *obj* from *source* to *target* with attributes *attrs*.&quot;</span>
+        <span class="n">tag_attrib</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">obj</span><span class="p">)),</span>
+            <span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">source</span><span class="p">)),</span>
+            <span class="s1">&#39;target&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">target</span><span class="p">))</span>
+        <span class="p">}</span>
+        <span class="n">edge</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="n">tag_attrib</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">attrs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">edge</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">make_attrs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edge_attrs</span><span class="p">,</span> <span class="n">attrs</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">edge</span></div>
+
+    <span class="nd">@dispatch</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">nengo</span><span class="o">.</span><span class="n">Network</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">convert_network</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net</span><span class="p">):</span>
+        <span class="n">parent_net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_net</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_net</span> <span class="o">=</span> <span class="n">net</span>
+
+        <span class="n">nodes</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;nodes&#39;</span><span class="p">)</span>
+        <span class="n">leaves</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">ensembles</span> <span class="o">+</span> <span class="n">net</span><span class="o">.</span><span class="n">nodes</span> <span class="o">+</span> <span class="n">net</span><span class="o">.</span><span class="n">probes</span>
+        <span class="k">for</span> <span class="n">leave</span> <span class="ow">in</span> <span class="n">leaves</span><span class="p">:</span>
+            <span class="n">leave_elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">leave</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">leave_elem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">leave_elem</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hierarchical</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">subnet</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">networks</span><span class="p">:</span>
+                <span class="n">subnet_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_node</span><span class="p">(</span>
+                    <span class="n">subnet</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_typename</span><span class="p">(</span><span class="n">subnet</span><span class="p">),</span> <span class="n">net</span><span class="o">=</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_net</span><span class="p">),</span>
+                    <span class="n">net_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_net</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="n">n_neurons</span><span class="o">=</span><span class="n">subnet</span><span class="o">.</span><span class="n">n_neurons</span><span class="p">)</span>
+                <span class="n">subnet_node</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">subnet</span><span class="p">))</span>
+                <span class="n">nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subnet_node</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">subnet</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">networks</span><span class="p">:</span>
+                <span class="n">nodes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">subnet</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_net</span> <span class="o">=</span> <span class="n">parent_net</span>
+        <span class="k">return</span> <span class="n">nodes</span>
+
+    <span class="nd">@dispatch</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">nengo</span><span class="o">.</span><span class="n">Ensemble</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">convert_ensemble</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ens</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_node</span><span class="p">(</span>
+            <span class="n">ens</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_typename</span><span class="p">(</span><span class="n">ens</span><span class="p">),</span>
+            <span class="n">net</span><span class="o">=</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_net</span><span class="p">),</span>
+            <span class="n">net_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_net</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">size_in</span><span class="o">=</span><span class="n">ens</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span>
+            <span class="n">size_out</span><span class="o">=</span><span class="n">ens</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span>
+            <span class="n">radius</span><span class="o">=</span><span class="n">ens</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span>
+            <span class="n">n_neurons</span><span class="o">=</span><span class="n">ens</span><span class="o">.</span><span class="n">n_neurons</span><span class="p">,</span>
+            <span class="n">neuron_type</span><span class="o">=</span><span class="n">ens</span><span class="o">.</span><span class="n">neuron_type</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@dispatch</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">nengo</span><span class="o">.</span><span class="n">Node</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">convert_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_node</span><span class="p">(</span>
+            <span class="n">node</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_typename</span><span class="p">(</span><span class="n">node</span><span class="p">),</span>
+            <span class="n">net</span><span class="o">=</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_net</span><span class="p">),</span>
+            <span class="n">net_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_net</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">size_in</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">size_in</span><span class="p">,</span>
+            <span class="n">size_out</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">size_out</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@dispatch</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">nengo</span><span class="o">.</span><span class="n">Probe</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">convert_probe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">probe</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@dispatch</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">nengo</span><span class="o">.</span><span class="n">Connection</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">convert_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conn</span><span class="p">):</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node_obj</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">pre_obj</span><span class="p">)</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node_obj</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">post_obj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_edge</span><span class="p">(</span>
+            <span class="n">conn</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span>
+            <span class="n">pre_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_typename</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">pre_obj</span><span class="p">),</span>
+            <span class="n">post_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_typename</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">post_obj</span><span class="p">),</span>
+            <span class="n">synapse</span><span class="o">=</span><span class="n">conn</span><span class="o">.</span><span class="n">synapse</span><span class="p">,</span>
+            <span class="n">tau</span><span class="o">=</span><span class="n">conn</span><span class="o">.</span><span class="n">synapse</span><span class="o">.</span><span class="n">tau</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">synapse</span><span class="p">,</span> <span class="s1">&#39;tau&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">function</span><span class="o">=</span><span class="n">conn</span><span class="o">.</span><span class="n">function</span><span class="p">,</span>
+            <span class="n">transform</span><span class="o">=</span><span class="n">conn</span><span class="o">.</span><span class="n">transform</span><span class="p">,</span>
+            <span class="n">scalar_transform</span><span class="o">=</span><span class="p">(</span>
+                <span class="n">conn</span><span class="o">.</span><span class="n">transform</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">transform</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">learning_rule_type</span><span class="o">=</span><span class="n">conn</span><span class="o">.</span><span class="n">learning_rule_type</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="GexfConverter.get_node_obj"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gexf.GexfConverter.get_node_obj">[docs]</a>    <span class="k">def</span> <span class="nf">get_node_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get an object with a corresponding graph node related to *obj*.</span>
+
+<span class="sd">        For certain objects like `nengo.ensemble.Neurons` or</span>
+<span class="sd">        `nengo.connection.LearningRule` no graph node will be created. This</span>
+<span class="sd">        function will resolve such an object to a related object that has a</span>
+<span class="sd">        corresponding graph node (e.g., the ensemble for a neurons object or</span>
+<span class="sd">        the pre object for a learning rule).</span>
+
+<span class="sd">        In `GexfConverter` this is used to make sure connections are between</span>
+<span class="sd">        the correct nodes and do not introduce unrelated dangling nodes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">nengo</span><span class="o">.</span><span class="n">ensemble</span><span class="o">.</span><span class="n">Neurons</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">ensemble</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">nengo</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">LearningRule</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node_obj</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">pre_obj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obj</span></div>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_typename</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="n">tp</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tp</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">tp</span><span class="o">.</span><span class="vm">__name__</span></div>
+
+
+<div class="viewcode-block" id="CollapsingGexfConverter"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gexf.CollapsingGexfConverter">[docs]</a><span class="k">class</span> <span class="nc">CollapsingGexfConverter</span><span class="p">(</span><span class="n">GexfConverter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Converts Nengo models into GEXF files with some collapsed networks.</span>
+
+<span class="sd">    See `GexfConverter` for general information on conversion to GEXF files.</span>
+<span class="sd">    This class will collapse certain networks to a single node in the</span>
+<span class="sd">    conversion.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    to_collapse : sequence, optional</span>
+<span class="sd">        Network types to collapse, if not given the networks listed in</span>
+<span class="sd">        ``NENGO_NETS`` and ``SPA_NETS`` will be collapsed. Note that</span>
+<span class="sd">        ``SPA_NETS`` currently only contains networks from *nengo_spa*,</span>
+<span class="sd">        but not the *spa* module in core *nengo*.</span>
+<span class="sd">    labeler : optional</span>
+<span class="sd">        Object with a ``get_labels`` method that returns a dictionary mapping</span>
+<span class="sd">        model objects to labels. If not given, a new `HierarchicalLabeler`</span>
+<span class="sd">        will be used.</span>
+<span class="sd">    hierarchical : bool, optional (default: False)</span>
+<span class="sd">        Whether to include information of the network hierarchy in the file.</span>
+<span class="sd">        Support for hierarchical graphs was removed in Gephi 0.9 and</span>
+<span class="sd">        hierarchical networks will be automatically flattened which leaves an</span>
+<span class="sd">        unconnected node for every network.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dispatch</span> <span class="o">=</span> <span class="n">DispatchTable</span><span class="p">(</span><span class="n">GexfConverter</span><span class="o">.</span><span class="n">dispatch</span><span class="p">)</span>
+
+    <span class="n">NENGO_NETS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">nengo</span><span class="o">.</span><span class="n">networks</span><span class="o">.</span><span class="n">CircularConvolution</span><span class="p">,</span>
+        <span class="n">nengo</span><span class="o">.</span><span class="n">networks</span><span class="o">.</span><span class="n">EnsembleArray</span><span class="p">,</span>
+        <span class="n">nengo</span><span class="o">.</span><span class="n">networks</span><span class="o">.</span><span class="n">Product</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">spa</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">SPA_NETS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">SPA_NETS</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">spa</span><span class="o">.</span><span class="n">networks</span><span class="o">.</span><span class="n">CircularConvolution</span><span class="p">,</span>
+            <span class="n">spa</span><span class="o">.</span><span class="n">AssociativeMemory</span><span class="p">,</span>
+            <span class="n">spa</span><span class="o">.</span><span class="n">Bind</span><span class="p">,</span>
+            <span class="n">spa</span><span class="o">.</span><span class="n">Compare</span><span class="p">,</span>
+            <span class="n">spa</span><span class="o">.</span><span class="n">Product</span><span class="p">,</span>
+            <span class="n">spa</span><span class="o">.</span><span class="n">Scalar</span><span class="p">,</span>
+            <span class="n">spa</span><span class="o">.</span><span class="n">State</span><span class="p">,</span>
+            <span class="n">spa</span><span class="o">.</span><span class="n">Transcode</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_collapse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">labeler</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hierarchical</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CollapsingGexfConverter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">labeler</span><span class="o">=</span><span class="n">labeler</span><span class="p">,</span> <span class="n">hierarchical</span><span class="o">=</span><span class="n">hierarchical</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">to_collapse</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">to_collapse</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">NENGO_NETS</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">SPA_NETS</span>
+
+        <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">to_collapse</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dispatch</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_collapsed</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">obj2collapsed</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">WeakKeyDictionary</span><span class="p">()</span>
+
+<div class="viewcode-block" id="CollapsingGexfConverter.convert_collapsed"><a class="viewcode-back" href="../../visualization.html#nengo_extras.gexf.CollapsingGexfConverter.convert_collapsed">[docs]</a>    <span class="k">def</span> <span class="nf">convert_collapsed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Used to convert a network into a collapsed graph node.&quot;&quot;&quot;</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;nodes&#39;</span><span class="p">)</span>
+        <span class="n">nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">make_node</span><span class="p">(</span>
+            <span class="n">net</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_typename</span><span class="p">(</span><span class="n">net</span><span class="p">),</span> <span class="n">net</span><span class="o">=</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_net</span><span class="p">),</span>
+            <span class="n">net_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_net</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">n_neurons</span><span class="o">=</span><span class="n">net</span><span class="o">.</span><span class="n">n_neurons</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">obj2collapsed</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="n">child</span><span class="p">:</span> <span class="n">net</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">all_objects</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">nodes</span></div>
+
+    <span class="k">def</span> <span class="nf">get_node_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CollapsingGexfConverter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_node_obj</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">obj2collapsed</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Nengo extras 0.3.0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2015-2018, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

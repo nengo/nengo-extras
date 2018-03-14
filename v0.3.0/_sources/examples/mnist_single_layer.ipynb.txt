@@ -1,0 +1,284 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Encoding for image recognition\n",
+    "\n",
+    "As we will see in this notebook,\n",
+    "on the relatively easy MNIST image recognition dataset,\n",
+    "we can use NEF decoding methods to do quite well.\n",
+    "However, this performance depends on a judicious choice of encoders.\n",
+    "This notebook explores how encoder choice\n",
+    "affects performance on an image categorization task."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "%matplotlib inline\n",
+    "import nengo\n",
+    "import numpy as np\n",
+    "\n",
+    "from nengo_extras.data import load_mnist, one_hot_from_labels\n",
+    "from nengo_extras.matplotlib import tile\n",
+    "from nengo_extras.vision import Gabor, Mask\n",
+    "\n",
+    "rng = np.random.RandomState(9)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Load and preprocess the data\n",
+    "\n",
+    "First, we load the MNIST data,\n",
+    "and preprocess it to lie within the range [-1, 1]\n",
+    "(by default, it is in the range [0, 1]).\n",
+    "\n",
+    "Then, we generate a set of training targets, `T_train`.\n",
+    "The dimensionality of our output\n",
+    "is the number of classes in the dataset, 10.\n",
+    "The targets are one-hot encodings of the class index of each example;\n",
+    "that is, for each example, we have a 10-dimensional vector\n",
+    "where only one element is one\n",
+    "(corresponding to the class of that example)\n",
+    "and all other elements are zero.\n",
+    "Five examples of this are printed in the output below."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# --- load the data\n",
+    "img_rows, img_cols = 28, 28\n",
+    "\n",
+    "(X_train, y_train), (X_test, y_test) = load_mnist()\n",
+    "\n",
+    "X_train = 2 * X_train - 1  # normalize to -1 to 1\n",
+    "X_test = 2 * X_test - 1  # normalize to -1 to 1\n",
+    "\n",
+    "T_train = one_hot_from_labels(y_train, classes=10)\n",
+    "\n",
+    "for i in range(5):\n",
+    "    print(\"%d -> %s\" % (y_train[i], T_train[i]))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Create the network\n",
+    "\n",
+    "We now create our network.\n",
+    "It has one ensemble, `a`,\n",
+    "that encodes the input images using neurons,\n",
+    "and a connection `conn` out of this ensemble\n",
+    "that decodes the classification.\n",
+    "\n",
+    "We choose not to randomize the intercepts and max rates,\n",
+    "so that our results are only affected\n",
+    "by the different encoder choices.\n",
+    "\n",
+    "We create a function `get_outs` that returns\n",
+    "the output of the network given a `Simulator` object,\n",
+    "so that we can evaluate the network statically\n",
+    "on many images\n",
+    "(i.e. we don't need to run the simulator in time,\n",
+    "we just use the encoders and decoders\n",
+    "created during the build process)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "# --- set up network parameters\n",
+    "n_vis = X_train.shape[1]\n",
+    "n_out = T_train.shape[1]\n",
+    "\n",
+    "# number of hidden units\n",
+    "# More means better performance but longer training time.\n",
+    "n_hid = 1000\n",
+    "\n",
+    "ens_params = dict(\n",
+    "    eval_points=X_train,\n",
+    "    neuron_type=nengo.LIFRate(),\n",
+    "    intercepts=nengo.dists.Choice([0.1]),\n",
+    "    max_rates=nengo.dists.Choice([100]),\n",
+    ")\n",
+    "\n",
+    "solver = nengo.solvers.LstsqL2(reg=0.01)\n",
+    "\n",
+    "with nengo.Network(seed=3) as model:\n",
+    "    a = nengo.Ensemble(n_hid, n_vis, **ens_params)\n",
+    "    v = nengo.Node(size_in=n_out)\n",
+    "    conn = nengo.Connection(\n",
+    "        a, v, synapse=None,\n",
+    "        eval_points=X_train, function=T_train, solver=solver)\n",
+    "\n",
+    "\n",
+    "def get_outs(sim, images):\n",
+    "    # encode the images to get the ensemble activations\n",
+    "    _, acts = nengo.utils.ensemble.tuning_curves(a, sim, inputs=images)\n",
+    "\n",
+    "    # decode the ensemble activities using the connection's decoders\n",
+    "    return np.dot(acts, sim.data[conn].weights.T)\n",
+    "\n",
+    "\n",
+    "def get_error(sim, images, labels):\n",
+    "    # the classification for each example is index of \n",
+    "    # the output dimension with the highest value\n",
+    "    return np.argmax(get_outs(sim, images), axis=1) != labels\n",
+    "\n",
+    "\n",
+    "def print_error(sim):\n",
+    "    train_error = 100 * get_error(sim, X_train, y_train).mean()\n",
+    "    test_error = 100 * get_error(sim, X_test, y_test).mean()\n",
+    "    print(\"Train/test error: %0.2f%%, %0.2f%%\" % (train_error, test_error))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Normally distributed encoders\n",
+    "\n",
+    "These are the standard encoders used in the NEF.\n",
+    "Since our data is high-dimensional,\n",
+    "they have a lot of space to cover,\n",
+    "and do not work particularly well,\n",
+    "as shown by the training and testing errors.\n",
+    "\n",
+    "Samples of these encoders are shown in the plot."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "encoders = rng.normal(size=(n_hid, 28 * 28))\n",
+    "a.encoders = encoders\n",
+    "\n",
+    "tile(encoders.reshape(-1, 28, 28), rows=4, cols=6, grid=True)\n",
+    "\n",
+    "with nengo.Simulator(model) as sim:\n",
+    "    print_error(sim)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Normally distributed sparse encoders\n",
+    "\n",
+    "The same as before, but now each encoder\n",
+    "has a limited receptive field.\n",
+    "This makes each neuron only responsible for part of the image,\n",
+    "and allows them to work together better to encode the whole image."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "encoders = rng.normal(size=(n_hid, 11, 11))\n",
+    "encoders = Mask((28, 28)).populate(encoders, rng=rng, flatten=True)\n",
+    "a.encoders = encoders\n",
+    "\n",
+    "tile(encoders.reshape(-1, 28, 28), rows=4, cols=6, grid=True)\n",
+    "\n",
+    "with nengo.Simulator(model) as sim:\n",
+    "    print_error(sim)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Gabor filter encoders\n",
+    "\n",
+    "Neurons in primary visual cortex\n",
+    "have tuning that resembles Gabor filters.\n",
+    "This is because natural images are somewhat smooth;\n",
+    "there is a correlation between a pixel's value\n",
+    "and that of adjacent pixels.\n",
+    "\n",
+    "First, we use Gabor filters over the whole image,\n",
+    "which does not work particularly well because\n",
+    "a) each neuron is now responsible for the whole image again,\n",
+    "and b) the statistics of the resulting Gabor filters\n",
+    "do not match the statistics of the images."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "encoders = Gabor().generate(n_hid, (28, 28), rng=rng).reshape(n_hid, -1)\n",
+    "a.encoders = encoders\n",
+    "\n",
+    "tile(encoders.reshape(-1, 28, 28), rows=4, cols=6, grid=True)\n",
+    "\n",
+    "with nengo.Simulator(model) as sim:\n",
+    "    print_error(sim)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Sparse Gabor filter encoders\n",
+    "\n",
+    "Using Gabor filters that only cover part of the image\n",
+    "results in the best performance.\n",
+    "These filters are able to work together to encode the image,\n",
+    "and their statistics roughly match those of the input images."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "encoders = Gabor().generate(n_hid, (11, 11), rng=rng)\n",
+    "encoders = Mask((28, 28)).populate(encoders, rng=rng, flatten=True)\n",
+    "a.encoders = encoders\n",
+    "\n",
+    "tile(encoders.reshape(-1, 28, 28), rows=4, cols=6, grid=True)\n",
+    "\n",
+    "with nengo.Simulator(model) as sim:\n",
+    "    print_error(sim)"
+   ]
+  }
+ ],
+ "metadata": {
+  "language_info": {
+   "name": "python",
+   "pygments_lexer": "ipython3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 1
+}
