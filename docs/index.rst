@@ -23,7 +23,7 @@ To install Nengo extras, we recommend using ``pip``.
 
 .. code:: bash
 
-   pip install nengo_extras
+   pip install nengo-extras
 
 .. toctree::
    :maxdepth: 2

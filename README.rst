@@ -20,11 +20,11 @@ To install Nengo extras, we recommend using ``pip``.
 
 .. code:: bash
 
-   pip install nengo_extras
+   pip install nengo-extras
 
 Usage
 =====
 
 For a listing of the contents of this repository,
 and information on how to use it,
-see the `full documentation <https://www.nengo.ai/nengo_extras>`_.
+see the `full documentation <https://www.nengo.ai/nengo-extras>`_.

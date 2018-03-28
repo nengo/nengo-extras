@@ -79,7 +79,7 @@ html_theme = "guzzle_sphinx_theme"
 
 html_theme_options = {
     "project_nav_name": "Nengo extras %s" % (version,),
-    "base_url": "https://www.nengo.ai/nengo_extras",
+    "base_url": "https://www.nengo.ai/nengo-extras",
 }
 
 html_title = "Nengo extras {0} docs".format(release)

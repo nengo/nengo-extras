@@ -65,5 +65,5 @@ after_success:
       git config --global user.email "travis@travis-ci.org";
       git config --global user.name "TravisCI";
       ghp-import -m "Last update at $DATE" -b gh-pages docs/_build;
-      git push -fq "https://$GH_TOKEN@github.com/nengo/nengo_extras.git" gh-pages;
+      git push -fq "https://$GH_TOKEN@github.com/nengo/nengo-extras.git" gh-pages;
     fi

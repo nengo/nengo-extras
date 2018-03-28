@@ -29,13 +29,13 @@ version_module = imp.load_source(
 testing = 'test' in sys.argv or 'pytest' in sys.argv
 
 setup(
-    name="nengo_extras",
+    name="nengo-extras",
     version=version_module.version,
     author="Applied Brain Research",
     author_email="info@appliedbrainresearch.com",
     packages=find_packages(),
     scripts=[],
-    url="https://github.com/nengo/nengo_extras",
+    url="https://github.com/nengo/nengo-extras",
     license="Free for non-commercial use",
     description="Lesser used features for the Nengo neural simulator",
     long_description=read('README.rst', 'CHANGES.rst'),

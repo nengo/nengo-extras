@@ -13,7 +13,7 @@ Classes and utilities for doing deep learning with Nengo.
    we recommend that you first check out `Nengo DL`_
    to see if it fits your use case.
 
-.. _Nengo DL: https://www.nengo.ai/nengo_dl
+.. _Nengo DL: https://www.nengo.ai/nengo-dl
 
 .. default-role:: obj
 
