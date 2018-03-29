@@ -1,7 +1,6 @@
 from __future__ import print_function
 
 import os
-os.environ['THEANO_FLAGS'] = 'device=gpu,floatX=float32'
 
 import nengo
 import nengo_ocl
@@ -15,7 +14,6 @@ from keras.layers import (
 from keras.layers.noise import GaussianNoise
 from keras.utils import np_utils
 
-import nengo
 from nengo_extras.keras import (
     load_model_pair, save_model_pair, SequentialNetwork, SoftLIF)
 from nengo_extras.gui import image_display_function
@@ -25,57 +23,71 @@ filename = 'mnist_spiking_cnn'
 
 # --- Load data
 img_rows, img_cols = 28, 28
-nb_classes = 10
+n_classes = 10
 
 # the data, shuffled and split between train and test sets
 (X_train, y_train), (X_test, y_test) = mnist.load_data()
-X_train = X_train.reshape(X_train.shape[0], 1, img_rows, img_cols)
-X_test = X_test.reshape(X_test.shape[0], 1, img_rows, img_cols)
-X_train = X_train.astype('float32')/128 - 1
-X_test = X_test.astype('float32')/128 - 1
+data_format = 'channels_first'
+
+
+def preprocess(X):
+    X = X.astype('float32')/128 - 1
+    if data_format == 'channels_first':
+        X = X.reshape(X.shape[0], 1, img_rows, img_cols)
+    else:
+        X = X.reshape(X.shape[0], img_rows, img_cols, 1)
+
+    return X
+
+X_train, X_test = preprocess(X_train), preprocess(X_test)
 
 # --- Train model
 if not os.path.exists(filename + '.h5'):
     batch_size = 128
-    nb_epoch = 6
+    epochs = 6
 
-    # number of convolutional filters to use
-    nb_filters = 32
-    # size of pooling area for max pooling
-    nb_pool = 2
-    # convolution kernel size
-    nb_conv = 3
-
-    # convert class vectors to binary class matrices
-    Y_train = np_utils.to_categorical(y_train, nb_classes)
-    Y_test = np_utils.to_categorical(y_test, nb_classes)
-
-    kmodel = Sequential()
+    n_filters = 32        # number of convolutional filters to use
+    kernel_size = (3, 3)  # shape of each convolutional filter
 
     softlif_params = dict(
-        sigma=0.002, amplitude=0.063, tau_rc=0.022, tau_ref=0.002)
+        sigma=0.01, amplitude=0.063, tau_rc=0.022, tau_ref=0.002)
 
-    kmodel.add(GaussianNoise(0.1, input_shape=(1, img_rows, img_cols)))
-    kmodel.add(Convolution2D(nb_filters, nb_conv, nb_conv, border_mode='valid'))
+    input_shape = X_train.shape[1:]
+
+    # convert class vectors to binary class matrices
+    Y_train = np_utils.to_categorical(y_train, n_classes)
+    Y_test = np_utils.to_categorical(y_test, n_classes)
+
+    # construct Keras model
+    kmodel = Sequential()
+    kmodel.add(GaussianNoise(0.1, input_shape=input_shape))
+
+    kmodel.add(Convolution2D(n_filters, kernel_size, padding='valid',
+                             strides=(2, 2),
+                             data_format=data_format))
     kmodel.add(SoftLIF(**softlif_params))
-    kmodel.add(Convolution2D(nb_filters, nb_conv, nb_conv))
+
+    kmodel.add(Convolution2D(n_filters, kernel_size,
+                             strides=(2, 2),
+                             data_format=data_format))
     kmodel.add(SoftLIF(**softlif_params))
-    kmodel.add(AveragePooling2D(pool_size=(nb_pool, nb_pool)))
-    kmodel.add(Dropout(0.25))
 
     kmodel.add(Flatten())
-    kmodel.add(Dense(128))
+    kmodel.add(Dense(512))
     kmodel.add(SoftLIF(**softlif_params))
     kmodel.add(Dropout(0.5))
-    kmodel.add(Dense(nb_classes))
+
+    kmodel.add(Dense(n_classes))
     kmodel.add(Activation('softmax'))
 
+    # compile and fit Keras model
+    optimizer = keras.optimizers.Nadam()
     kmodel.compile(loss='categorical_crossentropy',
-                   optimizer='adadelta',
+                   optimizer=optimizer,
                    metrics=['accuracy'])
-
-    kmodel.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
+    kmodel.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs,
                verbose=1, validation_data=(X_test, Y_test))
+
     score = kmodel.evaluate(X_test, Y_test, verbose=0)
     print('Test score:', score[0])
     print('Test accuracy:', score[1])
@@ -87,7 +99,7 @@ else:
 
 
 # --- Run model in Nengo
-presentation_time = 0.2
+presentation_time = 0.15
 
 model = nengo.Network()
 with model:
@@ -120,21 +132,21 @@ with model:
     nengo.Connection(knet.output, output.input)
 
 
-nb_presentations = 100
+n_presentations = 100
 
 if 0:
     # run ANN in Theano
     os.environ['THEANO_FLAGS'] = 'device=gpu,floatX=float32'
-    Q = knet.theano_compute(X_test[:nb_presentations])
-    Z = np.argmax(Q, axis=-1) == y_test[:nb_presentations]
-    print("ANN accuracy (%d examples): %0.3f" % (nb_presentations, Z.mean()))
+    Q = knet.theano_compute(X_test[:n_presentations])
+    Z = np.argmax(Q, axis=-1) == y_test[:n_presentations]
+    print("ANN accuracy (%d examples): %0.3f" % (n_presentations, Z.mean()))
 
 
 with nengo_ocl.Simulator(model) as sim:
-    sim.run(nb_presentations * presentation_time)
+    sim.run(n_presentations * presentation_time)
 
 nt = int(presentation_time / sim.dt)
-blocks = sim.data[output_p].reshape(nb_presentations, nt, nb_classes)
+blocks = sim.data[output_p].reshape(n_presentations, nt, n_classes)
 choices = np.argmax(blocks[:, -20:, :].mean(axis=1), axis=1)
-accuracy = (choices == y_test[:nb_presentations]).mean()
-print('Spiking accuracy (%d examples): %0.3f' % (nb_presentations, accuracy))
+accuracy = (choices == y_test[:n_presentations]).mean()
+print('Spiking accuracy (%d examples): %0.3f' % (n_presentations, accuracy))

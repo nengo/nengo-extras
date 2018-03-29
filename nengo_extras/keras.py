@@ -20,9 +20,21 @@ class SoftLIF(keras.layers.Layer):
 
     def call(self, x, mask=None):
         from keras import backend as K
-        j = K.softplus(x / self.sigma) * self.sigma
-        r = self.amplitude / (self.tau_ref + self.tau_rc*K.log(1 + 1/j))
-        return K.switch(j > 0, r, 0)
+        if K.backend() == 'tensorflow':
+            import tensorflow as tf
+            log1p = tf.log1p
+            switch = tf.where
+        else:
+            import theano.tensor as tt
+            log1p = tt.log1p
+            switch = tt.switch
+
+        xs = x / self.sigma
+        x_valid = xs > -20
+        xs_safe = switch(x_valid, xs, K.zeros_like(xs))
+        j = K.softplus(xs_safe) * self.sigma
+        q = switch(x_valid, log1p(1/j), -xs - np.log(self.sigma))
+        return self.amplitude / (self.tau_ref + self.tau_rc*q)
 
     def get_config(self):
         config = {'sigma': self.sigma, 'amplitude': self.amplitude,
@@ -68,6 +80,17 @@ def save_model_pair(model, filepath, overwrite=False):
     model.save_weights(h5_path, overwrite=overwrite)
 
 
+def kmodel_compute_shapes(kmodel, input_shape):
+    assert isinstance(kmodel, keras.models.Sequential)
+
+    shapes = [input_shape]
+    for layer in kmodel.layers:
+        s = layer.compute_output_shape(shapes[-1])
+        shapes.append(s)
+
+    return shapes
+
+
 class SequentialNetwork(nengo_extras.deepnetworks.SequentialNetwork):
 
     def __init__(self, model, synapse=None, lif_type='lif', **kwargs):
@@ -111,18 +134,27 @@ class SequentialNetwork(nengo_extras.deepnetworks.SequentialNetwork):
         return self.add_full_layer(weights.T, biases, name=layer.name)
 
     def _add_conv2d_layer(self, layer):
+        import keras.backend as K
         shape_in = layer.input_shape[1:]
         filters, biases = layer.get_weights()
-        filters = filters[..., ::-1, ::-1]  # flip
-        strides = layer.subsample
+        strides = layer.strides
 
-        nf, nc, ni, nj = filters.shape
-        if layer.border_mode == 'valid':
+        assert layer.data_format == 'channels_first'
+        nc, _, _ = shape_in
+        filters = np.transpose(filters, (3, 2, 0, 1))
+        if K.backend() == 'theano':
+            filters = filters[:, :, ::-1, ::-1]  # theano has flipped filters
+        filters = filters.copy()  # to make contiguous
+
+        nf, nc2, si, sj = filters.shape
+        assert nc == nc2, "Filter channels must match input channels"
+
+        if layer.padding == 'valid':
             padding = (0, 0)
-        elif layer.border_mode == 'same':
-            padding = ((ni - 1) / 2, (nj - 1) / 2)
+        elif layer.padding == 'same':
+            padding = ((si - 1) / 2, (sj - 1) / 2)
         else:
-            raise ValueError("Unrecognized border mode %r" % layer.border_mode)
+            raise ValueError("Unrecognized padding %r" % layer.padding)
 
         conv = self.add_conv_layer(
             shape_in, filters, biases, strides=strides, padding=padding,
