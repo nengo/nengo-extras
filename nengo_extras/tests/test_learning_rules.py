@@ -5,7 +5,74 @@ import numpy as np
 import pytest
 
 
-from nengo_extras.learning_rules import DeltaRule
+from nengo_extras.learning_rules import AML, DeltaRule
+
+
+@pytest.mark.slow
+def test_aml(Simulator, seed, rng, plt):
+    d = 32
+    vocab = nengo.spa.Vocabulary(d, rng=rng)
+    n_items = 3
+    item_duration = 1.
+
+    def err_stimulus(t):
+        if t <= n_items * item_duration:
+            v = vocab.parse('Out' + str(int(t // item_duration))).v
+        else:
+            v = np.zeros(d)
+        return np.concatenate(((1., 1.), v))
+
+    def pre_stimulus(t):
+        return vocab.parse('In' + str(int((t // item_duration) % n_items))).v
+
+    with nengo.Network(seed=seed) as model:
+        pre = nengo.Ensemble(50 * d, d)
+        post = nengo.Node(size_in=d)
+        c = nengo.Connection(
+            pre, post, learning_rule_type=AML(d),
+            function=lambda x: np.zeros(d))
+        err = nengo.Node(err_stimulus)
+        inp = nengo.Node(pre_stimulus)
+        nengo.Connection(inp, pre)
+        nengo.Connection(err, c.learning_rule)
+        p_pre = nengo.Probe(pre, synapse=0.01)
+        p_post = nengo.Probe(post, synapse=0.01)
+        p_err = nengo.Probe(err, synapse=0.01)
+
+    with Simulator(model) as sim:
+        sim.run(2 * n_items * item_duration)
+
+    vocab_out = vocab.create_subset(['Out' + str(i) for i in range(n_items)])
+    vocab_in = vocab.create_subset(['In' + str(i) for i in range(n_items)])
+
+    fig = plt.figure()
+
+    ax1 = fig.add_subplot(3, 1, 1)
+    ax1.plot(sim.trange(), nengo.spa.similarity(sim.data[p_pre], vocab_in))
+    ax1.set_ylabel(r"Cue $\mathbf{u}(t)$")
+
+    ax2 = fig.add_subplot(3, 1, 2, sharex=ax1, sharey=ax1)
+    ax2.plot(sim.trange(), nengo.spa.similarity(
+        sim.data[p_err][:, 2:], vocab_out))
+    ax2.set_ylabel(r"Target $\mathbf{v}(t)$")
+
+    ax3 = fig.add_subplot(3, 1, 3, sharex=ax1, sharey=ax1)
+    ax3.plot(sim.trange(), nengo.spa.similarity(sim.data[p_post], vocab_out))
+    ax3.set_ylabel("AML output")
+
+    ax1.set_ylim(bottom=0.)
+
+    for ax in [ax1, ax2, ax3]:
+        ax.label_outer()
+    fig.tight_layout()
+
+    t = sim.trange()
+    similarity = nengo.spa.similarity(sim.data[p_post], vocab_out)
+    for i in range(n_items):
+        assert item_duration > 0.3
+        start = (n_items + i) * item_duration + 0.3
+        end = (n_items + i + 1) * item_duration
+        assert np.all(similarity[(start < t) & (t <= end), i] > 0.8)
 
 
 @pytest.mark.parametrize('post_target', [None, 'in', 'out'])

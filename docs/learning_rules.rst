@@ -9,4 +9,6 @@ can be used.
 
 .. default-role:: obj
 
+.. autoclass:: nengo_extras.learning_rules.AML
+
 .. autoclass:: nengo_extras.learning_rules.DeltaRule

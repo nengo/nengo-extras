@@ -22,7 +22,12 @@ Release history
 0.1.1 (unreleased)
 ==================
 
+**Added**
 
+- Added the association matrix learning rule (AML)
+  to learn associations from cue vectors to target vectors
+  in a one-shot fashion without catastrophic forgetting.
+  (`#72 <https://github.com/nengo/nengo-extras/pull/72>`_)
 
 0.1.0 (March 14, 2018)
 ======================
