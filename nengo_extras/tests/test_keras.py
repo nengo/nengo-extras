@@ -3,37 +3,54 @@ import numpy as np
 import pytest
 
 
-def test_softlif_layer(plt):
+@pytest.mark.parametrize('noise_model', ('none', 'alpharc'))
+def test_softlif_layer(noise_model, plt):
     pytest.importorskip('keras')
     import keras.models
     import nengo_extras.keras
 
+    nx = 256
+    ni = 500
+
     params = dict(sigma=0.02, amplitude=0.063, tau_rc=0.05, tau_ref=0.001)
+    layer_params = dict(params)
+    layer_params['noise_model'] = noise_model
+    if noise_model == 'alpharc':
+        layer_params['tau_s'] = 0.001
 
     model = keras.models.Sequential()
-    model.add(nengo_extras.keras.SoftLIF(input_shape=(1,), **params))
+    model.add(nengo_extras.keras.SoftLIF(input_shape=(nx,), **layer_params))
 
-    x = np.linspace(-10, 30, 256).reshape(-1, 1)
-    y = model.predict(x)
+    x = np.linspace(-10, 30, nx)
+    y = model.predict(np.ones((ni, 1)) * x)
     y0 = nengo_extras.SoftLIFRate(**params).rates(x, 1., 1.)
 
-    plt.plot(x, y)
+    plt.plot(x, y.mean(axis=0), 'b')
+    if noise_model != 'none':
+        plt.plot(x, np.percentile(y, 5, axis=0), 'b:')
+        plt.plot(x, np.percentile(y, 95, axis=0), 'b:')
     plt.plot(x, y0, 'k--')
 
     assert np.isfinite(y).all()
-    assert np.allclose(y, y0, atol=1e-3, rtol=1e-3)
+    if noise_model == 'none':
+        assert np.allclose(y, y0, atol=1e-3, rtol=1e-3)
+    else:
+        assert np.allclose(y.mean(axis=0), y0, atol=1e-1, rtol=1e-2)
 
 
-def test_softlif_derivative(plt):
+@pytest.mark.parametrize('noise_model', ('none', 'alpharc'))
+def test_softlif_derivative(noise_model, plt):
     pytest.importorskip('keras')
     import keras.models
     import nengo_extras.keras
     from keras import backend as K
 
     params = dict(sigma=0.02, amplitude=0.063, tau_rc=0.05, tau_ref=0.001)
+    layer_params = dict(params)
+    layer_params['noise_model'] = noise_model
 
     model = keras.models.Sequential()
-    model.add(nengo_extras.keras.SoftLIF(input_shape=(1,), **params))
+    model.add(nengo_extras.keras.SoftLIF(input_shape=(1,), **layer_params))
 
     x = model.layers[0].input
     y = model.layers[0].output

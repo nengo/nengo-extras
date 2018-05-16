@@ -10,31 +10,64 @@ import nengo_extras.deepnetworks
 
 class SoftLIF(keras.layers.Layer):
     def __init__(self, sigma=1., amplitude=1., tau_rc=0.02, tau_ref=0.002,
-                 **kwargs):
+                 noise_model='none', tau_s=0.005, **kwargs):
         self.supports_masking = True
         self.sigma = sigma
         self.amplitude = amplitude
         self.tau_rc = tau_rc
         self.tau_ref = tau_ref
+
+        if noise_model not in ('none', 'alpharc'):
+            raise ValueError("Unrecognized noise model")
+        self.noise_model = noise_model
+
+        self.tau_s = tau_s
+        if abs(self.tau_rc - self.tau_s) < 1e-4:
+            raise ValueError("tau_rc and tau_s must be different")
+
         super(SoftLIF, self).__init__(**kwargs)
 
     def call(self, x, mask=None):
         from keras import backend as K
         if K.backend() == 'tensorflow':
             import tensorflow as tf
+            expm1 = tf.expm1
             log1p = tf.log1p
-            switch = tf.where
+            where = tf.where
         else:
             import theano.tensor as tt
+            expm1 = tt.expm1
             log1p = tt.log1p
-            switch = tt.switch
+            where = tt.switch
 
+        # compute non-noisy output
         xs = x / self.sigma
         x_valid = xs > -20
-        xs_safe = switch(x_valid, xs, K.zeros_like(xs))
+        xs_safe = where(x_valid, xs, K.zeros_like(xs))
         j = K.softplus(xs_safe) * self.sigma
-        q = switch(x_valid, log1p(1/j), -xs - np.log(self.sigma))
-        return self.amplitude / (self.tau_ref + self.tau_rc*q)
+        p = self.tau_ref + self.tau_rc*where(
+            x_valid, log1p(1/j), -xs - np.log(self.sigma))
+        r = self.amplitude/p
+
+        if self.noise_model == 'none':
+            return r
+        elif self.noise_model == 'alpharc':
+            # compute noisy output for forward pass
+            d = self.tau_rc - self.tau_s
+            u01 = K.random_uniform(K.shape(p))
+            t = u01 * p
+            q_rc = K.exp(-t / self.tau_rc)
+            q_s = K.exp(-t / self.tau_s)
+            r_rc1 = -expm1(-p / self.tau_rc)  # 1 - exp(-p/tau_rc)
+            r_s1 = -expm1(-p / self.tau_s)  # 1 - exp(-p/tau_s)
+
+            pt = where(p < 100*self.tau_s, (p - t)*(1 - r_s1), K.zeros_like(p))
+            qt = where(t < 100*self.tau_s, q_s*(t + pt), K.zeros_like(t))
+            rt = qt / (self.tau_s * d * r_s1**2)
+            rn = self.tau_rc*(q_rc/(d*d*r_rc1) - q_s/(d*d*r_s1)) - rt
+
+            # r + stop_gradient(rn - r) = rn on forward pass, r on backwards
+            return r + K.stop_gradient(self.amplitude*rn - r)
 
     def get_config(self):
         config = {'sigma': self.sigma, 'amplitude': self.amplitude,
