@@ -17,8 +17,8 @@ class DispatchTable(object):
     """A descriptor to dispatch to other methods depending on argument type.
 
     How to use: assign the descriptor to a class attribute and use the
-    `register` decorator to declare which functions to dispatch to for specific
-    types::
+    ``register`` decorator to declare which functions to dispatch to
+    for specific types::
 
         class MyClass(object):
             dispatch = DispatchTable()
@@ -193,7 +193,8 @@ class GexfConverter(object):
     * `GEXF <https://github.com/gephi/gexf/wiki>`_
 
     This class can be inherited from to customize the conversion or
-    alternatively the `dispatch` table can be changed on a per-instance basis.
+    alternatively the ``dispatch`` table can be changed on a
+    per-instance basis.
 
     Note that probes are currently not included in the graph.
 
@@ -227,7 +228,7 @@ class GexfConverter(object):
     Parameters
     ----------
     labeler : optional
-        Object with a `get_labels` method that returns a dictionary mapping
+        Object with a ``get_labels`` method that returns a dictionary mapping
         model objects to labels. If not given, a new `HierarchicalLabeler`
         will be used.
     hierarchical : bool, optional (default: False)
@@ -513,12 +514,12 @@ class CollapsingGexfConverter(GexfConverter):
     ----------
     to_collapse : sequence, optional
         Network types to collapse, if not given the networks listed in
-        `NENGO_NETS` and `SPA_NETS` will be collapsed. Note that `SPA_NETS`
-        currently only contains networks from *nengo_spa*, but not the
-        *spa* module in core *nengo*.
+        ``NENGO_NETS`` and ``SPA_NETS`` will be collapsed. Note that
+        ``SPA_NETS`` currently only contains networks from *nengo_spa*,
+        but not the *spa* module in core *nengo*.
     labeler : optional
-        Object with a `get_labels` method that returns a dictionary mapping
-        model objects to labels. If not given, a new `InspectiveLabeler`
+        Object with a ``get_labels`` method that returns a dictionary mapping
+        model objects to labels. If not given, a new `HierarchicalLabeler`
         will be used.
     hierarchical : bool, optional (default: False)
         Whether to include information of the network hierarchy in the file.

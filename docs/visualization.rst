@@ -20,7 +20,6 @@ GraphViz diagrams
    nengo_extras.graphviz.net_diagram
    nengo_extras.graphviz.obj_conn_diagram
 
-
 .. autofunction:: nengo_extras.graphviz.net_diagram
 
 .. autofunction:: nengo_extras.graphviz.obj_conn_diagram
@@ -109,6 +108,7 @@ Gephi visualization
    nengo_extras.gexf.HierarchicalLabeler
    nengo_extras.gexf.GexfConverter
    nengo_extras.gexf.CollapsingGexfConverter
+   nengo_extras.gexf.Attr
 
 .. autoclass:: nengo_extras.gexf.DispatchTable
 
@@ -117,3 +117,5 @@ Gephi visualization
 .. autoclass:: nengo_extras.gexf.GexfConverter
 
 .. autoclass:: nengo_extras.gexf.CollapsingGexfConverter
+
+.. autoclass:: nengo_extras.gexf.Attr

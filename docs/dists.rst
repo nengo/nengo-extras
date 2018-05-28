@@ -16,6 +16,9 @@ can be used.
    nengo_extras.dists.MultivariateGaussian
    nengo_extras.dists.Mixture
    nengo_extras.dists.Tile
+   nengo_extras.dists.gaussian_icdf
+   nengo_extras.dists.loggaussian_icdf
+   nengo_extras.dists.uniform_icdf
 
 .. autoclass:: nengo_extras.dists.Concatenate
 
@@ -26,3 +29,9 @@ can be used.
 .. autoclass:: nengo_extras.dists.Mixture
 
 .. autoclass:: nengo_extras.dists.Tile
+
+.. autofunction:: nengo_extras.dists.gaussian_icdf
+
+.. autofunction:: nengo_extras.dists.loggaussian_icdf
+
+.. autofunction:: nengo_extras.dists.uniform_icdf

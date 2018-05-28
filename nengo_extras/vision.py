@@ -7,7 +7,7 @@ import nengo.utils.numpy as npext
 
 
 class Gabor(FrozenObject):
-    """Desribes a random generator for Gabor filters."""
+    """Describes a random generator for Gabor filters."""
 
     theta = DistributionParam('theta')
     freq = DistributionParam('freq')
@@ -175,8 +175,8 @@ def cd_encoders_biases(n_encoders, trainX, trainY, rng=np.random, mask=None,
     encoders : (n_encoders, n_dimensions) array
         Generated encoders.
     biases : (n_encoders,) array
-        Generated biases. These are biases assuming `f = G[E * X + b]`,
-        and are therefore more like Nengo's `intercepts`.
+        Generated biases. These are biases assuming ``f = G[E * X + b]``,
+        and are therefore more like Nengo's ``intercepts``.
 
     References
     ----------

@@ -25,6 +25,28 @@ To install Nengo extras, we recommend using ``pip``.
 Usage
 =====
 
+Example notebooks can be found
+in the ``docs/examples`` directory.
+
 For a listing of the contents of this repository,
 and information on how to use it,
 see the `full documentation <https://www.nengo.ai/nengo-extras>`_.
+
+Development
+===========
+
+To run the unit tests:
+
+   pytest nengo_extras [--plots]
+
+To run the static checks:
+
+.. code-block:: bash
+
+   .ci/static.sh run
+
+To build the documentation:
+
+.. code-block:: bash
+
+   sphinx-build docs docs/_build

@@ -77,7 +77,7 @@ class MultivariateCopula(Distribution):
     References
     ----------
     .. [1] Copula (probability theory). Wikipedia.
-       https://en.wikipedia.org/wiki/Copula_(probability_theory)
+       https://en.wikipedia.org/wiki/Copula_(probability_theory%29
     """
 
     marginal_icdfs = TupleParam('marginal_icdfs', readonly=True)
@@ -166,10 +166,10 @@ class Mixture(Distribution):
         dd = 1 if d is None else d
         samples = np.zeros((n, dd))
 
-        nd = len(self.distributions)
-        i = (rng.randint(nd, size=n) if self.p is None else
-             rng.choice(nd, p=self.p, size=n))
-        c = np.bincount(i, minlength=nd)
+        ndims = len(self.distributions)
+        i = (rng.randint(ndims, size=n) if self.p is None else
+             rng.choice(ndims, p=self.p, size=n))
+        c = np.bincount(i, minlength=ndims)
 
         for k in c.nonzero()[0]:
             samples[i == k] = self.distributions[k].sample(c[k], d=dd, rng=rng)

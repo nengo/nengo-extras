@@ -46,7 +46,7 @@ class SoftLIFRate(nengo.neurons.LIFRate):
     References
     ----------
     .. [1] E. Hunsberger & C. Eliasmith (2015). Spiking Deep Networks with
-       LIF Neurons. arXiv Preprint, 1510. http://arxiv.org/abs/1510.08829
+       LIF Neurons. arXiv Preprint, 1510. https://arxiv.org/abs/1510.08829
     """
 
     sigma = NumberParam('sigma', low=0, low_open=True)
@@ -168,7 +168,7 @@ def rates_isi(t, spikes, midpoint=False, interp='zero'):
         the points are placed at the beginning of ISIs.
     interp : string, optional
         Interpolation type, passed to `scipy.interpolate.interp1d` as the
-        `kind` parameter.
+        ``kind`` parameter.
 
     Returns
     -------

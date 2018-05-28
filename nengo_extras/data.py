@@ -65,7 +65,7 @@ def load_cifar10(filepath=None, n_train=5, n_test=1, label_names=False):
     ----------
     filepath : str (optional, Default: None)
         Path to the previously downloaded 'cifar-10-python.tar.gz' file.
-        If `None`, the file will be downloaded to the current directory.
+        If ``None``, the file will be downloaded to the current directory.
     n_train : int (optional, Default: 6)
         The number of training batches to load (max: 6).
     n_test : int (optional, Default: 6)
@@ -123,7 +123,7 @@ def load_cifar100(filepath=None, fine_labels=True, label_names=False):
     ----------
     filepath : str (optional, Default: None)
         Path to the previously downloaded 'cifar-100-python.tar.gz' file.
-        If `None`, the file will be downloaded to the current directory.
+        If ``None``, the file will be downloaded to the current directory.
     fine_labels : boolean (optional, Default: True)
         Whether to provide the fine labels or coarse labels.
     label_names : boolean (optional, Default: False)
@@ -170,7 +170,7 @@ def load_ilsvrc2012(filepath=None, n_files=None):
     ----------
     filepath : str (optional, Default: None)
         Path to the previously downloaded 'ilsvrc-2012-batches-test3.tar.gz'.
-        If `None`, the file will be downloaded to the current directory.
+        If ``None``, the file will be downloaded to the current directory.
     n_files : int (optional, Default: None)
         Number of files (batches) to load from the archive. Defaults to all.
 
@@ -244,7 +244,7 @@ def load_mnist(filepath=None, validation=False):
     ----------
     filepath : str (optional, Default: None)
         Path to the previously downloaded 'mnist.pkl.gz' file.
-        If `None`, the file will be downloaded to the current directory.
+        If ``None``, the file will be downloaded to the current directory.
     validation : boolean (optional, Default: False)
         Whether to provide the validation data as a separate set (True),
         or combine it into the training data (False).
@@ -254,7 +254,8 @@ def load_mnist(filepath=None, validation=False):
     train_set : (n_train, n_pixels) ndarray, (n_train,) ndarray
         A tuple of the training image array and label array.
     validation_set : (n_valid, n_pixels) ndarray, (n_valid,) ndarray
-        A tuple of the validation image array and label array (if `validation`)
+        A tuple of the validation image array and label array
+        (if ``validation``)
     test_set : (n_test, n_pixels) ndarray, (n_test,) ndarray
         A tuple of the testing image array and label array.
     """
@@ -281,7 +282,7 @@ def load_svhn(filepath=None, n_train=9, n_test=3, data_mean=False,
     ----------
     filepath : str (optional, Default: None)
         Path to the previously downloaded 'svhn-py-colmajor.tar.gz' file.
-        If `None`, the file will be downloaded to the current directory.
+        If ``None``, the file will be downloaded to the current directory.
     n_train : int (optional, Default: 6)
         The number of training batches to load (max: 6).
     n_test : int (optional, Default: 6)

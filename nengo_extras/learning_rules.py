@@ -151,8 +151,8 @@ class DeltaRule(LearningRuleType):
         \delta W_ij = \eta a_j e_i f(u_i)
 
     where ``e_i`` is the input error in the postsynaptic neuron space,
-    ``a_j`` is the jth presynaptic neuron (output) activity,
-    ``u_i`` is the ith postsynaptic neuron input,
+    ``a_j`` is the output activity for presynaptic neuron j,
+    ``u_i`` is the input for postsynaptic neuron i,
     and ``f`` is a provided function.
 
     Parameters

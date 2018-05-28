@@ -3,7 +3,6 @@
 # This file is execfile()d with the current directory set
 # to its containing dir.
 
-import os
 import sys
 
 try:
@@ -53,6 +52,7 @@ numpydoc_show_class_members = False
 nbsphinx_timeout = -1
 
 # -- sphinx
+nitpicky = True
 exclude_patterns = ['_build']
 source_suffix = '.rst'
 source_encoding = 'utf-8'
@@ -65,7 +65,7 @@ mathjax_path = ("https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/"
 project = u'Nengo Extras'
 authors = u'Applied Brain Research'
 copyright = nengo_extras.__copyright__
-version = '.'.join(nengo_extras.__version__.split('.')[:2])  # Short X.Y version
+version = '.'.join(nengo_extras.__version__.split('.')[:2])
 release = nengo_extras.__version__  # Full version, with tags
 pygments_style = 'default'
 
