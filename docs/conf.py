@@ -25,7 +25,6 @@ extensions = [
     'sphinx.ext.viewcode',
     'guzzle_sphinx_theme',
     'numpydoc',
-    'nengo.utils.docutils',
     'nbsphinx',
     'nbsphinx_link',
 ]

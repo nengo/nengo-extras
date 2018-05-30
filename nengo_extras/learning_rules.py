@@ -23,7 +23,7 @@ class AML(LearningRuleType):
     ``error[1]`` provides a decay rate (i.e., weights are multiplied with this
     value in every time step), ``error[2:]`` provides the target vector.
 
-    The update is given by:
+    The update is given by::
 
         decoders[...] *= error[1]  # decay
         decoders[...] += alpha * error[0] * error[2:, None] * np.dot(
