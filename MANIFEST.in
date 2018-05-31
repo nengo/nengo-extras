@@ -8,6 +8,7 @@ include *.yml
 include MANIFEST.in
 
 # Directories to include
+graft .ci
 graft docs
 graft examples
 
