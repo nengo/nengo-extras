@@ -37,6 +37,8 @@ Development
 
 To run the unit tests:
 
+.. code-block:: bash
+
    pytest nengo_extras [--plots]
 
 To run the static checks:
