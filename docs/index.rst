@@ -29,17 +29,13 @@ To install Nengo extras, we recommend using ``pip``.
    :maxdepth: 2
 
    deeplearning
-   deeplearning-examples
    dists
    learning_rules
    networks
    neurons
    processes
    vision
-   vision-examples
    visualization
-   visualization-examples
-   gephi-tutorial
 
 * :ref:`genindex`
 

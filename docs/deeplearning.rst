@@ -17,6 +17,14 @@ Classes and utilities for doing deep learning with Nengo.
 
 .. default-role:: obj
 
+.. toctree::
+   :caption: Examples
+   :maxdepth: 1
+
+   examples/keras/mnist_spiking_cnn
+   examples/cuda_convnet/cifar10_spiking_cnn
+   examples/cuda_convnet/imagenet_spiking_cnn
+
 Datasets
 ========
 

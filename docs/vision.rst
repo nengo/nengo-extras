@@ -4,6 +4,12 @@ Vision models
 
 .. default-role:: obj
 
+.. toctree::
+   :caption: Examples
+   :maxdepth: 1
+
+   examples/mnist_single_layer
+
 .. autosummary::
 
    nengo_extras.vision.Gabor
