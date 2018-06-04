@@ -160,6 +160,6 @@ Networks
 Processes
 =========
 
-.. autoclass:: nengo_extras.Conv2d
+.. autoclass:: nengo_extras.convnet.Conv2d
 
-.. autoclass:: nengo_extras.Pool2d
+.. autoclass:: nengo_extras.convnet.Pool2d

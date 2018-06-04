@@ -4,7 +4,7 @@ import pytest
 import nengo
 from nengo.utils.stdlib import Timer
 
-from nengo_extras import Conv2d, Pool2d
+from nengo_extras.convnet import Conv2d, Pool2d
 
 
 @pytest.mark.parametrize('local', [False, True])

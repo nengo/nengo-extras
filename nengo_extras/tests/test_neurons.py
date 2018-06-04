@@ -4,8 +4,7 @@ from nengo.utils.numpy import rms
 import numpy as np
 import pytest
 
-from nengo_extras import FastLIF, SoftLIFRate
-from nengo_extras.neurons import rates_isi, rates_kernel
+from nengo_extras.neurons import FastLIF, rates_isi, rates_kernel, SoftLIFRate
 
 
 def test_softlifrate_rates(plt):

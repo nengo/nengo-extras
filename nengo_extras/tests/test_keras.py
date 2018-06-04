@@ -23,7 +23,7 @@ def test_softlif_layer(noise_model, plt):
 
     x = np.linspace(-10, 30, nx)
     y = model.predict(np.ones((ni, 1)) * x)
-    y0 = nengo_extras.SoftLIFRate(**params).rates(x, 1., 1.)
+    y0 = nengo_extras.neurons.SoftLIFRate(**params).rates(x, 1., 1.)
 
     plt.plot(x, y.mean(axis=0), 'b')
     if noise_model != 'none':
@@ -58,7 +58,7 @@ def test_softlif_derivative(noise_model, plt):
 
     x = np.linspace(-10, 30, 1024).reshape(-1, 1)
     dy = df([x])[0]
-    dy0 = nengo_extras.SoftLIFRate(**params).derivative(x, 1., 1.)
+    dy0 = nengo_extras.neurons.SoftLIFRate(**params).derivative(x, 1., 1.)
 
     plt.plot(x, dy)
     plt.plot(x, dy0, 'k--')
