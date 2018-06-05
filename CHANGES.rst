@@ -19,10 +19,16 @@ Release history
    - Removed
    - Fixed
 
-0.2.1 (unreleased)
-==================
+0.3.0 (June 4, 2018)
+====================
 
+**Changed**
 
+- Submodules are no longer automatically imported into the
+  ``nengo_extras`` namespace, as it can be difficult to install
+  requirements for the various tools in Nengo Extras.
+  (`#77 <https://github.com/nengo/nengo-extras/issues/77>`_,
+  `#78 <https://github.com/nengo/nengo-extras/pull/78>`_)
 
 0.2.0 (May 31, 2018)
 ====================
