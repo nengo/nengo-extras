@@ -49,7 +49,7 @@ class AML(LearningRuleType):
 
 class SimAML(Operator):
     def __init__(self, learning_rate, base_decoders, pre, error, decoders,
-                 tag=None):
+                 delta, tag=None):
         super(SimAML, self).__init__(tag=tag)
 
         self.learning_rate = learning_rate
@@ -57,23 +57,23 @@ class SimAML(Operator):
 
         self.sets = []
         self.incs = []
-        self.reads = [pre, error]
-        self.updates = [decoders]
+        self.reads = [pre, error, decoders]
+        self.updates = [delta]
 
     def make_step(self, signals, dt, rng):
         base_decoders = self.base_decoders
         pre = signals[self.pre]
         error = signals[self.error]
         decoders = signals[self.decoders]
+        delta = signals[self.delta]
         alpha = self.learning_rate * dt
 
         def step_assoc_learning():
             scale = error[0]
             decay = error[1]
             target = error[2:]
-            decoders[...] *= decay
-            decoders[...] += alpha * scale * target[:, None] * np.dot(
-                pre, base_decoders.T)
+            delta[...] = alpha * scale * target[:, None] * np.dot(
+                pre, base_decoders.T) + decoders * (decay - 1.)
 
         return step_assoc_learning
 
@@ -87,6 +87,10 @@ class SimAML(Operator):
 
     @property
     def decoders(self):
+        return self.reads[2]
+
+    @property
+    def delta(self):
         return self.updates[0]
 
 
@@ -101,6 +105,7 @@ def build_aml(model, aml, rule):
 
     pre = model.sig[conn.pre_obj]['in']
     decoders = model.sig[conn]['weights']
+    delta = model.sig[rule]['delta']
 
     encoders = model.params[conn.pre_obj].encoders
     gain = model.params[conn.pre_obj].gain
@@ -116,7 +121,7 @@ def build_aml(model, aml, rule):
     base_decoders, _ = wrapped_solver(conn, gain, bias, x, targets, rng=rng)
 
     model.add_op(SimAML(
-        aml.learning_rate, base_decoders, pre, error, decoders))
+        aml.learning_rate, base_decoders, pre, error, decoders, delta))
 
 
 class DeltaRuleFunctionParam(FunctionParam):

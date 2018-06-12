@@ -72,7 +72,7 @@ def plan_aml_decode(queue, pre, base_decoders, decoded, tag=None):
     return plan
 
 
-def plan_aml(queue, error, decoders, alpha, decoded, tag=None):
+def plan_aml(queue, error, decoders, delta, alpha, decoded, tag=None):
     assert error.ctype == decoders.ctype == alpha.ctype == decoded.ctype
     assert len(error) == len(decoders) == len(alpha) == len(decoded)
     assert np.all(error.shape0s - 2 == decoders.shape0s)
@@ -86,7 +86,10 @@ def plan_aml(queue, error, decoders, alpha, decoded, tag=None):
         __global const ${type} *error_data,
         __global const int *decoders_stride0s,
         __global const int *decoders_starts,
-        __global ${type} *decoders_data,
+        __global const ${type} *decoders_data,
+        __global const int *delta_stride0s,
+        __global const int *delta_starts,
+        __global ${type} *delta_data,
         __global const int *decoded_stride0s,
         __global const int *decoded_starts,
         __global const ${type} *decoded_data,
@@ -100,7 +103,8 @@ def plan_aml(queue, error, decoders, alpha, decoded, tag=None):
         const int i = ij / n;
         const int j = ij % n;
 
-        __global ${type} *decoders = decoders_data + decoders_starts[k];
+        __global const ${type} *decoders = decoders_data + decoders_starts[k];
+        __global ${type} *delta = delta_data + delta_starts[k];
         const ${type} scale = error_data[error_starts[k]];
         const ${type} decay = error_data[error_starts[k] + 1];
         const ${type} error = error_data[error_starts[k] + i + 2];
@@ -108,9 +112,9 @@ def plan_aml(queue, error, decoders, alpha, decoded, tag=None):
         const ${type} alpha = alphas[k];
 
         if (i < d) {
-            decoders[i * decoders_stride0s[k] + j] *= decay;
-            decoders[i * decoders_stride0s[k] + j] += alpha * scale * error *
-                decoded;
+            delta[i * delta_stride0s[k] + j] =
+                alpha * scale * error * decoded +
+                decoders[i * decoders_stride0s[k] + j] * (decay - 1.);
         }
     }
     '''
@@ -123,6 +127,7 @@ def plan_aml(queue, error, decoders, alpha, decoded, tag=None):
         decoders.cl_shape0s, decoders.cl_shape1s,
         error.cl_stride0s, error.cl_starts, error.cl_buf,
         decoders.cl_stride0s, decoders.cl_starts, decoders.cl_buf,
+        delta.cl_stride0s, delta.cl_starts, delta.cl_buf,
         decoded.cl_stride0s, decoded.cl_starts, decoded.cl_buf,
         alpha,
     )
@@ -149,8 +154,9 @@ class AmlSimulator(nengo_ocl.Simulator):
         pre = self.all_data[[self.sidx[op.pre] for op in ops]]
         error = self.all_data[[self.sidx[op.error] for op in ops]]
         decoders = self.all_data[[self.sidx[op.decoders] for op in ops]]
+        delta = self.all_data[[self.sidx[op.delta] for op in ops]]
         decoded = self.RaggedArray(
             [np.zeros(op.decoders.shape[1]) for op in ops], dtype=np.float32)
         return [
             plan_aml_decode(self.queue, pre, base_decoders, decoded),
-            plan_aml(self.queue, error, decoders, alpha, decoded)]
+            plan_aml(self.queue, error, decoders, delta, alpha, decoded)]
