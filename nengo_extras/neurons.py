@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 
 import nengo
@@ -121,7 +123,7 @@ class FastLIF(nengo.neurons.LIF):
         refractory_time[spiked > 0] = self.tau_ref + spiketime
 
 
-class NIFRate(NeuronType):
+class NIFRate(nengo.neurons.NeuronType):
     """Non-spiking version of the non-leaky integrate-and-fire (NIF) model.
 
     Parameters
