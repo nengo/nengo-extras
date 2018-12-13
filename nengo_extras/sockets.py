@@ -321,9 +321,6 @@ class UDPReceiveSocket(nengo.Process):
         data will be throttled to match this value if it exceeds the local
         *dt*. If not given, it is assumed that the remote *dt* matches the
         local *dt* (which is determined automatically).
-    ignore_timestamp : boolean, optional (Default: False)
-        If True, uses the most recently received value from the recv socket,
-        even if that value comes at an earlier or later timestep.
     connection_timeout : float, optional (Default: 300.)
         Initial timeout when waiting to receive the initial package
         establishing the connection.
@@ -351,7 +348,7 @@ class UDPReceiveSocket(nengo.Process):
 
     Other Nengo model elements can then be connected to the node.
     """
-    def __init__(self, listen_addr, remote_dt=None, ignore_timestamp=False,
+    def __init__(self, listen_addr, remote_dt=None,
                  connection_timeout=300., recv_timeout=0.1, loss_limit=0,
                  byte_order='='):
         super(UDPReceiveSocket, self).__init__(default_size_in=0)
