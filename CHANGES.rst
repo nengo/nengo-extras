@@ -22,7 +22,12 @@ Release history
 0.3.1 (unreleased)
 ==================
 
+**Added**
 
+- Added ``nengo_extras.simulators.RealTimeSimulator``, which will ensure that
+  simulations don't run faster than real time.
+  (`#85 <https://github.com/nengo/nengo-extras/pull/85>`_,
+   `#151 <https://github.com/nengo/nengo/pull/151>`_)
 
 0.3.0 (June 4, 2018)
 ====================
