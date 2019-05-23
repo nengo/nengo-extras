@@ -15,7 +15,7 @@ function usage {
 
 if [[ "$COMMAND" == "install" ]]; then
     conda install --quiet jupyter keras matplotlib numpy pillow scipy tensorflow theano
-    pip install "sphinx<1.7" nbsphinx nbsphinx_link numpydoc guzzle_sphinx_theme ghp-import
+    pip install "sphinx<1.7" nbsphinx "nbsphinx_link<1.1.0" numpydoc guzzle_sphinx_theme ghp-import
     pip install -e .
 elif [[ "$COMMAND" == "check" ]]; then
     sphinx-build -b linkcheck -v -D nbsphinx_execute=never docs docs/_build

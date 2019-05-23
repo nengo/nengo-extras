@@ -56,7 +56,7 @@ class Mask(FrozenObject):
     Parameters
     ----------
     image_shape : 2- or 3-tuple
-        Shape of the input image, either (height, witdh) or
+        Shape of the input image, either (height, width) or
         (channels, height, width).
     """
 

@@ -13,8 +13,8 @@ function usage {
 }
 
 if [[ "$COMMAND" == "install" ]]; then
-    conda install --quiet jupyter keras matplotlib numpy pillow scipy tensorflow theano
-    pip install coverage pytest
+    conda install --quiet jupyter keras matplotlib "numpy<1.16" pillow scipy tensorflow theano
+    pip install coverage "pytest<4.0.0"
     pip install -e .
 elif [[ "$COMMAND" == "run" ]]; then
     coverage run -m pytest nengo_extras -v --duration 20 --plots && coverage report

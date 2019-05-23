@@ -43,7 +43,7 @@ docs_require = [
     "numpydoc>=0.6",
     "guzzle_sphinx_theme",
     "nbsphinx",
-    "nbsphinx_link",
+    "nbsphinx_link<1.1.0",
     "pillow",
     "jupyter",
     "matplotlib>=1.4",
@@ -51,7 +51,7 @@ docs_require = [
 tests_require = [
     "jupyter",
     "matplotlib>=1.4",
-    "pytest>=3.2",
+    "pytest>=3.2,<4.0.0",
 ]
 
 

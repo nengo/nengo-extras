@@ -65,8 +65,8 @@ def plan_aml_decode(queue, pre, base_decoders, decoded, tag=None):
         queue, _fn, gsize, lsize=lsize, name="cl_aml_decode", tag=tag)
     plan.full_args = full_args  # prevent garbage collection
     plan.flops_per_call = np.sum(
-        base_decoders.shape0s * base_decoders.shape1s * 2 +
-        base_decoders.shape1s * 2)
+        base_decoders.shape0s * base_decoders.shape1s * 2
+        + base_decoders.shape1s * 2)
     plan.bw_per_call = decoded.nbytes + pre.nbytes + base_decoders.nbytes
 
     return plan

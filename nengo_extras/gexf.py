@@ -154,8 +154,8 @@ class HierarchicalLabeler(object):
             'all_objects', 'all_probes'}
 
         for name in dir(net):
-            if (not name.startswith('_') and
-                    name not in check_last | check_never):
+            if (not name.startswith('_')
+                    and name not in check_last | check_never):
                 try:
                     attr = getattr(net, name)
                 except AttributeError:
@@ -168,8 +168,8 @@ class HierarchicalLabeler(object):
             self._handle_found_name(attr, base_name + name)
 
     def _handle_found_name(self, obj, name):
-        if (isinstance(obj, (nengo.base.NengoObject, nengo.Network)) and
-                obj not in self._names):
+        if (isinstance(obj, (nengo.base.NengoObject, nengo.Network))
+                and obj not in self._names):
             self._names[obj] = name
             self.dispatch(obj)
 
@@ -311,8 +311,8 @@ class GexfConverter(object):
             'xmlns': 'http://www.gexf.net/' + tag_version,
             'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
             'xsi:schemaLocation': (
-                'http://www.gexf.net/' + tag_version + ' ' +
-                'http://www.gexf.net/' + tag_version + '/gexf.xsd'),
+                'http://www.gexf.net/' + tag_version + ' '
+                + 'http://www.gexf.net/' + tag_version + '/gexf.xsd'),
             'version': version
         })
 
