@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 
 import nengo
@@ -248,3 +250,89 @@ def rates_kernel(t, spikes, kind='gauss', tau=0.04):
         rates = lowpass_filter(spikes, tau_i, kind=kind)
 
     return rates.T
+
+
+try:
+    from numba import njit
+    from numba.extending import overload
+
+    @overload(np.clip)
+    def np_clip(a, a_min, a_max):  # pragma: no cover
+        """Numba-implementation of np.clip."""
+
+        # Does not support `out` argument, optional arguments, nor a.clip
+        # https://github.com/numba/numba/pull/3468
+        def np_clip_impl(a, a_min, a_max):
+            out = np.empty_like(a)
+            for index, val in np.ndenumerate(a):
+                if val < a_min:
+                    out[index] = a_min
+                elif val > a_max:
+                    out[index] = a_max
+                else:
+                    out[index] = val
+            return out
+
+        return np_clip_impl
+
+    class NumbaLIF(nengo.LIF):
+        """Numba-compiled version of the LIF model.
+
+        Parameters
+        ----------
+        tau_rc : float
+            Membrane RC time constant, in seconds. Affects how quickly the
+            membrane voltage decays to zero in the absence of input
+            (larger = slower decay).
+        tau_ref : float
+            Absolute refractory period, in seconds. This is how long the
+            membrane voltage is held at zero after a spike.
+        min_voltage : float
+            Minimum value for the membrane voltage. If ``-np.inf``, the voltage
+            is never clipped.
+        amplitude : float
+            Scaling factor on the neuron output. Corresponds to the relative
+            amplitude of the output spikes of the neuron.
+        """
+
+        @staticmethod
+        @njit
+        def _lif_step_math(
+                dt, J, spiked, voltage, refractory_time,
+                tau_rc, tau_ref, min_voltage, amplitude):  # pragma: no cover
+            # reduce all refractory times by dt
+            refractory_time -= dt
+
+            # compute effective dt for each neuron, based on remaining time.
+            # note that refractory times that have completed midway into this
+            # timestep will be given a partial timestep, and moreover these
+            # will be subtracted to zero at the next timestep (or reset by a
+            # spike)
+            delta_t = np.clip(dt - refractory_time, 0, dt)
+
+            # update voltage using discretized lowpass filter
+            # since v(t) = v(0) + (J - v(0))*(1 - exp(-t/tau)) assuming
+            # J is constant over the interval [t, t + dt)
+            voltage -= (J - voltage) * np.expm1(-delta_t / tau_rc)
+
+            # determine which neurons spiked (set them to 1/dt, else 0)
+            spiked_mask = voltage > 1
+            spiked[:] = spiked_mask * (amplitude / dt)
+
+            # set v(0) = 1 and solve for t to compute the spike time
+            t_spike = dt + tau_rc * np.log1p(
+                -(voltage[spiked_mask] - 1) / (J[spiked_mask] - 1))
+
+            # set spiked voltages to zero, refractory times to tau_ref, and
+            # rectify negative voltages to a floor of min_voltage
+            voltage[voltage < min_voltage] = min_voltage
+            voltage[spiked_mask] = 0
+            refractory_time[spiked_mask] = tau_ref + t_spike
+
+        def step_math(self, dt, J, spiked, voltage, refractory_time):
+            self._lif_step_math(
+                dt, J, spiked, voltage, refractory_time,
+                self.tau_rc, self.tau_ref, self.min_voltage, self.amplitude)
+
+except ImportError:
+    warnings.warn("numba not installed, NumbaLIF will not be available.")

@@ -13,6 +13,8 @@ can be used.
 
 .. autoclass:: nengo_extras.neurons.FastLIF
 
+.. autoclass:: nengo_extras.neurons.NumbaLIF
+
 Utilities
 =========
 

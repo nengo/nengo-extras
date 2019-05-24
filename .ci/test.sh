@@ -13,7 +13,7 @@ function usage {
 }
 
 if [[ "$COMMAND" == "install" ]]; then
-    conda install --quiet jupyter keras matplotlib "numpy<1.16" pillow scipy tensorflow theano
+    conda install --quiet jupyter keras matplotlib numba "numpy<1.16" pillow scipy tensorflow theano
     pip install coverage "pytest<4.0.0"
     pip install -e .
 elif [[ "$COMMAND" == "run" ]]; then

@@ -31,10 +31,11 @@ testing = "test" in sys.argv or "pytest" in sys.argv
 install_requires = [
     "numpy>=1.8",
     "nengo",
+    "matplotlib>=1.4",
 ]
-plots_require = ["matplotlib>=1.4"]
-deepnetworks_require = [
+optional_require = [
     "keras",
+    "numba>=0.43.1",
     "scipy",
     "theano",
 ]
@@ -47,7 +48,7 @@ docs_require = [
     "pillow",
     "jupyter",
     "matplotlib>=1.4",
-] + deepnetworks_require + plots_require
+]
 tests_require = [
     "jupyter",
     "matplotlib>=1.4",
@@ -71,9 +72,10 @@ setup(
     setup_requires=(["pytest-runner"] if testing else []) + ["numpy>=1.8"],
     install_requires=install_requires,
     extras_require={
-        "deepnetworks": deepnetworks_require,
-        "docs": docs_require,
-        "plots": plots_require,
+        "optional": optional_require,
+        "docs": docs_require + optional_require,
+        "tests": tests_require,
+        "all": optional_require + docs_require + tests_require
     },
     tests_require=tests_require,
     classifiers=[  # https://pypi.python.org/pypi?%3Aaction=list_classifiers

@@ -1,3 +1,6 @@
+from collections import defaultdict
+import timeit
+
 import nengo
 from nengo.utils.matplotlib import implot
 from nengo.utils.numpy import rms
@@ -192,3 +195,66 @@ def test_rates(Simulator, seed, logger):
         rel_rmse = _test_rates(Simulator, function, None, seed)
         logger.info('rate estimator: %s', name)
         logger.info('relative RMSE: %0.4f', rel_rmse)
+
+
+@pytest.mark.slow
+def test_numbalif_benchmark(plt):
+    pytest.importorskip("numba")
+
+    from nengo_extras.neurons import NumbaLIF
+
+    def _benchmark(neuron_type, n, d=1, sim_time=1.0, n_trials=3):
+        """Estimates number of milliseconds per simulation time-step."""
+
+        with nengo.Network() as model:
+            nengo.Ensemble(n_neurons=n, dimensions=d, neuron_type=neuron_type)
+
+        with nengo.Simulator(model, progress_bar=False) as sim:
+            sim.step()  # invokes the JIT compilation (cached from here on)
+
+            def to_time():  # timed portion of code
+                sim.run(sim_time, progress_bar=False)
+
+            times = timeit.repeat(to_time, number=1, repeat=n_trials)
+            n_steps = float(sim_time) / sim.dt
+            return 1e3 * min(times) / float(n_trials) / n_steps
+
+    plt.figure()
+    times = defaultdict(list)
+    for neuron_type in (NumbaLIF, nengo.LIF):
+        n_neurons = np.linspace(1, 10000, 11, dtype=int)
+        for n in n_neurons:
+            times[neuron_type].append(_benchmark(neuron_type(), n))
+        plt.plot(n_neurons, times[neuron_type], label=str(neuron_type))
+    plt.legend()
+
+    assert np.all(times[NumbaLIF] < times[nengo.LIF])
+
+
+@pytest.mark.parametrize("dt", [0.0005, 0.001, 0.002])
+def test_numbalif_correctness(Simulator, seed, dt):
+    pytest.importorskip("numba")
+    from nengo_extras.neurons import NumbaLIF
+
+    # Test spike-trains for numerical precision, using a
+    # sine wave covering one period across the simulation time
+    n_neurons = 500
+    sim_t = 2.0
+    with nengo.Network() as model:
+        u = nengo.Node(output=lambda t: np.sin(2*np.pi*t/sim_t))
+
+        x_numba = nengo.Ensemble(n_neurons, 1, seed=seed,
+                                 neuron_type=NumbaLIF())
+        x_lif = nengo.Ensemble(n_neurons, 1, seed=seed,
+                               neuron_type=nengo.LIF())
+
+        nengo.Connection(u, x_numba, synapse=None)
+        nengo.Connection(u, x_lif, synapse=None)
+
+        p_numba = nengo.Probe(x_numba.neurons, 'spikes', synapse=None)
+        p_lif = nengo.Probe(x_lif.neurons, 'spikes', synapse=None)
+
+    with Simulator(model, dt=dt) as sim:
+        sim.run(sim_t)
+
+    assert np.allclose(sim.data[p_numba], sim.data[p_lif])
