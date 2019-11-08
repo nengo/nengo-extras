@@ -2,7 +2,8 @@ import numpy as np
 
 from nengo.processes import Process
 from nengo.params import EnumParam, NdarrayParam, NumberParam, ShapeParam
-from nengo.utils.compat import is_iterable, range
+
+from nengo_extras.compat import is_iterable
 
 
 def softmax(x, axis=None):

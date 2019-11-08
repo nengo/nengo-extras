@@ -1,5 +1,6 @@
 import nengo
-from nengo.utils.compat import is_iterable
+
+from nengo_extras.compat import is_iterable
 
 
 def probe_all(  # noqa: C901

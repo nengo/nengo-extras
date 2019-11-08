@@ -2,7 +2,6 @@ import numpy as np
 
 from nengo.dists import Choice, Uniform, DistributionParam
 from nengo.params import FrozenObject, TupleParam
-from nengo.utils.compat import range
 import nengo.utils.numpy as npext
 
 

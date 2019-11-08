@@ -1,7 +1,6 @@
 import numpy as np
 
 import nengo
-from nengo.utils.compat import range
 from nengo.utils.numpy import rmse
 
 import nengo_extras

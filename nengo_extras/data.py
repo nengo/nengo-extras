@@ -5,10 +5,9 @@ import re
 import tarfile
 
 import nengo
-from nengo.utils.compat import is_integer, is_iterable
 import numpy as np
 
-from .compat import pickle_load_bytes, urlretrieve
+from .compat import is_integer, is_iterable, pickle_load_bytes, urlretrieve
 
 
 data_dir = nengo.rc.get('nengo_extras', 'data_dir')

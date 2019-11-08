@@ -8,14 +8,14 @@ from nengo_extras.plot_spikes import (
 
 
 @pytest.mark.noassertions
-def test_plot_spikes(plt, seed, RefSimulator):
+def test_plot_spikes(plt, seed):
     with nengo.Network(seed=seed) as model:
         ens = nengo.Ensemble(10, 1)
         inp = nengo.Node(np.sin)
         nengo.Connection(inp, ens)
         p = nengo.Probe(ens.neurons, 'spikes')
 
-    with RefSimulator(model) as sim:
+    with nengo.Simulator(model) as sim:
         sim.run(1.)
 
     ax = plt.gca()

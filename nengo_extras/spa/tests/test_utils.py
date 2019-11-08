@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 
-from nengo.utils.compat import range
 from nengo.utils.numpy import array_hash
 
 from nengo_extras.spa.utils import circconv, cyclic_vector

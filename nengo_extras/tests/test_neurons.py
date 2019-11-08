@@ -1,4 +1,5 @@
 from collections import defaultdict
+import logging
 import timeit
 
 import nengo
@@ -173,7 +174,7 @@ def test_rates_kernel(Simulator, plt, seed):
 
 
 @pytest.mark.noassertions
-def test_rates(Simulator, seed, logger):
+def test_rates(Simulator, seed):
     pytest.importorskip('scipy')
     functions = [
         ('isi_zero', lambda t, s: rates_isi(
@@ -193,8 +194,8 @@ def test_rates(Simulator, seed, logger):
 
     for name, function in functions:
         rel_rmse = _test_rates(Simulator, function, None, seed)
-        logger.info('rate estimator: %s', name)
-        logger.info('relative RMSE: %0.4f', rel_rmse)
+        logging.info("rate estimate: %s", name)
+        logging.info("relative RMSE: %0.4f", rel_rmse)
 
 
 @pytest.mark.slow
