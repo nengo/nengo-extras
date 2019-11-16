@@ -19,19 +19,24 @@ Release history
    - Removed
    - Fixed
 
-0.3.1 (unreleased)
-==================
+0.4.0 (November 15, 2019)
+=========================
 
 **Added**
 
 - Added ``nengo_extras.simulators.RealTimeSimulator``, which will ensure that
   simulations don't run faster than real time.
   (`#85 <https://github.com/nengo/nengo-extras/pull/85>`_,
-   `#151 <https://github.com/nengo/nengo/pull/151>`_)
+  `#151 <https://github.com/nengo/nengo/pull/151>`_)
 - Added ``nengo_extras.neurons.NumbaLIF``, which is a numba-accelerated
   drop-in replacement for the ``nengo.LIF`` neuron model (requires ``numba`` to
   be installed).
   (`#86 <https://github.com/nengo/nengo-extras/pull/86>`_)
+
+**Fixed**
+
+- Fixed some Nengo 3.0.0 compatibility issues.
+  (`#90 <https://github.com/nengo/nengo-extras/pull/90>`_)
 
 0.3.0 (June 4, 2018)
 ====================
