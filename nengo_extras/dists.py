@@ -34,38 +34,6 @@ def uniform_icdf(low, high):
     return icdf
 
 
-def generate_triangular(n_input, n_ensembles, n_neurons, bounds, mode, seed=0):
-    """ Returns an array in the shape of (n_ensembles, n_neurons)
-    of intercepts optimally distrubuted in high-dimensional space
-    using a triangular distribution
-
-    Parameters
-    ----------
-    n_input: int
-        the number of input dimensions
-    n_ensembles: int
-        the number of ensembles to generate intercepts for
-    n_neurons: int
-        the number of neurons in each ensemble
-        NOTE: each ensembles must contain the same number of neurons
-    bounds: list of two floats
-        the lower and upper bounds for the intercepts
-    mode: float
-        the the desired mode for the triangular distribution
-    seed: int, Optional (Default: 0)
-        the seed for the numpy rng
-    """
-    np.random.seed = seed
-    intercepts_dist = AreaIntercepts(
-            dimensions=n_input, base=Triangular(
-                bounds[0], mode, bounds[1])
-            )
-    intercepts = intercepts_dist.sample(n=n_neurons*n_ensembles)
-    intercepts = intercepts.reshape(n_ensembles, n_neurons)
-
-    return intercepts
-
-
 class Concatenate(Distribution):
     """Concatenate distributions to form an independent multivariate"""
 
@@ -249,9 +217,13 @@ class Tile(Distribution):
 
 
 class AreaIntercepts(Distribution):
-    """ Generate an optimally distributed set of intercepts in
-    high-dimensional space. Supports plugging in an arbitrary base
-    distribution
+    """ In 1 dimension, a uniform distribution of intercepts will lead to a uniform
+    distribution of the % of state space a neuron is active in. As the dimensionality
+    of the represented state space increases, a uniform distribution of intercepts
+    leads to neurons that are active all the time or none of the time. The
+    AreaIntercepts distribution transforms intercepts such that neurons in state spaces
+    > 1D are active for the same % of state space as they would be in 1 dimensional
+    state space, by reworking the volume of a hyperspehere cap equation.
     """
     dimensions = NumberParam('dimensions')
     base = DistributionParam('base')
@@ -266,7 +238,11 @@ class AreaIntercepts(Distribution):
                 (self.dimensions, self.base))
 
     def transform(self, x):
-        import scipy.special # noqa
+        """ Transform the intercepts to account for the volume of the hypersphere cap
+        where neurons will be active such that the % of state space they are active in
+        is consistent with 1D state space.
+        """
+        import scipy.special  # noqa
         sign = 1
         if x > 0:
             x = -x
@@ -282,12 +258,12 @@ class AreaIntercepts(Distribution):
 
 
 class Triangular(Distribution):
-    """ Generate an optimally distributed set of intercepts in
-    high-dimensional space using a triangular distribution.
+    """ Generate samples using a triangular distribution between an upper (right) and
+    lower (left) bound around a mode.
     """
-    left = NumberParam('dimensions')
-    right = NumberParam('dimensions')
-    mode = NumberParam('dimensions')
+    left = NumberParam('left')
+    right = NumberParam('right')
+    mode = NumberParam('mode')
 
     def __init__(self, left, mode, right):
         super(Triangular, self).__init__()
@@ -300,13 +276,5 @@ class Triangular(Distribution):
                 (self.left, self.mode, self.right))
 
     def sample(self, n, d=None, rng=np.random):
-        # the distribution is the mirror of the user mode/bounds
-        # flip the output here so it matches the user input
-        # (ie mode=0.4 will be at 0.4 instead of -0.4)
-        if d is None:
-            return -1*rng.triangular(self.left, self.mode, self.right, size=n)
-        else:
-            return -1*rng.triangular(
-                self.left, self.mode, self.right, size=(n, d))
-
-
+        return -1 * rng.triangular(self.left, self.mode, self.right,
+                                   size=n if d is None else (n, d))
