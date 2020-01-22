@@ -3,7 +3,7 @@ import numpy as np
 import scipy.special
 
 import nengo
-from nengo.dists import Gaussian, Uniform, Distribution
+from nengo.dists import Gaussian, Uniform
 from nengo_extras.dists import (
     Concatenate,
     gaussian_icdf,
