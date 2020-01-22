@@ -18,7 +18,7 @@ def gaussian_icdf(mean, std):
 def loggaussian_icdf(log_mean, log_std, base=np.e):
     import scipy.stats as sps
 
-    mean = base**log_mean
+    mean = base ** log_mean
     log_std2 = log_std * np.log(base)
 
     def icdf(p):
@@ -37,8 +37,8 @@ def uniform_icdf(low, high):
 class Concatenate(Distribution):
     """Concatenate distributions to form an independent multivariate"""
 
-    distributions = TupleParam('distributions', readonly=True)
-    d = NumberParam('d', low=1, readonly=True)
+    distributions = TupleParam("distributions", readonly=True)
+    d = NumberParam("d", low=1, readonly=True)
 
     def __init__(self, distributions):
         super(Concatenate, self).__init__()
@@ -51,8 +51,7 @@ class Concatenate(Distribution):
 
     def sample(self, n, d=None, rng=np.random):
         assert d is None or d == self.d
-        return np.column_stack(
-            [dist.sample(n, rng=rng) for dist in self.distributions])
+        return np.column_stack([dist.sample(n, rng=rng) for dist in self.distributions])
 
 
 class MultivariateCopula(Distribution):
@@ -80,11 +79,12 @@ class MultivariateCopula(Distribution):
        https://en.wikipedia.org/wiki/Copula_(probability_theory%29
     """
 
-    marginal_icdfs = TupleParam('marginal_icdfs', readonly=True)
-    rho = NdarrayParam('rho', shape=('*', '*'), optional=True, readonly=True)
+    marginal_icdfs = TupleParam("marginal_icdfs", readonly=True)
+    rho = NdarrayParam("rho", shape=("*", "*"), optional=True, readonly=True)
 
     def __init__(self, marginal_icdfs, rho=None):
         import scipy.stats  # we need this for sampling
+
         assert scipy.stats
 
         super(MultivariateCopula, self).__init__()
@@ -98,8 +98,7 @@ class MultivariateCopula(Distribution):
             if self.rho.shape != (d, d):
                 raise ValueError("`rho` must be a %d x %d array" % (d, d))
             if not np.array_equal(self.rho, self.rho.T):
-                raise ValueError(
-                    "`rho` must be a symmetrical positive-definite array")
+                raise ValueError("`rho` must be a symmetrical positive-definite array")
 
     def sample(self, n, d=None, rng=np.random):
         import scipy.stats as sps
@@ -123,8 +122,8 @@ class MultivariateCopula(Distribution):
 
 
 class MultivariateGaussian(Distribution):
-    mean = NdarrayParam('mean', shape='d')
-    cov = NdarrayParam('cov', shape=('d', 'd'))
+    mean = NdarrayParam("mean", shape="d")
+    cov = NdarrayParam("cov", shape=("d", "d"))
 
     def __init__(self, mean, cov):
         super(MultivariateGaussian, self).__init__()
@@ -132,8 +131,13 @@ class MultivariateGaussian(Distribution):
         self.d = len(mean)
         self.mean = mean
         cov = np.asarray(cov)
-        self.cov = (cov*np.eye(self.d) if cov.size == 1 else
-                    np.diag(cov) if cov.ndim == 1 else cov)
+        self.cov = (
+            cov * np.eye(self.d)
+            if cov.size == 1
+            else np.diag(cov)
+            if cov.ndim == 1
+            else cov
+        )
 
     def sample(self, n, d=None, rng=np.random):
         assert d is None or d == self.d
@@ -141,22 +145,22 @@ class MultivariateGaussian(Distribution):
 
 
 class Mixture(Distribution):
-    distributions = TupleParam('distributions')
-    p = NdarrayParam('p', shape='*', optional=True)
+    distributions = TupleParam("distributions")
+    p = NdarrayParam("p", shape="*", optional=True)
 
     def __init__(self, distributions, p=None):
         super(Mixture, self).__init__()
 
         self.distributions = distributions
         if not all(isinstance(d, Distribution) for d in self.distributions):
-            raise ValueError(
-                "All elements in `distributions` must be Distributions")
+            raise ValueError("All elements in `distributions` must be Distributions")
 
         if p is not None:
             p = np.array(p)
             if p.ndim != 1 or p.size != len(self.distributions):
                 raise ValueError(
-                    "`p` must be a vector with one element per distribution")
+                    "`p` must be a vector with one element per distribution"
+                )
             if (p < 0).any():
                 raise ValueError("`p` must be all non-negative")
             p /= p.sum()
@@ -167,8 +171,11 @@ class Mixture(Distribution):
         samples = np.zeros((n, dd))
 
         ndims = len(self.distributions)
-        i = (rng.randint(ndims, size=n) if self.p is None else
-             rng.choice(ndims, p=self.p, size=n))
+        i = (
+            rng.randint(ndims, size=n)
+            if self.p is None
+            else rng.choice(ndims, p=self.p, size=n)
+        )
         c = np.bincount(i, minlength=ndims)
 
         for k in c.nonzero()[0]:
@@ -190,7 +197,7 @@ class Tile(Distribution):
         The values to tile.
     """
 
-    values = NdarrayParam('values', shape=('*', '*'))
+    values = NdarrayParam("values", shape=("*", "*"))
 
     def __init__(self, values):
         super(Tile, self).__init__()
@@ -207,8 +214,9 @@ class Tile(Distribution):
         nv, dv = self.values.shape
 
         if n > nv or d > dv:
-            values = np.tile(self.values, (int(np.ceil(float(n) / nv)),
-                                           int(np.ceil(float(d) / dv))))
+            values = np.tile(
+                self.values, (int(np.ceil(float(n) / nv)), int(np.ceil(float(d) / dv)))
+            )
         else:
             values = self.values
 
@@ -225,8 +233,9 @@ class AreaIntercepts(Distribution):
     > 1D are active for the same % of state space as they would be in 1 dimensional
     state space, by reworking the volume of a hyperspehere cap equation.
     """
-    dimensions = NumberParam('dimensions')
-    base = DistributionParam('base')
+
+    dimensions = NumberParam("dimensions")
+    base = DistributionParam("base")
 
     def __init__(self, dimensions, base=Uniform(-1, 1)):
         super(AreaIntercepts, self).__init__()
@@ -234,8 +243,7 @@ class AreaIntercepts(Distribution):
         self.base = base
 
     def __repr(self):
-        return ("AreaIntercepts(dimensions=%r, base=%r)" %
-                (self.dimensions, self.base))
+        return "AreaIntercepts(dimensions=%r, base=%r)" % (self.dimensions, self.base)
 
     def transform(self, x):
         """ Transform the intercepts to account for the volume of the hypersphere cap
@@ -243,12 +251,14 @@ class AreaIntercepts(Distribution):
         is consistent with 1D state space.
         """
         import scipy.special  # noqa
+
         sign = 1
         if x > 0:
             x = -x
             sign = -1
-        return sign * np.sqrt(1 - scipy.special.betaincinv(
-            (self.dimensions + 1) / 2.0, 0.5, x + 1))
+        return sign * np.sqrt(
+            1 - scipy.special.betaincinv((self.dimensions + 1) / 2.0, 0.5, x + 1)
+        )
 
     def sample(self, n, d=None, rng=np.random):
         s = self.base.sample(n=n, d=d, rng=rng)
@@ -261,9 +271,10 @@ class Triangular(Distribution):
     """ Generate samples using a triangular distribution between an upper (right) and
     lower (left) bound around a mode.
     """
-    left = NumberParam('left')
-    right = NumberParam('right')
-    mode = NumberParam('mode')
+
+    left = NumberParam("left")
+    right = NumberParam("right")
+    mode = NumberParam("mode")
 
     def __init__(self, left, mode, right):
         super(Triangular, self).__init__()
@@ -272,9 +283,13 @@ class Triangular(Distribution):
         self.mode = mode
 
     def __repr__(self):
-        return ("Triangular(left=%r, mode=%r, right=%r)" %
-                (self.left, self.mode, self.right))
+        return "Triangular(left=%r, mode=%r, right=%r)" % (
+            self.left,
+            self.mode,
+            self.right,
+        )
 
     def sample(self, n, d=None, rng=np.random):
-        return -1 * rng.triangular(self.left, self.mode, self.right,
-                                   size=n if d is None else (n, d))
+        return -1 * rng.triangular(
+            self.left, self.mode, self.right, size=n if d is None else (n, d)
+        )

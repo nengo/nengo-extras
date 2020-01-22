@@ -114,13 +114,13 @@ def test_tile(rng):
 
 @pytest.mark.parametrize(("dimensions"), (1, 8, 32))
 @pytest.mark.parametrize(
-    ("bounds, mode"), (([-1, 1], 0), ([-.1, 1], 0.4), ([-0.6, 0.3], 0.2))
+    ("bounds, mode"), (([-1, 1], 0), ([-0.1, 1], 0.4), ([-0.6, 0.3], 0.2))
 )
 def test_triangular_area_intercepts(plt, rng, dimensions, bounds, mode):
     n_neurons = 1000
 
     def analytic_proportion(x, d):
-        value = 0.5 * scipy.special.betainc((d+1)/2.0, 0.5, 1 - x**2)
+        value = 0.5 * scipy.special.betainc((d + 1) / 2.0, 0.5, 1 - x ** 2)
         if x < 0:
             value = 1.0 - value
         return value
@@ -130,22 +130,26 @@ def test_triangular_area_intercepts(plt, rng, dimensions, bounds, mode):
     intercepts = dist.sample(n_neurons, rng=rng)
 
     with nengo.Network() as net:
-        ens = nengo.Ensemble(n_neurons=n_neurons, dimensions=dimensions,
-                             intercepts=intercepts)
+        ens = nengo.Ensemble(
+            n_neurons=n_neurons, dimensions=dimensions, intercepts=intercepts
+        )
         pts = ens.eval_points.sample(n=200000, d=ens.dimensions)
     sim = nengo.Simulator(net)
     _, activity = nengo.utils.ensemble.tuning_curves(ens, sim, inputs=pts)
-    p = np.mean(activity>0, axis=0)
+    p = np.mean(activity > 0, axis=0)
 
     hist = np.histogram(p, bins=20)[0]
     hist2 = np.histogram(
-        [analytic_proportion(val, dimensions) for val in intercepts], bins=20)[0]
+        [analytic_proportion(val, dimensions) for val in intercepts], bins=20
+    )[0]
 
     print(hist)
     print(hist2)
 
     plt.bar(range(len(hist)), hist)
-    plt.bar(range(len(hist2)), hist2, alpha=.5)
-    plt.savefig('dimensions_%i_bounds_%i_%i_%i' % (dimensions, bounds[0], mode, bounds[1]))
+    plt.bar(range(len(hist2)), hist2, alpha=0.5)
+    plt.savefig(
+        "dimensions_%i_bounds_%i_%i_%i" % (dimensions, bounds[0], mode, bounds[1])
+    )
 
-    assert(np.allclose(hist, hist2, rtol=.2))
+    assert np.allclose(hist, hist2, rtol=0.2)
