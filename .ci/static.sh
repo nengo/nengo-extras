@@ -32,7 +32,7 @@ elif [[ "$COMMAND" == "run" ]]; then
     flake8 --ignore=E703,W291,W391 docs || STATUS=1
     pylint docs nengo_extras || STATUS=1
     rm docs/examples/**/*.py
-    codespell -q 3 --skip="./build,./docs/_build,*-checkpoint.ipynb"|| STATUS=1
+    codespell -q 3 --skip="./build,./docs/_build,*-checkpoint.ipynb" --ignore-words-list="hist" || STATUS=1
 else
     if [[ -z "$COMMAND" ]]; then
         echo "Command required"
