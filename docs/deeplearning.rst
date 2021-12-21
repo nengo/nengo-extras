@@ -47,7 +47,6 @@ Configuration settings are listed below.
    nengo_extras.data.get_ilsvrc2012_tar_gz
    nengo_extras.data.get_mnist_pkl_gz
    nengo_extras.data.get_svhn_tar_gz
-   nengo_extras.data.get_svhn_tar_gz
    nengo_extras.data.load_cifar10
    nengo_extras.data.load_cifar100
    nengo_extras.data.load_ilsvrc2012
@@ -65,8 +64,6 @@ Configuration settings are listed below.
 .. autofunction:: nengo_extras.data.get_ilsvrc2012_tar_gz
 
 .. autofunction:: nengo_extras.data.get_mnist_pkl_gz
-
-.. autofunction:: nengo_extras.data.get_svhn_tar_gz
 
 .. autofunction:: nengo_extras.data.get_svhn_tar_gz
 
@@ -111,7 +108,7 @@ Networks
 
 .. autosummary::
 
-   nengo_extras.deepnetworks.Network
+   nengo_extras.deepnetworks.DeepNetwork
    nengo_extras.deepnetworks.SequentialNetwork
    nengo_extras.keras.SequentialNetwork
    nengo_extras.deepnetworks.Layer
@@ -127,7 +124,7 @@ Networks
    nengo_extras.deepnetworks.PoolLayer
    nengo_extras.cuda_convnet.CudaConvnetNetwork
 
-.. autoclass:: nengo_extras.deepnetworks.Network
+.. autoclass:: nengo_extras.deepnetworks.DeepNetwork
 
 .. autoclass:: nengo_extras.deepnetworks.SequentialNetwork
 
@@ -161,5 +158,7 @@ Processes
 =========
 
 .. autoclass:: nengo_extras.convnet.Conv2d
+   :no-members:
 
 .. autoclass:: nengo_extras.convnet.Pool2d
+   :no-members:

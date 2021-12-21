@@ -1,6 +1,5 @@
-import numpy as np
-
 import nengo
+import numpy as np
 
 
 def MatrixMult(n_neurons, shape_left, shape_right, net=None):
@@ -37,12 +36,13 @@ def MatrixMult(n_neurons, shape_left, shape_right, net=None):
     if len(shape_left) != 2:
         raise ValueError("Shape {} is not two dimensional.".format(shape_left))
     if len(shape_right) != 2:
-        raise ValueError(
-            "Shape {} is not two dimensional.".format(shape_right))
+        raise ValueError("Shape {} is not two dimensional.".format(shape_right))
     if shape_left[1] != shape_right[0]:
         raise ValueError(
             "Matrix dimensions {} and  {} are incompatible".format(
-                shape_left, shape_right))
+                shape_left, shape_right
+            )
+        )
 
     if net is None:
         net = nengo.Network(label="Matrix multiplication")
@@ -75,14 +75,16 @@ def MatrixMult(n_neurons, shape_left, shape_right, net=None):
         transform_right = np.zeros((size_c, size_right))
 
         for i, j, k in np.ndindex(shape_left[0], *shape_right):
-            c_index = (j + k * shape_right[0] + i * size_right)
+            c_index = j + k * shape_right[0] + i * size_right
             transform_left[c_index][j + i * shape_right[0]] = 1
             transform_right[c_index][k + j * shape_right[1]] = 1
 
         nengo.Connection(
-            net.input_left, net.C.A, transform=transform_left, synapse=None)
+            net.input_left, net.C.A, transform=transform_left, synapse=None
+        )
         nengo.Connection(
-            net.input_right, net.C.B, transform=transform_right, synapse=None)
+            net.input_right, net.C.B, transform=transform_right, synapse=None
+        )
 
         # Now do the appropriate summing
         size_output = shape_left[0] * shape_right[1]
@@ -94,7 +96,6 @@ def MatrixMult(n_neurons, shape_left, shape_right, net=None):
         for i in range(size_c):
             transform_c[i // shape_right[0]][i] = 1
 
-        nengo.Connection(
-            net.C.output, net.output, transform=transform_c, synapse=None)
+        nengo.Connection(net.C.output, net.output, transform=transform_c, synapse=None)
 
     return net

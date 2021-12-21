@@ -10,7 +10,6 @@ Visualization tools
 
    gephi-tutorial
    examples/plot_spikes
-   examples/cuda_convnet/imagenet_visualization
 
 GraphViz diagrams
 =================

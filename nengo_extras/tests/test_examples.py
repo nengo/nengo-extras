@@ -1,12 +1,23 @@
 import os
 
-import pytest
 import _pytest.capture
-
+import pytest
 from nengo.utils.stdlib import execfile
 
+try:
+    from nengo.utils.ipython import export_py, load_notebook
+except ImportError as err:
+
+    def export_py(*args, import_err=err, **kwargs):
+        raise import_err
+
+    def load_notebook(*args, import_err=err, **kwargs):
+        raise import_err
+
+
 install_dir = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
+    os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
+)
 examples_dir = os.path.join(install_dir, "examples")
 
 # Monkeypatch _pytest.capture.DontReadFromInput
@@ -23,9 +34,9 @@ _pytest.capture.DontReadFromInput.flush = lambda: None
 all_examples = []
 
 for subdir, _, files in os.walk(examples_dir):
-    if (os.path.sep + '.') in subdir:
+    if os.path.sep + "." in subdir:
         continue
-    files = [f for f in files if f.endswith('.ipynb')]
+    files = [f for f in files if f.endswith(".ipynb")]
     examples = [os.path.join(subdir, os.path.splitext(f)[0]) for f in files]
     all_examples.extend(examples)
 
@@ -34,21 +45,19 @@ all_examples.sort()
 
 
 def assert_noexceptions(nb_file, tmpdir):
-    plt = pytest.importorskip('matplotlib.pyplot')
+    plt = pytest.importorskip("matplotlib.pyplot")
     pytest.importorskip("IPython", minversion="1.0")
     pytest.importorskip("jinja2")
-    from nengo.utils.ipython import export_py, load_notebook
+
     nb_path = os.path.join(examples_dir, "%s.ipynb" % nb_file)
     nb = load_notebook(nb_path)
-    pyfile = "%s.py" % (
-        tmpdir.join(os.path.splitext(os.path.basename(nb_path))[0]))
+    pyfile = "%s.py" % (tmpdir.join(os.path.splitext(os.path.basename(nb_path))[0]))
     export_py(nb, pyfile)
     execfile(pyfile, {})
-    plt.close('all')
+    plt.close("all")
 
 
 def iter_cells(nb_file, cell_type="code"):
-    from nengo.utils.ipython import load_notebook
     nb = load_notebook(os.path.join(examples_dir, "%s.ipynb" % nb_file))
 
     if nb.nbformat <= 3:
@@ -64,15 +73,16 @@ def iter_cells(nb_file, cell_type="code"):
 
 
 @pytest.mark.example
-@pytest.mark.parametrize('nb_file', all_examples)
+@pytest.mark.parametrize("nb_file", all_examples)
 def test_no_signature(nb_file):
-    from nengo.utils.ipython import load_notebook
+    pytest.importorskip("IPython", minversion="1.0")
+
     nb = load_notebook(os.path.join(examples_dir, "%s.ipynb" % nb_file))
-    assert 'signature' not in nb.metadata, "Notebook has signature"
+    assert "signature" not in nb.metadata, "Notebook has signature"
 
 
 @pytest.mark.example
-@pytest.mark.parametrize('nb_file', all_examples)
+@pytest.mark.parametrize("nb_file", all_examples)
 def test_no_outputs(nb_file):
     """Ensure that no cells have output."""
     pytest.importorskip("IPython", minversion="1.0")

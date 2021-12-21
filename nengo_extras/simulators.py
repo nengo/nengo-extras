@@ -19,7 +19,7 @@ class RealTimeSimulator(nengo.Simulator):
     """
 
     def __init__(self, *args, **kwargs):
-        super(RealTimeSimulator, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.start_time = None
 
@@ -27,7 +27,7 @@ class RealTimeSimulator(nengo.Simulator):
         if self.start_time is None:
             self.start_time = timeit.default_timer()
 
-        super(RealTimeSimulator, self).step(*args, **kwargs)
+        super().step(*args, **kwargs)
 
         elapsed = timeit.default_timer() - self.start_time
 
@@ -37,6 +37,6 @@ class RealTimeSimulator(nengo.Simulator):
             warnings.warn("RealTimeSimulator is running slower than real time")
 
     def reset(self, *args, **kwargs):
-        super(RealTimeSimulator, self).reset(*args, **kwargs)
+        super().reset(*args, **kwargs)
 
         self.start_time = None

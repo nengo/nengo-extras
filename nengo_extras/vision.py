@@ -1,30 +1,34 @@
-import numpy as np
-
-from nengo.dists import Choice, Uniform, DistributionParam
-from nengo.params import FrozenObject, TupleParam
 import nengo.utils.numpy as npext
+import numpy as np
+from nengo.dists import Choice, DistributionParam, Uniform
+from nengo.params import FrozenObject, TupleParam
 
 
 class Gabor(FrozenObject):
     """Describes a random generator for Gabor filters."""
 
-    theta = DistributionParam('theta')
-    freq = DistributionParam('freq')
-    phase = DistributionParam('phase')
-    sigma_x = DistributionParam('sigma_x')
-    sigma_y = DistributionParam('sigma_y')
+    theta = DistributionParam("theta")
+    freq = DistributionParam("freq")
+    phase = DistributionParam("phase")
+    sigma_x = DistributionParam("sigma_x")
+    sigma_y = DistributionParam("sigma_y")
 
-    def __init__(self, theta=Uniform(-np.pi, np.pi), freq=Uniform(0.2, 2),
-                 phase=Uniform(-np.pi, np.pi),
-                 sigma_x=Choice([0.45]), sigma_y=Choice([0.45])):
-        super(Gabor, self).__init__()
+    def __init__(
+        self,
+        theta=Uniform(-np.pi, np.pi),
+        freq=Uniform(0.2, 2),
+        phase=Uniform(-np.pi, np.pi),
+        sigma_x=Choice([0.45]),
+        sigma_y=Choice([0.45]),
+    ):
+        super().__init__()
         self.theta = theta
         self.freq = freq
         self.phase = phase
         self.sigma_x = sigma_x
         self.sigma_y = sigma_y
 
-    def generate(self, n, shape, rng=np.random, norm=1.):
+    def generate(self, n, shape, rng=np.random, norm=1.0):
         assert isinstance(shape, tuple) and len(shape) == 2
         thetas = self.theta.sample(n, rng=rng)[:, None, None]
         freqs = self.freq.sample(n, rng=rng)[:, None, None]
@@ -39,12 +43,13 @@ class Gabor(FrozenObject):
         X1 = X * c + Y * s
         Y1 = -X * s + Y * c
 
-        gabors = np.exp(-0.5 * ((X1 / sigma_xs)**2 + (Y1 / sigma_ys)**2))
+        gabors = np.exp(-0.5 * ((X1 / sigma_xs) ** 2 + (Y1 / sigma_ys) ** 2))
         gabors *= np.cos((2 * np.pi) * freqs * X1 + phases)
 
         if norm is not None:
             gabors *= norm / np.sqrt(
-                (gabors**2).sum(axis=(1, 2), keepdims=True)).clip(1e-5, np.inf)
+                (gabors ** 2).sum(axis=(1, 2), keepdims=True)
+            ).clip(1e-5, np.inf)
 
         return gabors
 
@@ -59,12 +64,13 @@ class Mask(FrozenObject):
         (channels, height, width).
     """
 
-    image_shape = TupleParam('image_shape', length=3)
+    image_shape = TupleParam("image_shape", length=3)
 
     def __init__(self, image_shape):
-        super(Mask, self).__init__()
-        image_shape = ((1,) + tuple(image_shape) if len(image_shape) == 2 else
-                       image_shape)
+        super().__init__()
+        image_shape = (
+            (1,) + tuple(image_shape) if len(image_shape) == 2 else image_shape
+        )
         self.image_shape = image_shape
 
     def _positions(self, n, shape, rng):
@@ -80,11 +86,11 @@ class Mask(FrozenObject):
         assert shape.ndim == 1 and shape.shape[0] == 2
 
         i, j = self._positions(n, shape, rng)
-        mask = np.zeros((n,) + self.image_shape, dtype='bool')
+        mask = np.zeros((n,) + self.image_shape, dtype="bool")
         for k in range(n):
-            mask[k, :, i[k]:i[k]+shape[0], j[k]:j[k]+shape[1]] = True
+            mask[k, :, i[k] : i[k] + shape[0], j[k] : j[k] + shape[1]] = True
 
-        return mask.reshape(n, -1) if flatten else mask
+        return mask.reshape((n, -1)) if flatten else mask
 
     def populate(self, filters, rng=np.random, flatten=False):
         filters = np.asarray(filters)
@@ -96,13 +102,19 @@ class Mask(FrozenObject):
         i, j = self._positions(n, shape, rng)
         output = np.zeros((n,) + self.image_shape, dtype=filters.dtype)
         for k in range(n):
-            output[k, :, i[k]:i[k]+shape[0], j[k]:j[k]+shape[1]] = filters[k]
+            output[k, :, i[k] : i[k] + shape[0], j[k] : j[k] + shape[1]] = filters[k]
 
-        return output.reshape(n, -1) if flatten else output
+        return output.reshape((n, -1)) if flatten else output
 
 
-def ciw_encoders(n_encoders, trainX, trainY, rng=np.random,
-                 normalize_data=True, normalize_encoders=True):
+def ciw_encoders(
+    n_encoders,
+    trainX,
+    trainY,
+    rng=np.random,
+    normalize_data=True,
+    normalize_encoders=True,
+):
     """Computed Input Weights (CIW) method for encoders from data.
 
     Parameters
@@ -128,7 +140,7 @@ def ciw_encoders(n_encoders, trainX, trainY, rng=np.random,
        10(8), 1-20. doi:10.1371/journal.pone.0134254
     """
     assert trainX.shape[0] == trainY.size
-    trainX = trainX.reshape(trainX.shape[0], -1)
+    trainX = trainX.reshape((trainX.shape[0], -1))
     trainY = trainY.ravel()
     classes = np.unique(trainY)
 
@@ -156,8 +168,9 @@ def ciw_encoders(n_encoders, trainX, trainY, rng=np.random,
     return encoders
 
 
-def cd_encoders_biases(n_encoders, trainX, trainY, rng=np.random, mask=None,
-                       norm_min=0.05, norm_tries=10):
+def cd_encoders_biases(
+    n_encoders, trainX, trainY, rng=np.random, mask=None, norm_min=0.05, norm_tries=10
+):
     """Constrained difference (CD) method for encoders from data.
 
     Parameters
@@ -186,7 +199,7 @@ def cd_encoders_biases(n_encoders, trainX, trainY, rng=np.random, mask=None,
        10(8), 1-20. doi:10.1371/journal.pone.0134254
     """
     assert trainX.shape[0] == trainY.size
-    trainX = trainX.reshape(trainX.shape[0], -1)
+    trainX = trainX.reshape((trainX.shape[0], -1))
     trainY = trainY.ravel()
     d = trainX.shape[1]
     classes = np.unique(trainY)
@@ -204,13 +217,13 @@ def cd_encoders_biases(n_encoders, trainX, trainY, rng=np.random, mask=None,
             dab = a - b
             if mask is not None:
                 dab *= mask[k]
-            ndab = npext.norm(dab)**2
+            ndab = npext.norm(dab) ** 2
             if ndab >= norm_min * train_norm:
                 break
         else:
             raise ValueError("Cannot find valid encoder")
 
-        encoders[k] = (2. / ndab) * dab
+        encoders[k] = (2.0 / ndab) * dab
         biases[k] = np.dot(a + b, dab) / ndab
 
     return encoders, biases
@@ -218,7 +231,7 @@ def cd_encoders_biases(n_encoders, trainX, trainY, rng=np.random, mask=None,
 
 def percentile_biases(encoders, trainX, percentile=50):
     """Pick biases such that neurons are active for a percentile of inputs."""
-    trainX = trainX.reshape(trainX.shape[0], -1)
+    trainX = trainX.reshape((trainX.shape[0], -1))
     H = np.dot(trainX, encoders.T)
     biases = np.percentile(H, percentile, axis=0)
     return biases

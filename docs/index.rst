@@ -30,7 +30,7 @@ To install Nengo extras, we recommend using ``pip``.
 
    deeplearning
    dists
-   learning_rules
+   learning-rules
    networks
    neurons
    vision
