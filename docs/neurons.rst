@@ -4,10 +4,8 @@ Neuron types
 
 These neuron types can be used in any place that
 `Nengo neuron types
-<https://www.nengo.ai/nengo/frontend_api.html#neuron-types>`_
+<https://www.nengo.ai/nengo/frontend-api.html#module-nengo.neurons>`_
 can be used.
-
-.. default-role:: obj
 
 .. autoclass:: nengo_extras.neurons.SoftLIFRate
 

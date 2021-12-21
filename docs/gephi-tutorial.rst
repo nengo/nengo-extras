@@ -296,4 +296,4 @@ References
    and Chris Eliasmith. A biologically constrained model of semantic memory
    search. In Proceedings of the 39th Annual Conference of the Cognitive
    Science Society.  London, UK, 2017. Cognitive Science Society. URL:
-   http://mindmodeling.org/cogsci2017/papers/0127/index.html
+   https://cogsci.mindmodeling.org/2017/papers/0127/index.html

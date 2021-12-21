@@ -1,0 +1,99 @@
+project_name: NengoExtras
+pkg_name: nengo_extras
+repo_name: nengo/nengo-extras
+description: Lesser used features for the Nengo neural simulator
+
+copyright_start: 2015
+
+license_rst: {}
+
+contributing_rst: {}
+
+contributors_rst: {}
+
+manifest_in: {}
+
+setup_py:
+  install_req:
+    - numpy>=1.8
+    - nengo>=3.0
+    - matplotlib>=1.4
+    - pillow
+  docs_req:
+    - sphinx>=1.8
+    - numpydoc>=0.6
+    - nengo_sphinx_theme>=1.2.0
+    - nbsphinx>=0.8.8
+    - tensorflow
+    - jupyter
+  optional_req:
+    - keras
+    - tensorflow
+    - numba>=0.43.1
+    - scipy
+  tests_req:
+    - jupyter
+    - pytest>=6.0
+    - pytest-allclose
+    - pytest-plt
+    - pytest-rng
+  classifiers:
+    - "Intended Audience :: Science/Research"
+    - "License :: Free for non-commercial use"
+    - "Operating System :: OS Independent"
+    - "Programming Language :: Python :: 3.6"
+    - "Programming Language :: Python :: 3.7"
+    - "Programming Language :: Python :: 3.8"
+    - "Programming Language :: Python :: 3.9"
+    - "Topic :: Scientific/Engineering :: Artificial Intelligence"
+
+setup_cfg:
+  pylint:
+    disable:
+      - consider-using-f-string
+      - missing-class-docstring
+      - missing-function-docstring
+      - missing-module-docstring
+  codespell:
+    ignore_words:
+      - hist
+
+docs_conf_py:
+  tagmanager_id: GTM-KWCR2HN
+  intersphinx_mapping:
+    scipy: 'https://docs.scipy.org/doc/scipy/reference'
+  extensions:
+    - nengo_sphinx_theme.ext.resolvedefaults
+  doctest_setup:
+    - "import nengo"
+
+travis_yml:
+  python: 3.7
+  jobs:
+    - script: static
+    - script: test
+      python: 3.9
+    - script: test-coverage
+      test_args: --plots
+    - script: docs
+      python: 3.9
+  pypi_user: __token__
+  deploy_dists:
+    - sdist
+    - bdist_wheel
+
+ci_scripts:
+  - template: static
+  - template: test
+  - template: test
+    output_name: test-coverage
+    coverage: true
+  - template: docs
+  - template: deploy
+
+codecov_yml:
+  abs_target: 40%
+
+pre_commit_config_yaml: {}
+
+pyproject_toml: {}

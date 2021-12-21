@@ -1,21 +1,20 @@
 import numpy as np
 import pytest
-
 from nengo.utils.numpy import array_hash
 
 from nengo_extras.spa.utils import circconv, cyclic_vector
 
 
-@pytest.mark.parametrize('d, k', [(5, 3), (16, 4), (128, 13)])
+@pytest.mark.parametrize("d, k", [(5, 3), (16, 4), (128, 13)])
 def test_cyclic_vector(d, k, rng):
     n = 10
-    a = rng.normal(scale=1./np.sqrt(d), size=(n, d))
+    a = rng.normal(scale=1.0 / np.sqrt(d), size=(n, d))
     b = cyclic_vector(d, k, n=n)
     c = circconv(a, b, k=k)
     assert np.allclose(a, c, atol=1e-7), (a, c)
 
 
-@pytest.mark.parametrize('d, k', [(7, 5), (8, 4)])
+@pytest.mark.parametrize("d, k", [(7, 5), (8, 4)])
 def test_cyclic_vector_dist(d, k, rng):
     n = 1000
     v = cyclic_vector(d, k, n=n, rng=rng)
@@ -35,13 +34,13 @@ def test_cyclic_vector_dist(d, k, rng):
 
     # check that all generated values are cyclic
     for b in hashmap.values():
-        a = rng.normal(scale=1./np.sqrt(d), size=d)
+        a = rng.normal(scale=1.0 / np.sqrt(d), size=d)
         c = circconv(a, b, k=k)
         assert np.allclose(a, c, atol=1e-7), (a, c)
 
     # check that the std. dev. of the counts is roughly a Binomial dist.
     values = np.array(list(counts.values()))
-    p = 1. / len(values)
+    p = 1.0 / len(values)
     std = np.sqrt(n * p * (1 - p))
     assert np.allclose(values.std(), std, rtol=0.3, atol=0)
 

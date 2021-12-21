@@ -10,11 +10,6 @@ code, .rst-content tt, .rst-content code {
     white-space: pre-wrap;
 }
 
-#notebook .container {
-    padding-left: 0;
-    width: inherit;
-}
-
-.body img {
-    max-width: 100%;
+#right-column .header div {
+    float: left;
 }

@@ -1,0 +1,2 @@
+{% include "templates/pyproject.toml.template" %}
+known_third_party = ["matplotlib"]

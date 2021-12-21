@@ -20,9 +20,17 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
+try:
+    from scipy.cluster.hierarchy import linkage, to_tree
+    from scipy.ndimage import gaussian_filter1d
+
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
 
 cm_gray_r_a = matplotlib.colors.LinearSegmentedColormap.from_list(
-    'gray_r_a', [(0., 0., 0., 0.), (0., 0., 0., 1.)])
+    "gray_r_a", [(0.0, 0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0)]
+)
 
 
 def plot_spikes(t, spikes, contrast_scale=1.0, ax=None, **kwargs):
@@ -62,19 +70,24 @@ def plot_spikes(t, spikes, contrast_scale=1.0, ax=None, **kwargs):
     if ax is None:
         ax = plt.gca()
 
-    kwargs.setdefault('aspect', 'auto')
-    kwargs.setdefault('cmap', cm_gray_r_a)
-    kwargs.setdefault('interpolation', 'nearest')
-    kwargs.setdefault('extent', (t[0], t[-1], 0., spikes.shape[1]))
+    kwargs.setdefault("aspect", "auto")
+    kwargs.setdefault("cmap", cm_gray_r_a)
+    kwargs.setdefault("interpolation", "nearest")
+    kwargs.setdefault("extent", (t[0], t[-1], 0.0, spikes.shape[1]))
 
     spikeraster = ax.imshow(spikes.T, **kwargs)
-    spikeraster.set_clim(0., np.max(spikes) * contrast_scale)
+    spikeraster.set_clim(0.0, np.max(spikes) * contrast_scale)
     return spikeraster
 
 
 def preprocess_spikes(
-        t, spikes, num=50, sample_size=200, sample_filter_width=0.02,
-        cluster_filter_width=0.002):
+    t,
+    spikes,
+    num=50,
+    sample_size=200,
+    sample_filter_width=0.02,
+    cluster_filter_width=0.002,
+):
     """Applies a default preprocessing to spike data for plotting.
 
     This will first sample by variance, then cluster the spike trains, and
@@ -106,9 +119,12 @@ def preprocess_spikes(
     return merge(
         *cluster(
             *sample_by_variance(
-                t, spikes, num=sample_size, filter_width=sample_filter_width),
-            filter_width=cluster_filter_width),
-        num=num)
+                t, spikes, num=sample_size, filter_width=sample_filter_width
+            ),
+            filter_width=cluster_filter_width,
+        ),
+        num=num,
+    )
 
 
 def cluster(t, spikes, filter_width):
@@ -133,11 +149,11 @@ def cluster(t, spikes, filter_width):
         Returns the time indices *t* and the selected spike trains *spikes*.
     """
 
-    from scipy.cluster.hierarchy import linkage, to_tree
-    from scipy.ndimage import gaussian_filter1d
+    if not HAS_SCIPY:
+        raise ImportError("`cluster` requires `scipy`")
+
     dt = (t[-1] - t[0]) / (len(t) - 1)
-    filtered = gaussian_filter1d(np.asfarray(spikes),
-                                 filter_width / dt, axis=0)
+    filtered = gaussian_filter1d(np.asfarray(spikes), filter_width / dt, axis=0)
     order = to_tree(linkage(filtered.T)).pre_order()
     return t, spikes[:, order]
 
@@ -149,9 +165,12 @@ def merge(t, spikes, num):
         return t, spikes
 
     blocksize = int(np.ceil(spikes.shape[1] / num))
-    merged = np.array([
-        np.mean(spikes[:, (i * blocksize):((i + 1) * blocksize)], axis=1)
-        for i in range(num)]).T
+    merged = np.array(
+        [
+            np.mean(spikes[:, (i * blocksize) : ((i + 1) * blocksize)], axis=1)
+            for i in range(num)
+        ]
+    ).T
     return t, merged
 
 
@@ -179,11 +198,12 @@ def sample_by_variance(t, spikes, num, filter_width):
         Returns the time indices *t* and the selected spike trains *spikes*.
     """
 
-    from scipy.ndimage import gaussian_filter1d
+    if not HAS_SCIPY:
+        raise ImportError("`sample_by_variance` requires `scipy`")
+
     dt = (t[-1] - t[0]) / (len(t) - 1)
-    filtered = gaussian_filter1d(np.asfarray(spikes),
-                                 filter_width / dt, axis=0)
-    selected = np.argsort(np.var(filtered, axis=0))[-1:(-num - 1):-1]
+    filtered = gaussian_filter1d(np.asfarray(spikes), filter_width / dt, axis=0)
+    selected = np.argsort(np.var(filtered, axis=0))[-1 : (-num - 1) : -1]
     return t, spikes[:, selected]
 
 
@@ -221,9 +241,10 @@ def sample_by_activity(t, spikes, num, blocksize=None):
     n_blocks = int(np.ceil(float(spikes.shape[1]) / blocksize))
     n_sel = int(np.ceil(float(num) / n_blocks))
     for i in range(n_blocks):
-        block = spikes[:, (i * blocksize):((i + 1) * blocksize)]
+        block = spikes[:, (i * blocksize) : ((i + 1) * blocksize)]
         activity = np.sum(block, axis=0)
-        selected[:, (i * n_sel):((i + 1) * n_sel)] = (
-            block[:, np.argsort(activity)[-1:(-n_sel - 1):-1]])
+        selected[:, (i * n_sel) : ((i + 1) * n_sel)] = block[
+            :, np.argsort(activity)[-1 : (-n_sel - 1) : -1]
+        ]
 
     return t, selected

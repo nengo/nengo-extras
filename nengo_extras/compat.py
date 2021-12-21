@@ -1,3 +1,5 @@
+# pylint: disable=unused-import,ungrouped-imports
+
 import sys
 
 import nengo
@@ -10,15 +12,16 @@ else:
 PY2 = sys.version_info[0] == 2
 
 if PY2:
-    from cStringIO import StringIO
     from urllib import urlretrieve
-    import Tkinter as tkinter
+
     import cPickle as pickle
+    import Tkinter as tkinter
+    from cStringIO import StringIO
 else:
+    import pickle
+    import tkinter
     from io import StringIO
     from urllib.request import urlretrieve
-    import tkinter
-    import pickle
 
 
 def cmp(a, b):  # same as python2's builtin cmp, not available in python3
@@ -27,11 +30,11 @@ def cmp(a, b):  # same as python2's builtin cmp, not available in python3
 
 def pickle_load(file, *args, **kwargs):
     if not PY2:
-        kwargs.setdefault('encoding', 'latin1')
+        kwargs.setdefault("encoding", "latin1")
     return pickle.load(file, *args, **kwargs)
 
 
 def pickle_load_bytes(file, *args, **kwargs):
     if not PY2:
-        kwargs.setdefault('encoding', 'bytes')
+        kwargs.setdefault("encoding", "bytes")
     return pickle.load(file, *args, **kwargs)

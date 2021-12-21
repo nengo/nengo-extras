@@ -10,6 +10,7 @@ from nengo_extras.simulators import RealTimeSimulator
 
 def test_real_time_simulator(rng):
     with nengo.Network() as net:
+
         def rnd_delay(_):
             delay = rng.uniform(0, 5e-4)
             start = timeit.default_timer()
@@ -33,6 +34,7 @@ def test_real_time_simulator(rng):
 
     # warning when running slower than real-time
     with nengo.Network() as net:
+
         def long_delay(_):
             time.sleep(0.1)
 

@@ -28,3 +28,6 @@ nengo.simulator.plots/
 # --- IDE files:
 .idea
 .vscode
+
+.ci/*.sh
+plots/

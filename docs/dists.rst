@@ -4,10 +4,8 @@ Distributions
 
 These distributions can be used in any place that
 `Nengo distributions
-<https://www.nengo.ai/nengo/frontend_api.html#distributions>`_
+<https://www.nengo.ai/nengo/frontend-api.html#module-nengo.dists>`_
 can be used.
-
-.. default-role:: obj
 
 .. autosummary::
 

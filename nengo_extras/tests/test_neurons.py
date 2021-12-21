@@ -1,17 +1,17 @@
-from collections import defaultdict
 import logging
 import timeit
+from collections import defaultdict
 
 import nengo
-from nengo.utils.matplotlib import implot
-from nengo.utils.numpy import rms
 import numpy as np
 import pytest
+from nengo.utils.matplotlib import implot
+from nengo.utils.numpy import rms
 
-from nengo_extras.neurons import FastLIF, rates_isi, rates_kernel, SoftLIFRate
+from nengo_extras.neurons import FastLIF, NumbaLIF, SoftLIFRate, rates_isi, rates_kernel
 
 
-def test_softlifrate_rates(plt):
+def test_softlifrate_rates(plt, allclose):
     gain = 0.9
     bias = 1.7
     tau_rc = 0.03
@@ -24,13 +24,14 @@ def test_softlifrate_rates(plt):
     lif_r = lif.rates(x, gain, bias)
     softlif_r = softlif.rates(x, gain, bias)
 
-    plt.plot(x, lif_r)
-    plt.plot(x, softlif_r)
+    plt.plot(x, lif_r, label="LIF")
+    plt.plot(x, softlif_r, label="SoftLIF")
+    plt.legend(loc="best")
 
-    assert np.allclose(softlif_r, lif_r, atol=1e-3, rtol=1e-3)
+    assert allclose(softlif_r, lif_r, atol=1e-3, rtol=1e-3)
 
 
-def test_softlifrate_derivative(plt):
+def test_softlifrate_derivative(plt, allclose):
     sigma = 0.02
     amplitude = 0.8
     gain = 0.9
@@ -41,7 +42,7 @@ def test_softlifrate_derivative(plt):
 
     neuron = SoftLIFRate(sigma=sigma, amplitude=amplitude)
     r = neuron.rates(x, gain, bias)
-    deltar = np.diff(r) / dx
+    deltar = np.diff(r.ravel()) / dx
     dr = neuron.derivative(x2, gain, bias)
 
     plt.subplot(211)
@@ -49,9 +50,9 @@ def test_softlifrate_derivative(plt):
 
     plt.subplot(212)
     plt.plot(x2, dr)
-    plt.plot(x2, deltar, 'k--')
+    plt.plot(x2, deltar, "k--")
 
-    assert np.allclose(dr, deltar, atol=1e-5, rtol=1e-2)
+    assert allclose(dr, deltar, atol=1e-5, rtol=1e-2)
 
 
 def test_fastlif(plt):
@@ -69,16 +70,18 @@ def test_fastlif(plt):
     m = nengo.Network()
     with m:
         ins = nengo.Node(x)
-        ens = nengo.Ensemble(n, dimensions=1,
-                             neuron_type=FastLIF(),
-                             encoders=encoders,
-                             max_rates=max_rates,
-                             intercepts=intercepts)
-        nengo.Connection(
-            ins, ens.neurons, transform=np.ones((n, 1)), synapse=None)
+        ens = nengo.Ensemble(
+            n,
+            dimensions=1,
+            neuron_type=FastLIF(),
+            encoders=encoders,
+            max_rates=max_rates,
+            intercepts=intercepts,
+        )
+        nengo.Connection(ins, ens.neurons, transform=np.ones((n, 1)), synapse=None)
         spike_probe = nengo.Probe(ens.neurons)
-        voltage_probe = nengo.Probe(ens.neurons, 'voltage')
-        ref_probe = nengo.Probe(ens.neurons, 'refractory_time')
+        voltage_probe = nengo.Probe(ens.neurons, "voltage")
+        ref_probe = nengo.Probe(ens.neurons, "refractory_time")
 
     t_final = 1.0
     with nengo.Simulator(m, dt=dt) as sim:
@@ -95,14 +98,13 @@ def test_fastlif(plt):
 
     # check rates against analytic rates
     math_rates = ens.neuron_type.rates(
-        x, *ens.neuron_type.gain_bias(max_rates, intercepts))
+        x, *ens.neuron_type.gain_bias(max_rates, intercepts)
+    )
     spikes = sim.data[spike_probe]
     sim_rates = (spikes > 0).sum(0) / t_final
     print("ME = %f" % (sim_rates - math_rates).mean())
-    print("RMSE = %f" % (
-        rms(sim_rates - math_rates) / (rms(math_rates) + 1e-20)))
-    assert np.sum(math_rates > 0) > 0.5 * n, (
-        "At least 50% of neurons must fire")
+    print("RMSE = %f" % (rms(sim_rates - math_rates) / (rms(math_rates) + 1e-20)))
+    assert np.sum(math_rates > 0) > 0.5 * n, "At least 50% of neurons must fire"
     assert np.allclose(sim_rates, math_rates, atol=1, rtol=0.02)
 
     # if voltage and ref time are non-constant, the probe is doing something
@@ -124,18 +126,16 @@ def _test_rates(Simulator, rates, plt, seed):
         model.config[nengo.Ensemble].max_rates = nengo.dists.Choice([50])
         model.config[nengo.Ensemble].encoders = nengo.dists.Choice([[1]])
         u = nengo.Node(output=nengo.processes.WhiteSignal(2, high=5))
-        a = nengo.Ensemble(n, 1,
-                           intercepts=intercepts, neuron_type=nengo.LIFRate())
-        b = nengo.Ensemble(n, 1,
-                           intercepts=intercepts, neuron_type=nengo.LIF())
+        a = nengo.Ensemble(n, 1, intercepts=intercepts, neuron_type=nengo.LIFRate())
+        b = nengo.Ensemble(n, 1, intercepts=intercepts, neuron_type=nengo.LIF())
         nengo.Connection(u, a, synapse=0)
         nengo.Connection(u, b, synapse=0)
         up = nengo.Probe(u)
         ap = nengo.Probe(a.neurons)
         bp = nengo.Probe(b.neurons)
 
-    with Simulator(model, seed=seed+1) as sim:
-        sim.run(2.)
+    with Simulator(model, seed=seed + 1) as sim:
+        sim.run(2.0)
 
     t = sim.trange()
     x = sim.data[up]
@@ -148,14 +148,14 @@ def _test_rates(Simulator, rates, plt, seed):
         plt.plot(t, x)
         ax = plt.subplot(412)
         implot(plt, t, intercepts, a_rates.T, ax=ax)
-        ax.set_ylabel('intercept')
+        ax.set_ylabel("intercept")
         ax = plt.subplot(413)
         implot(plt, t, intercepts, b_rates.T, ax=ax)
-        ax.set_ylabel('intercept')
+        ax.set_ylabel("intercept")
         ax = plt.subplot(414)
         implot(plt, t, intercepts, (b_rates - a_rates).T, ax=ax)
-        ax.set_xlabel('time [s]')
-        ax.set_ylabel('intercept')
+        ax.set_xlabel("time [s]")
+        ax.set_ylabel("intercept")
 
     tmask = (t > 0.1) & (t < 1.9)
     relative_rmse = rms(b_rates[tmask] - a_rates[tmask]) / rms(a_rates[tmask])
@@ -163,7 +163,7 @@ def _test_rates(Simulator, rates, plt, seed):
 
 
 def test_rates_isi(Simulator, plt, seed):
-    pytest.importorskip('scipy')
+    pytest.importorskip("scipy")
     rel_rmse = _test_rates(Simulator, rates_isi, plt, seed)
     assert rel_rmse < 0.3
 
@@ -175,21 +175,16 @@ def test_rates_kernel(Simulator, plt, seed):
 
 @pytest.mark.noassertions
 def test_rates(Simulator, seed):
-    pytest.importorskip('scipy')
+    pytest.importorskip("scipy")
     functions = [
-        ('isi_zero', lambda t, s: rates_isi(
-            t, s, midpoint=False, interp='zero')),
-        ('isi_midzero', lambda t, s: rates_isi(
-            t, s, midpoint=True, interp='zero')),
-        ('isi_linear', lambda t, s: rates_isi(
-            t, s, midpoint=False, interp='linear')),
-        ('isi_midlinear', lambda t, s: rates_isi(
-            t, s, midpoint=True, interp='linear')),
-        ('kernel_expon', lambda t, s: rates_kernel(t, s, kind='expon')),
-        ('kernel_gauss', lambda t, s: rates_kernel(t, s, kind='gauss')),
-        ('kernel_expogauss', lambda t, s: rates_kernel(
-            t, s, kind='expogauss')),
-        ('kernel_alpha', lambda t, s: rates_kernel(t, s, kind='alpha')),
+        ("isi_zero", lambda t, s: rates_isi(t, s, midpoint=False, interp="zero")),
+        ("isi_midzero", lambda t, s: rates_isi(t, s, midpoint=True, interp="zero")),
+        ("isi_linear", lambda t, s: rates_isi(t, s, midpoint=False, interp="linear")),
+        ("isi_midlinear", lambda t, s: rates_isi(t, s, midpoint=True, interp="linear")),
+        ("kernel_expon", lambda t, s: rates_kernel(t, s, kind="expon")),
+        ("kernel_gauss", lambda t, s: rates_kernel(t, s, kind="gauss")),
+        ("kernel_expogauss", lambda t, s: rates_kernel(t, s, kind="expogauss")),
+        ("kernel_alpha", lambda t, s: rates_kernel(t, s, kind="alpha")),
     ]
 
     for name, function in functions:
@@ -201,8 +196,6 @@ def test_rates(Simulator, seed):
 @pytest.mark.slow
 def test_numbalif_benchmark(plt):
     pytest.importorskip("numba")
-
-    from nengo_extras.neurons import NumbaLIF
 
     def _benchmark(neuron_type, n, d=1, sim_time=1.0, n_trials=3):
         """Estimates number of milliseconds per simulation time-step."""
@@ -223,7 +216,7 @@ def test_numbalif_benchmark(plt):
     plt.figure()
     times = defaultdict(list)
     for neuron_type in (NumbaLIF, nengo.LIF):
-        n_neurons = np.linspace(1, 10000, 11, dtype=int)
+        n_neurons = np.linspace(100, 10000, 11, dtype=int)
         for n in n_neurons:
             times[neuron_type].append(_benchmark(neuron_type(), n))
         plt.plot(n_neurons, times[neuron_type], label=str(neuron_type))
@@ -235,25 +228,22 @@ def test_numbalif_benchmark(plt):
 @pytest.mark.parametrize("dt", [0.0005, 0.001, 0.002])
 def test_numbalif_correctness(Simulator, seed, dt):
     pytest.importorskip("numba")
-    from nengo_extras.neurons import NumbaLIF
 
     # Test spike-trains for numerical precision, using a
     # sine wave covering one period across the simulation time
     n_neurons = 500
     sim_t = 2.0
     with nengo.Network() as model:
-        u = nengo.Node(output=lambda t: np.sin(2*np.pi*t/sim_t))
+        u = nengo.Node(output=lambda t: np.sin(2 * np.pi * t / sim_t))
 
-        x_numba = nengo.Ensemble(n_neurons, 1, seed=seed,
-                                 neuron_type=NumbaLIF())
-        x_lif = nengo.Ensemble(n_neurons, 1, seed=seed,
-                               neuron_type=nengo.LIF())
+        x_numba = nengo.Ensemble(n_neurons, 1, seed=seed, neuron_type=NumbaLIF())
+        x_lif = nengo.Ensemble(n_neurons, 1, seed=seed, neuron_type=nengo.LIF())
 
         nengo.Connection(u, x_numba, synapse=None)
         nengo.Connection(u, x_lif, synapse=None)
 
-        p_numba = nengo.Probe(x_numba.neurons, 'spikes', synapse=None)
-        p_lif = nengo.Probe(x_lif.neurons, 'spikes', synapse=None)
+        p_numba = nengo.Probe(x_numba.neurons, synapse=None)
+        p_lif = nengo.Probe(x_lif.neurons, synapse=None)
 
     with Simulator(model, dt=dt) as sim:
         sim.run(sim_t)
