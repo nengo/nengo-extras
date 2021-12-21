@@ -22,7 +22,11 @@ Release history
 0.4.1 (unreleased)
 ==================
 
+**Fixed**
 
+- Updated to work with current version of Nengo. (`#94`_)
+
+.. _#94: https://github.com/nengo/nengo/pull/94
 
 0.4.0 (November 15, 2019)
 =========================

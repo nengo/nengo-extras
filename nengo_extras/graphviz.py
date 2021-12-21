@@ -40,7 +40,7 @@ def obj_conn_diagram(objs, connections):
         Text content of the desired .dot file.
     """
     text = []
-    text.append('digraph G {')
+    text.append("digraph G {")
     for obj in objs:
         text.append('  "%d" [label="%s"];' % (id(obj), obj.label))
 
@@ -48,11 +48,13 @@ def obj_conn_diagram(objs, connections):
         # determine the label for a connection based on its transform
         transform = np.asarray(transform)
         if len(transform.shape) == 0:
-            return ''
-        return '%dx%d' % transform.shape
+            return ""
+        return "%dx%d" % transform.shape
 
     for c in connections:
-        text.append('  "%d" -> "%d" [label="%s"];' % (
-            id(c.pre_obj), id(c.post_obj), label(c.transform)))
-    text.append('}')
-    return '\n'.join(text)
+        text.append(
+            '  "%d" -> "%d" [label="%s"];'
+            % (id(c.pre_obj), id(c.post_obj), label(c.transform))
+        )
+    text.append("}")
+    return "\n".join(text)

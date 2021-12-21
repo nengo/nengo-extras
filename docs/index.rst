@@ -8,7 +8,7 @@ This repository contains utilities that occupy
 a liminal space not quite generic enough for inclusion in Nengo_,
 but useful enough that they should be publicly accessible.
 
-Some of these utilities may eventually migrate to `Nengo core <Nengo>`_,
+Some of these utilities may eventually migrate to `Nengo core <Nengo_>`_,
 and others may be split off into their own separate repositories.
 If something that you were using has been moved,
 please consult the release history below
@@ -30,7 +30,7 @@ To install Nengo extras, we recommend using ``pip``.
 
    deeplearning
    dists
-   learning_rules
+   learning-rules
    networks
    neurons
    vision

@@ -4,7 +4,7 @@ import numpy as np
 import nengo_extras
 
 
-def test_matrix_mult(Simulator, seed, rng, nl, plt):
+def test_matrix_mult(Simulator, seed, rng, AnyNeuronType, plt, allclose):
     shape_left = (2, 2)
     shape_right = (2, 2)
 
@@ -16,9 +16,8 @@ def test_matrix_mult(Simulator, seed, rng, nl, plt):
         node_right = nengo.Node(right_mat.ravel())
 
         with nengo.Config(nengo.Ensemble) as cfg:
-            cfg[nengo.Ensemble].neuron_type = nl()
-            mult_net = nengo_extras.networks.MatrixMult(
-                200, shape_left, shape_right)
+            cfg[nengo.Ensemble].neuron_type = AnyNeuronType()
+            mult_net = nengo_extras.networks.MatrixMult(200, shape_left, shape_right)
 
         p = nengo.Probe(mult_net.output, synapse=0.01)
 
@@ -32,8 +31,10 @@ def test_matrix_mult(Simulator, seed, rng, nl, plt):
     t = sim.trange()
     plt.plot(t, sim.data[p])
     for d in np.dot(left_mat, right_mat).flatten():
-        plt.axhline(d, color='k')
+        plt.axhline(d, color="k")
 
-    atol, rtol = .15, .01
+    atol, rtol = 0.15, 0.01
+    if AnyNeuronType.__name__ == "SpikingTanh":
+        atol = 0.2
     ideal = np.dot(left_mat, right_mat).ravel()
-    assert np.allclose(sim.data[p][-1], ideal, atol=atol, rtol=rtol)
+    assert allclose(sim.data[p][-1], ideal, atol=atol, rtol=rtol)

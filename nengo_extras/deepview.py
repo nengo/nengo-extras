@@ -1,3 +1,5 @@
+# pylint: disable=too-many-ancestors
+
 """
 Tools for visualizing deep neural networks
 """
@@ -6,7 +8,7 @@ import collections
 import numpy as np
 import PIL.ImageTk
 
-from .compat import tkinter as tk
+from nengo_extras.compat import tkinter as tk
 
 
 class ImageSelector(tk.Frame):
@@ -28,16 +30,16 @@ class ImageSelector(tk.Frame):
         self.resample = 0
 
         self.canvas = tk.Canvas(self)
-        self.canvas_image = self.canvas.create_image(0, 0, anchor='nw')
-        self.left = tk.Button(self, text='<')
-        self.right = tk.Button(self, text='>')
+        self.canvas_image = self.canvas.create_image(0, 0, anchor="nw")
+        self.left = tk.Button(self, text="<")
+        self.right = tk.Button(self, text=">")
 
-        self.canvas.bind('<Configure>', self._on_canvas_resize)
+        self.canvas.bind("<Configure>", self._on_canvas_resize)
 
         # --- layout
-        self.left.pack(side='left', expand=False)
-        self.right.pack(side='right', expand=False)
-        self.canvas.pack(fill='both', expand=True)
+        self.left.pack(side="left", expand=False)
+        self.right.pack(side="right", expand=False)
+        self.canvas.pack(fill="both", expand=True)
 
     def set_left_callback(self, callback):
         self.left.configure(command=callback)
@@ -73,21 +75,23 @@ class ScrollCanvasFrame(tk.Frame):
 
         if vertical:
             self.vscrollbar = tk.Scrollbar(
-                self, orient='vertical', command=self.canvas.yview)
+                self, orient="vertical", command=self.canvas.yview
+            )
             self.canvas.configure(yscrollcommand=self.vscrollbar.set)
-            self.vscrollbar.pack(side='right', fill='y')
+            self.vscrollbar.pack(side="right", fill="y")
 
         if horizontal:
             self.hscrollbar = tk.Scrollbar(
-                self, orient='horizontal', command=self.canvas.xview)
+                self, orient="horizontal", command=self.canvas.xview
+            )
             self.canvas.configure(xscrollcommand=self.hscrollbar.set)
-            self.hscrollbar.pack(side='bottom', fill='both')
+            self.hscrollbar.pack(side="bottom", fill="both")
 
-        self.canvas.pack(fill='both', expand=True)
-        self.bind('<Configure>', self._on_resize)
+        self.canvas.pack(fill="both", expand=True)
+        self.bind("<Configure>", self._on_resize)
 
     def _on_resize(self, event):
-        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
 
 class ScrollWindow(ScrollCanvasFrame):
@@ -95,8 +99,8 @@ class ScrollWindow(ScrollCanvasFrame):
 
     def __init__(self, *args, **kwargs):
         ScrollCanvasFrame.__init__(self, *args, **kwargs)
-        self.item = self.canvas.create_window((0, 0), anchor='nw')
-        self.canvas.bind('<Configure>', self._on_canvas_resize)
+        self.item = self.canvas.create_window((0, 0), anchor="nw")
+        self.canvas.bind("<Configure>", self._on_canvas_resize)
 
     def set_window(self, window):
         self.canvas.itemconfig(self.item, window=window)
@@ -116,12 +120,10 @@ class ScrollWindow(ScrollCanvasFrame):
 
 class VerticalImageFrame(ScrollCanvasFrame):
 
-    Column = collections.namedtuple(
-        'Column', ('width', 'height', 'image_function'))
+    Column = collections.namedtuple("Column", ("width", "height", "image_function"))
 
     def __init__(self, parent, **kwargs):
-        ScrollCanvasFrame.__init__(
-            self, parent, vertical=True, **kwargs)
+        ScrollCanvasFrame.__init__(self, parent, vertical=True, **kwargs)
 
         self.padding = (5, 5)  # width, height
 
@@ -167,8 +169,10 @@ class VerticalImageFrame(ScrollCanvasFrame):
         for i in range(n):
             image_row = [
                 self.canvas.create_image(
-                    pos_x[j], i*(max_height + self.padding[1]), anchor='nw')
-                for j in range(self.n_columns)]
+                    pos_x[j], i * (max_height + self.padding[1]), anchor="nw"
+                )
+                for j in range(self.n_columns)
+            ]
             self.canvas_images.append(image_row)
 
     def set_images(self, column_images):
@@ -186,8 +190,11 @@ class VerticalImageFrame(ScrollCanvasFrame):
             for j in range(self.n_columns):
                 width, height, image_function = self.columns[j]
 
-                f = (column_images[j][i] if i < len(column_images[j]) else
-                     np.zeros_like(column_images[j][0]))
+                f = (
+                    column_images[j][i]
+                    if i < len(column_images[j])
+                    else np.zeros_like(column_images[j][0])
+                )
                 image = image_function(f)
 
                 photo = PIL.ImageTk.PhotoImage(image.resize((width, height)))
@@ -218,14 +225,14 @@ class Viewer(tk.Tk):
         self.selector.set_right_callback(self._on_next_image)
 
         self.pane_frame = ScrollWindow(self, horizontal=True)
-        self.panes = tk.PanedWindow(self.pane_frame, orient='horizontal')
+        self.panes = tk.PanedWindow(self.pane_frame, orient="horizontal")
         self.pane_frame.set_window(self.panes)
 
         self.frames = []
 
         # --- layout
-        self.selector.pack(side='top', expand=False)
-        self.pane_frame.pack(fill='both', expand=True)
+        self.selector.pack(side="top", expand=False)
+        self.pane_frame.pack(fill="both", expand=True)
 
     @property
     def n_frames(self):
@@ -237,43 +244,44 @@ class Viewer(tk.Tk):
         pane = tk.Frame(self.panes)
         if title is not None:
             label = tk.Label(pane, text=title)
-            label.pack(side='top', fill='both')
+            label.pack(side="top", fill="both")
 
         frame = VerticalImageFrame(pane)
         for kind, fn in zip(kinds, fns):
-            if kind == 'acts':
+            if kind == "acts":
                 frame.add_column(self.act_size[0], self.act_size[1], fn)
-            elif kind == 'filters':
+            elif kind == "filters":
                 frame.add_column(self.filter_size[0], self.filter_size[1], fn)
             else:
                 raise ValueError("Unrecognized kind %r" % kind)
 
-        frame.pack(fill='both', expand=True)
+        frame.pack(fill="both", expand=True)
 
         self.frames.append(frame)
         self.frame_kind_data[frame] = tuple(zip(kinds, data))
         self.panes.add(pane)
 
     def add_acts(self, acts, acts_fn, **kwargs):
-        self.add_column(('acts',), (acts,), (acts_fn,), **kwargs)
+        self.add_column(("acts",), (acts,), (acts_fn,), **kwargs)
 
     def add_filters(self, filters, filters_fn, **kwargs):
-        self.add_column(('filters',), (filters,), (filters_fn,), **kwargs)
+        self.add_column(("filters",), (filters,), (filters_fn,), **kwargs)
 
     def add_filters_acts(self, filters, filters_fn, acts, acts_fn, **kwargs):
         self.add_column(
-            ('filters', 'acts'), (filters, acts), (filters_fn, acts_fn),
-            **kwargs)
+            ("filters", "acts"), (filters, acts), (filters_fn, acts_fn), **kwargs
+        )
 
     def set_index(self, i):
         self.i = i % len(self.images)
         self.selector.set_image(self.images[self.i])
 
-        is_static = lambda kind: (kind == 'filters')
+        is_static = lambda kind: (kind == "filters")
 
         for frame in self.frames:
-            images = [d if is_static(k) else d[self.i]
-                      for k, d in self.frame_kind_data[frame]]
+            images = [
+                d if is_static(k) else d[self.i] for k, d in self.frame_kind_data[frame]
+            ]
             frame.set_images(images)
 
     def _on_prev_image(self):

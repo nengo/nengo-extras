@@ -2,8 +2,6 @@
 Vision models
 *************
 
-.. default-role:: obj
-
 .. toctree::
    :caption: Examples
    :maxdepth: 1
@@ -29,6 +27,7 @@ Vision models
 .. autofunction:: nengo_extras.vision.percentile_biases
 
 .. autoclass:: nengo_extras.convnet.PresentJitteredImages
+  :no-members:
 
 Camera input
 ============
@@ -58,3 +57,4 @@ GStreamer and some Python dependencies:
 .. autoclass:: nengo_extras.camera.CameraData
 
 .. autoclass:: nengo_extras.camera.Camera
+   :no-members:

@@ -1,14 +1,27 @@
-import warnings
-
-import numpy as np
-
 import nengo
 import nengo.utils.numpy as npext
+import numpy as np
 from nengo.exceptions import ValidationError
 from nengo.params import NumberParam
 
+try:
+    import scipy.interpolate
 
-def softplus(x, sigma=1.):
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
+
+try:
+    from numba import njit
+    from numba.extending import overload
+
+else:
+
+    def njit(f):
+        return f
+
+
+def softplus(x, sigma=1.0):
     x = np.asarray(x)
     y = x / sigma
     z = np.array(x)
@@ -17,8 +30,8 @@ def softplus(x, sigma=1.):
     # ^ 34.0 gives exact answer in 32 or 64 bit but doesn't overflow in 32 bit
 
 
-def lif_j(j, tau_ref, tau_rc, amplitude=1.):
-    return amplitude / (tau_ref + tau_rc * np.log1p(1. / j))
+def lif_j(j, tau_ref, tau_rc, amplitude=1.0):
+    return amplitude / (tau_ref + tau_rc * np.log1p(1.0 / j))
 
 
 class SoftLIFRate(nengo.neurons.LIFRate):
@@ -48,24 +61,24 @@ class SoftLIFRate(nengo.neurons.LIFRate):
     References
     ----------
     .. [1] E. Hunsberger & C. Eliasmith (2015). Spiking Deep Networks with
-       LIF Neurons. arXiv Preprint, 1510. https://arxiv.org/abs/1510.08829
+       LIF Neurons. arXiv Preprint, 1510. https://export.arxiv.org/abs/1510.08829
     """
 
-    sigma = NumberParam('sigma', low=0, low_open=True)
+    sigma = NumberParam("sigma", low=0, low_open=True)
 
-    def __init__(self, sigma=1., **lif_args):
-        super(SoftLIFRate, self).__init__(**lif_args)
+    def __init__(self, sigma=1.0, **lif_args):
+        super().__init__(**lif_args)
         self.sigma = sigma  # smoothing around the threshold
 
     @property
     def _argreprs(self):
-        args = super(SoftLIFRate, self)._argreprs
-        if self.sigma != 1.:
+        args = super()._argreprs
+        if self.sigma != 1.0:
             args.append("sigma=%s" % self.sigma)
         return args
 
     def rates(self, x, gain, bias):
-        J = gain * x + bias
+        J = self.current(x, gain, bias)
         out = np.zeros_like(J)
         SoftLIFRate.step_math(self, dt=1, J=J, output=out)
         return out
@@ -74,8 +87,9 @@ class SoftLIFRate(nengo.neurons.LIFRate):
         """Compute rates in Hz for input current (incl. bias)"""
         j = softplus(J - 1, sigma=self.sigma)
         output[:] = 0  # faster than output[j <= 0] = 0
-        output[j > 0] = lif_j(j[j > 0], self.tau_ref, self.tau_rc,
-                              amplitude=self.amplitude)
+        output[j > 0] = lif_j(
+            j[j > 0], self.tau_ref, self.tau_rc, amplitude=self.amplitude
+        )
 
     def derivative(self, x, gain, bias):
         y = gain * x + bias - 1
@@ -86,7 +100,8 @@ class SoftLIFRate(nengo.neurons.LIFRate):
 
         d = np.zeros_like(j)
         d[j > 0] = (gain * self.tau_rc * vv * vv) / (
-            self.amplitude * jj * (jj + 1) * (1 + np.exp(-yy / self.sigma)))
+            self.amplitude * jj * (jj + 1) * (1 + np.exp(-yy / self.sigma))
+        )
         return d
 
 
@@ -127,18 +142,21 @@ def spikes2events(t, spikes):
     """Return an event-based representation of spikes (i.e. spike times)"""
     spikes = npext.array(spikes, copy=False, min_dims=2)
     if spikes.ndim > 2:
-        raise ValidationError("Cannot handle %d-dimensional arrays"
-                              % spikes.ndim, attr='spikes')
+        raise ValidationError(
+            "Cannot handle %d-dimensional arrays" % spikes.ndim, attr="spikes"
+        )
     if spikes.shape[-1] != len(t):
-        raise ValidationError("Last dimension of 'spikes' must equal 'len(t)'",
-                              attr='spikes')
+        raise ValidationError(
+            "Last dimension of 'spikes' must equal 'len(t)'", attr="spikes"
+        )
 
     # find nonzero elements (spikes) in each row, and translate to times
     return [t[spike != 0] for spike in spikes]
 
 
 def _rates_isi_events(t, events, midpoint, interp):
-    import scipy.interpolate
+    if not HAS_SCIPY:
+        raise ImportError("`_rates_isi_events` requires `scipy`")
 
     if len(events) == 0:
         return np.zeros_like(t)
@@ -146,17 +164,17 @@ def _rates_isi_events(t, events, midpoint, interp):
     isis = np.diff(events)
 
     rt = np.zeros(len(events) + (1 if midpoint else 2))
-    rt[1:-1] = 0.5*(events[:-1] + events[1:]) if midpoint else events
+    rt[1:-1] = 0.5 * (events[:-1] + events[1:]) if midpoint else events
     rt[0], rt[-1] = t[0], t[-1]
 
     r = np.zeros_like(rt)
-    r[1:len(isis) + 1] = 1. / isis
+    r[1 : len(isis) + 1] = 1.0 / isis
 
     f = scipy.interpolate.interp1d(rt, r, kind=interp, copy=False)
     return f(t)
 
 
-def rates_isi(t, spikes, midpoint=False, interp='zero'):
+def rates_isi(t, spikes, midpoint=False, interp="zero"):
     """Estimate firing rates from spikes using ISIs.
 
     Parameters
@@ -185,32 +203,33 @@ def rates_isi(t, spikes, midpoint=False, interp='zero'):
     return rates
 
 
-def lowpass_filter(x, tau, kind='expon'):
+def lowpass_filter(x, tau, kind="expon"):
     nt = x.shape[-1]
 
-    if kind == 'expon':
+    if kind == "expon":
         t = np.arange(0, 5 * tau)
         kern = np.exp(-t / tau) / tau
         delay = tau
-    elif kind == 'gauss':
-        std = tau / 2.
+    elif kind == "gauss":
+        std = tau / 2.0
         t = np.arange(-4 * std, 4 * std)
-        kern = np.exp(-0.5 * (t / std)**2) / np.sqrt(2 * np.pi * std**2)
+        kern = np.exp(-0.5 * (t / std) ** 2) / np.sqrt(2 * np.pi * std ** 2)
         delay = 4 * std
-    elif kind == 'alpha':
-        alpha = 1. / tau
+    elif kind == "alpha":
+        alpha = 1.0 / tau
         t = np.arange(0, 5 * tau)
-        kern = alpha**2 * t * np.exp(-alpha * t)
+        kern = alpha ** 2 * t * np.exp(-alpha * t)
         delay = tau
     else:
-        raise ValidationError("Unrecognized filter kind '%s'" % kind, 'kind')
+        raise ValidationError("Unrecognized filter kind '%s'" % kind, "kind")
 
     delay = int(np.round(delay))
     return np.array(
-        [np.convolve(kern, xx, mode='full')[delay:nt + delay] for xx in x])
+        [np.convolve(kern, xx, mode="full")[delay : nt + delay] for xx in x]
+    )
 
 
-def rates_kernel(t, spikes, kind='gauss', tau=0.04):
+def rates_kernel(t, spikes, kind="gauss", tau=0.04):
     """Estimate firing rates from spikes using a kernel.
 
     Parameters
@@ -232,29 +251,28 @@ def rates_kernel(t, spikes, kind='gauss', tau=0.04):
     spikes = spikes.T
     spikes = npext.array(spikes, copy=False, min_dims=2)
     if spikes.ndim > 2:
-        raise ValidationError("Cannot handle %d-dimensional arrays"
-                              % spikes.ndim, attr='spikes')
+        raise ValidationError(
+            "Cannot handle %d-dimensional arrays" % spikes.ndim, attr="spikes"
+        )
     if spikes.shape[-1] != len(t):
-        raise ValidationError("Last dimension of 'spikes' must equal 'len(t)'",
-                              attr='spikes')
+        raise ValidationError(
+            "Last dimension of 'spikes' must equal 'len(t)'", attr="spikes"
+        )
 
-    n, nt = spikes.shape
     dt = t[1] - t[0]
 
     tau_i = tau / dt
     kind = kind.lower()
-    if kind == 'expogauss':
-        rates = lowpass_filter(spikes, tau_i, kind='expon')
-        rates = lowpass_filter(rates, tau_i / 4, kind='gauss')
+    if kind == "expogauss":
+        rates = lowpass_filter(spikes, tau_i, kind="expon")
+        rates = lowpass_filter(rates, tau_i / 4, kind="gauss")
     else:
         rates = lowpass_filter(spikes, tau_i, kind=kind)
 
     return rates.T
 
 
-try:
-    from numba import njit
-    from numba.extending import overload
+if HAS_NUMBA:
 
     @overload(np.clip)
     def np_clip(a, a_min, a_max):  # pragma: no cover
@@ -275,64 +293,84 @@ try:
 
         return np_clip_impl
 
-    class NumbaLIF(nengo.LIF):
-        """Numba-compiled version of the LIF model.
 
-        Parameters
-        ----------
-        tau_rc : float
-            Membrane RC time constant, in seconds. Affects how quickly the
-            membrane voltage decays to zero in the absence of input
-            (larger = slower decay).
-        tau_ref : float
-            Absolute refractory period, in seconds. This is how long the
-            membrane voltage is held at zero after a spike.
-        min_voltage : float
-            Minimum value for the membrane voltage. If ``-np.inf``, the voltage
-            is never clipped.
-        amplitude : float
-            Scaling factor on the neuron output. Corresponds to the relative
-            amplitude of the output spikes of the neuron.
-        """
+class NumbaLIF(nengo.LIF):
+    """Numba-compiled version of the LIF model.
 
-        @staticmethod
-        @njit
-        def _lif_step_math(
-                dt, J, spiked, voltage, refractory_time,
-                tau_rc, tau_ref, min_voltage, amplitude):  # pragma: no cover
-            # reduce all refractory times by dt
-            refractory_time -= dt
+    Parameters
+    ----------
+    tau_rc : float
+        Membrane RC time constant, in seconds. Affects how quickly the
+        membrane voltage decays to zero in the absence of input
+        (larger = slower decay).
+    tau_ref : float
+        Absolute refractory period, in seconds. This is how long the
+        membrane voltage is held at zero after a spike.
+    min_voltage : float
+        Minimum value for the membrane voltage. If ``-np.inf``, the voltage
+        is never clipped.
+    amplitude : float
+        Scaling factor on the neuron output. Corresponds to the relative
+        amplitude of the output spikes of the neuron.
+    """
 
-            # compute effective dt for each neuron, based on remaining time.
-            # note that refractory times that have completed midway into this
-            # timestep will be given a partial timestep, and moreover these
-            # will be subtracted to zero at the next timestep (or reset by a
-            # spike)
-            delta_t = np.clip(dt - refractory_time, 0, dt)
+    def __init__(self, *args, **kwargs):
+        if not reqs.HAS_NUMBA:
+            raise ImportError("`NumbaLIF` requires `numba`")
+        super().__init__(*args, **kwargs)
 
-            # update voltage using discretized lowpass filter
-            # since v(t) = v(0) + (J - v(0))*(1 - exp(-t/tau)) assuming
-            # J is constant over the interval [t, t + dt)
-            voltage -= (J - voltage) * np.expm1(-delta_t / tau_rc)
+    @staticmethod
+    @njit
+    def _lif_step_math(
+        dt,
+        J,
+        spiked,
+        voltage,
+        refractory_time,
+        tau_rc,
+        tau_ref,
+        min_voltage,
+        amplitude,
+    ):  # pragma: no cover
+        # reduce all refractory times by dt
+        refractory_time -= dt
 
-            # determine which neurons spiked (set them to 1/dt, else 0)
-            spiked_mask = voltage > 1
-            spiked[:] = spiked_mask * (amplitude / dt)
+        # compute effective dt for each neuron, based on remaining time.
+        # note that refractory times that have completed midway into this
+        # timestep will be given a partial timestep, and moreover these
+        # will be subtracted to zero at the next timestep (or reset by a
+        # spike)
+        delta_t = np.clip(dt - refractory_time, 0, dt)
 
-            # set v(0) = 1 and solve for t to compute the spike time
-            t_spike = dt + tau_rc * np.log1p(
-                -(voltage[spiked_mask] - 1) / (J[spiked_mask] - 1))
+        # update voltage using discretized lowpass filter
+        # since v(t) = v(0) + (J - v(0))*(1 - exp(-t/tau)) assuming
+        # J is constant over the interval [t, t + dt)
+        voltage -= (J - voltage) * np.expm1(-delta_t / tau_rc)
 
-            # set spiked voltages to zero, refractory times to tau_ref, and
-            # rectify negative voltages to a floor of min_voltage
-            voltage[voltage < min_voltage] = min_voltage
-            voltage[spiked_mask] = 0
-            refractory_time[spiked_mask] = tau_ref + t_spike
+        # determine which neurons spiked (set them to 1/dt, else 0)
+        spiked_mask = voltage > 1
+        spiked[:] = spiked_mask * (amplitude / dt)
 
-        def step_math(self, dt, J, spiked, voltage, refractory_time):
-            self._lif_step_math(
-                dt, J, spiked, voltage, refractory_time,
-                self.tau_rc, self.tau_ref, self.min_voltage, self.amplitude)
+        # set v(0) = 1 and solve for t to compute the spike time
+        t_spike = dt + tau_rc * np.log1p(
+            -(voltage[spiked_mask] - 1) / (J[spiked_mask] - 1)
+        )
 
-except ImportError:
-    warnings.warn("numba not installed, NumbaLIF will not be available.")
+        # set spiked voltages to zero, refractory times to tau_ref, and
+        # rectify negative voltages to a floor of min_voltage
+        voltage[voltage < min_voltage] = min_voltage
+        voltage[spiked_mask] = 0
+        refractory_time[spiked_mask] = tau_ref + t_spike
+
+    def step_math(self, dt, J, spiked, voltage, refractory_time):
+        self._lif_step_math(
+            dt,
+            J,
+            spiked,
+            voltage,
+            refractory_time,
+            self.tau_rc,
+            self.tau_ref,
+            self.min_voltage,
+            self.amplitude,
+        )

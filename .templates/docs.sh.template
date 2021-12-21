@@ -1,0 +1,10 @@
+{% extends "templates/docs.sh.template" %}
+
+{% block script %}
+    shopt -s globstar
+    # undo single-branch cloning
+    git config --replace-all remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
+    git fetch origin docs-evaluated
+    git checkout origin/docs-evaluated -- docs/**/*.ipynb
+    {{ super() }}
+{% endblock %}

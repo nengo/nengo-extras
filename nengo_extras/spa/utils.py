@@ -31,7 +31,7 @@ def circconv(a, b, k=1, invert_a=False, invert_b=False, axis=-1):
     if invert_b:
         B = B.conj()
     if k != 1:
-        B = B**k
+        B = B ** k
     return np.fft.ifft(A * B, axis=axis).real
 
 
@@ -85,7 +85,7 @@ def cyclic_vector(d, k, n=None, rng=np.random):
     nn = 1 if n is None else int(n)
 
     # Pick roots r such that r**k == 1
-    roots = np.exp(2.j * np.pi / k * np.arange(k))
+    roots = np.exp(2.0j * np.pi / k * np.arange(k))
     rootpow = rng.randint(0, k, size=(nn, d2))
 
     # Ensure at least one root power in each vector is coprime with k, so that
@@ -98,11 +98,11 @@ def cyclic_vector(d, k, n=None, rng=np.random):
 
     # Create array of Fourier coefficients such that U**k == ones(d)
     U = np.ones((nn, d), dtype=np.complex128)
-    U[:, 1:1+d2] = roots[rootpow]
+    U[:, 1 : 1 + d2] = roots[rootpow]
 
     # For even k, U[:, d2+1] = 1 or -1 are both valid
     if k % 2 == 0:
-        U[:, 1+d2] = 2 * rng.randint(0, 2, size=nn) - 1
+        U[:, 1 + d2] = 2 * rng.randint(0, 2, size=nn) - 1
 
     # Respect Fourier symmetry conditions for real vectors
     U[:, -d2:] = U[:, d2:0:-1].conj()

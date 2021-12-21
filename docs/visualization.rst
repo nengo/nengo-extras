@@ -2,15 +2,12 @@
 Visualization tools
 *******************
 
-.. default-role:: obj
-
 .. toctree::
    :caption: Examples and tutorials
    :maxdepth: 1
 
    gephi-tutorial
    examples/plot_spikes
-   examples/cuda_convnet/imagenet_visualization
 
 GraphViz diagrams
 =================

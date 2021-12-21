@@ -10,7 +10,7 @@ def plan_aml_decode(queue, pre, base_decoders, decoded, tag=None):
     assert np.all(pre.shape0s == base_decoders.shape1s)
     assert np.all(base_decoders.shape0s == decoded.shape0s)
 
-    text = '''
+    text = """
     __kernel void aml_decode(
         __global const int *ds,
         __global const int *ns,
@@ -43,18 +43,25 @@ def plan_aml_decode(queue, pre, base_decoders, decoded, tag=None):
             decoded[i] = x;
         }
     }
-    '''
+    """
 
     textconf = dict(type=pre.ctype)
-    text = nengo_ocl.utils.as_ascii(mako.template.Template(
-        text, output_encoding='ascii').render(**textconf))
+    text = nengo_ocl.utils.as_ascii(
+        mako.template.Template(text, output_encoding="ascii").render(**textconf)
+    )
 
     full_args = (
-        base_decoders.cl_shape1s, base_decoders.cl_shape0s,
-        pre.cl_stride0s, pre.cl_starts, pre.cl_buf,
-        base_decoders.cl_stride0s, base_decoders.cl_starts,
+        base_decoders.cl_shape1s,
+        base_decoders.cl_shape0s,
+        pre.cl_stride0s,
+        pre.cl_starts,
+        pre.cl_buf,
+        base_decoders.cl_stride0s,
+        base_decoders.cl_starts,
         base_decoders.cl_buf,
-        decoded.cl_stride0s, decoded.cl_starts, decoded.cl_buf,
+        decoded.cl_stride0s,
+        decoded.cl_starts,
+        decoded.cl_buf,
     )
     _fn = cl.Program(queue.context, text).build().aml_decode
     _fn.set_args(*(arr.data for arr in full_args))
@@ -62,11 +69,12 @@ def plan_aml_decode(queue, pre, base_decoders, decoded, tag=None):
     lsize = None
     gsize = (base_decoders.shape0s.max(), len(pre))
     plan = nengo_ocl.plan.Plan(
-        queue, _fn, gsize, lsize=lsize, name="cl_aml_decode", tag=tag)
+        queue, _fn, gsize, lsize=lsize, name="cl_aml_decode", tag=tag
+    )
     plan.full_args = full_args  # prevent garbage collection
     plan.flops_per_call = np.sum(
-        base_decoders.shape0s * base_decoders.shape1s * 2
-        + base_decoders.shape1s * 2)
+        base_decoders.shape0s * base_decoders.shape1s * 2 + base_decoders.shape1s * 2
+    )
     plan.bw_per_call = decoded.nbytes + pre.nbytes + base_decoders.nbytes
 
     return plan
@@ -77,7 +85,7 @@ def plan_aml(queue, error, decoders, delta, alpha, decoded, tag=None):
     assert len(error) == len(decoders) == len(alpha) == len(decoded)
     assert np.all(error.shape0s - 2 == decoders.shape0s)
 
-    text = '''
+    text = """
     __kernel void aml(
         __global const int *ds,
         __global const int *ns,
@@ -117,18 +125,28 @@ def plan_aml(queue, error, decoders, delta, alpha, decoded, tag=None):
                 decoders[i * decoders_stride0s[k] + j] * (decay - 1.);
         }
     }
-    '''
+    """
 
     textconf = dict(type=error.ctype)
-    text = nengo_ocl.utils.as_ascii(mako.template.Template(
-        text, output_encoding='ascii').render(**textconf))
+    text = nengo_ocl.utils.as_ascii(
+        mako.template.Template(text, output_encoding="ascii").render(**textconf)
+    )
 
     full_args = (
-        decoders.cl_shape0s, decoders.cl_shape1s,
-        error.cl_stride0s, error.cl_starts, error.cl_buf,
-        decoders.cl_stride0s, decoders.cl_starts, decoders.cl_buf,
-        delta.cl_stride0s, delta.cl_starts, delta.cl_buf,
-        decoded.cl_stride0s, decoded.cl_starts, decoded.cl_buf,
+        decoders.cl_shape0s,
+        decoders.cl_shape1s,
+        error.cl_stride0s,
+        error.cl_starts,
+        error.cl_buf,
+        decoders.cl_stride0s,
+        decoders.cl_starts,
+        decoders.cl_buf,
+        delta.cl_stride0s,
+        delta.cl_starts,
+        delta.cl_buf,
+        decoded.cl_stride0s,
+        decoded.cl_starts,
+        decoded.cl_buf,
         alpha,
     )
     _fn = cl.Program(queue.context, text).build().aml
@@ -136,12 +154,10 @@ def plan_aml(queue, error, decoders, delta, alpha, decoded, tag=None):
 
     lsize = None
     gsize = (decoders.sizes.max(), len(error))
-    plan = nengo_ocl.plan.Plan(
-        queue, _fn, gsize, lsize=lsize, name="cl_aml", tag=tag)
+    plan = nengo_ocl.plan.Plan(queue, _fn, gsize, lsize=lsize, name="cl_aml", tag=tag)
     plan.full_args = full_args  # prevent garbage collection
     plan.flops_per_call = np.sum(2 * (error.shape0s * decoded.shape0s))
-    plan.bw_per_call = (
-        decoded.nbytes + error.nbytes + alpha.nbytes + decoders.nbytes)
+    plan.bw_per_call = decoded.nbytes + error.nbytes + alpha.nbytes + decoders.nbytes
 
     return plan
 
@@ -150,13 +166,16 @@ class AmlSimulator(nengo_ocl.Simulator):
     def plan_SimAML(self, ops):
         alpha = self.Array([op.learning_rate * self.model.dt for op in ops])
         base_decoders = self.RaggedArray(
-            [op.base_decoders for op in ops], dtype=np.float32)
+            [op.base_decoders for op in ops], dtype=np.float32
+        )
         pre = self.all_data[[self.sidx[op.pre] for op in ops]]
         error = self.all_data[[self.sidx[op.error] for op in ops]]
         decoders = self.all_data[[self.sidx[op.decoders] for op in ops]]
         delta = self.all_data[[self.sidx[op.delta] for op in ops]]
         decoded = self.RaggedArray(
-            [np.zeros(op.decoders.shape[1]) for op in ops], dtype=np.float32)
+            [np.zeros(op.decoders.shape[1]) for op in ops], dtype=np.float32
+        )
         return [
             plan_aml_decode(self.queue, pre, base_decoders, decoded),
-            plan_aml(self.queue, error, decoders, delta, alpha, decoded)]
+            plan_aml(self.queue, error, decoders, delta, alpha, decoded),
+        ]
