@@ -4,16 +4,14 @@ import numpy as np
 from nengo.dists import Distribution
 from nengo.params import NdarrayParam, NumberParam, TupleParam
 
-try:
-    import scipy.stats as sps
+from nengo_extras import reqs
 
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
+if reqs.HAS_SCIPY:
+    import scipy.stats as sps
 
 
 def gaussian_icdf(mean, std):
-    if not HAS_SCIPY:
+    if not reqs.HAS_SCIPY:
         raise ImportError("`gaussian_icdf` requires `scipy`")
 
     def icdf(p):
@@ -23,7 +21,7 @@ def gaussian_icdf(mean, std):
 
 
 def loggaussian_icdf(log_mean, log_std, base=np.e):
-    if not HAS_SCIPY:
+    if not reqs.HAS_SCIPY:
         raise ImportError("`loggaussian_icdf` requires `scipy`")
 
     mean = base ** log_mean
@@ -91,7 +89,7 @@ class MultivariateCopula(Distribution):
     rho = NdarrayParam("rho", shape=("*", "*"), optional=True, readonly=True)
 
     def __init__(self, marginal_icdfs, rho=None):
-        if not HAS_SCIPY:
+        if not reqs.HAS_SCIPY:
             raise ImportError("`MultivariateCopula` requires `scipy`")
         super().__init__()
         self.marginal_icdfs = marginal_icdfs
@@ -107,7 +105,7 @@ class MultivariateCopula(Distribution):
                 raise ValueError("`rho` must be a symmetrical positive-definite array")
 
     def sample(self, n, d=None, rng=np.random):
-        if not HAS_SCIPY:
+        if not reqs.HAS_SCIPY:
             raise ImportError("`sample` requires `scipy`")
 
         assert d is None or d == len(self.marginal_icdfs)

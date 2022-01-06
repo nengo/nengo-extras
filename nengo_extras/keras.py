@@ -189,7 +189,7 @@ class SequentialNetwork(nengo_extras.deepnetworks.SequentialNetwork):
         return self.add_full_layer(weights.T, biases, name=layer.name)
 
     def _add_conv2d_layer(self, layer):
-        if not HAS_KERAS:
+        if not reqs.HAS_KERAS:
             raise ImportError("`_add_conv2d_layer` requires `keras`")
 
         shape_in = layer.input_shape[1:]
@@ -313,7 +313,7 @@ def LSUVinit(kmodel, X, tol=0.1, t_max=50):  # noqa: C901
     .. [1] Mishkin, D., & Matas, J. (2016). All you need is a good init.
        In ICLR 2016 (pp. 1-13).
     """
-    if not HAS_KERAS:
+    if not reqs.HAS_KERAS:
         raise ImportError("`LSUVinit` requires `keras`")
 
     # f = K.function([kmodel.layers[0].input, K.learning_phase()],

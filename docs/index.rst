@@ -28,6 +28,7 @@ To install Nengo extras, we recommend using ``pip``.
 .. toctree::
    :maxdepth: 2
 
+   loihi-training
    deeplearning
    dists
    learning-rules

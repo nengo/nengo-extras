@@ -6,13 +6,11 @@ import numpy as np
 import PIL.Image
 import PIL.ImageFile
 
-try:
+from nengo_extras import reqs
+
+if reqs.HAS_GI:
     import gi
     from gi.repository import Gst
-
-    HAS_GI = True
-except ImportError:
-    HAS_GI = False
 
 
 class CameraPipeline:

@@ -4,14 +4,12 @@ import numpy as np
 from nengo.exceptions import ValidationError
 from nengo.params import NumberParam
 
-try:
+from nengo_extras import reqs
+
+if reqs.HAS_SCIPY:
     import scipy.interpolate
 
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
-
-try:
+if reqs.HAS_NUMBA:
     from numba import njit
     from numba.extending import overload
 
@@ -155,7 +153,7 @@ def spikes2events(t, spikes):
 
 
 def _rates_isi_events(t, events, midpoint, interp):
-    if not HAS_SCIPY:
+    if not reqs.HAS_SCIPY:
         raise ImportError("`_rates_isi_events` requires `scipy`")
 
     if len(events) == 0:
@@ -272,7 +270,7 @@ def rates_kernel(t, spikes, kind="gauss", tau=0.04):
     return rates.T
 
 
-if HAS_NUMBA:
+if reqs.HAS_NUMBA:
 
     @overload(np.clip)
     def np_clip(a, a_min, a_max):  # pragma: no cover
