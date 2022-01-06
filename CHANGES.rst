@@ -19,8 +19,13 @@ Release history
    - Removed
    - Fixed
 
-0.4.1 (unreleased)
+0.5.0 (unreleased)
 ==================
+
+**Added**
+
+- Added NengoDL builders for NengoLoihi neuron types. These will automatically be used
+  by the NengoLoihi repository if it is installed. (`#94`_)
 
 **Fixed**
 

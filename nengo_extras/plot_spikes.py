@@ -20,13 +20,11 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-try:
+from nengo_extras import reqs
+
+if reqs.HAS_SCIPY:
     from scipy.cluster.hierarchy import linkage, to_tree
     from scipy.ndimage import gaussian_filter1d
-
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
 
 cm_gray_r_a = matplotlib.colors.LinearSegmentedColormap.from_list(
     "gray_r_a", [(0.0, 0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0)]
@@ -149,7 +147,7 @@ def cluster(t, spikes, filter_width):
         Returns the time indices *t* and the selected spike trains *spikes*.
     """
 
-    if not HAS_SCIPY:
+    if not reqs.HAS_SCIPY:
         raise ImportError("`cluster` requires `scipy`")
 
     dt = (t[-1] - t[0]) / (len(t) - 1)
@@ -198,7 +196,7 @@ def sample_by_variance(t, spikes, num, filter_width):
         Returns the time indices *t* and the selected spike trains *spikes*.
     """
 
-    if not HAS_SCIPY:
+    if not reqs.HAS_SCIPY:
         raise ImportError("`sample_by_variance` requires `scipy`")
 
     dt = (t[-1] - t[0]) / (len(t) - 1)

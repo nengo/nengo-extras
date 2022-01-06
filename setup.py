@@ -44,6 +44,7 @@ docs_req = [
     "jupyter",
 ]
 optional_req = [
+    "nengo-dl",
     "keras",
     "tensorflow",
     "numba>=0.43.1",

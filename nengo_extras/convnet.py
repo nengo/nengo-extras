@@ -2,14 +2,11 @@ import nengo
 import numpy as np
 from nengo.params import EnumParam, NdarrayParam, NumberParam, ShapeParam
 
+from nengo_extras import reqs
 from nengo_extras.compat import is_iterable
 
-try:
+if reqs.HAS_SCIPY:
     import scipy.ndimage.interpolation
-
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
 
 
 def softmax(x, axis=None):
@@ -274,7 +271,7 @@ class PresentJitteredImages(nengo.Process):
         jitter_tau=None,
         **kwargs,
     ):
-        if not HAS_SCIPY:
+        if not reqs.HAS_SCIPY:
             raise ImportError("`PresentJitteredImages` requires `scipy`")
         # ^ required for simulation, so check it here
 
@@ -290,7 +287,7 @@ class PresentJitteredImages(nengo.Process):
         super().__init__(default_size_in=0, default_size_out=nc * nyi * nyj, **kwargs)
 
     def make_step(self, shape_in, shape_out, dt, rng, state):
-        if not HAS_SCIPY:
+        if not reqs.HAS_SCIPY:
             raise ImportError("`make_step` requires `scipy`")
 
         nc, nxi, nxj = self.image_shape

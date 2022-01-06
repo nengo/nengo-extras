@@ -1,5 +1,6 @@
 import nengo
 
+from . import reqs
 from .version import version as __version__
 
 
