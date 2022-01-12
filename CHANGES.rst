@@ -19,8 +19,8 @@ Release history
    - Removed
    - Fixed
 
-0.5.0 (unreleased)
-==================
+0.5.0 (January 12, 2022)
+========================
 
 **Added**
 
@@ -29,7 +29,7 @@ Release history
 
 **Fixed**
 
-- Updated to work with current version of Nengo. (`#94`_)
+- Updated to work with more recent versions of Nengo. (`#94`_)
 
 .. _#94: https://github.com/nengo/nengo/pull/94
 

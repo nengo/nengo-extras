@@ -98,3 +98,9 @@ codecov_yml:
 pre_commit_config_yaml: {}
 
 pyproject_toml: {}
+
+version_py:
+  major: 0
+  minor: 5
+  patch: 0
+  release: true
