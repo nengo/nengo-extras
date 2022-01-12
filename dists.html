@@ -1,0 +1,576 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Distributions &#8212; NengoExtras 0.5.0 docs</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+<link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:400,400i,600|Rajdhani:700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+<link rel="stylesheet" href="https://www.nengo.ai/css/bootstrap.css" type="text/css">
+<style>
+  body .title-bar,
+  body .documentation-source h1:after {
+    background-color: #a8acaf;
+  }
+</style>
+<!-- Google Tag Manager -->
+<script>
+ (function (w, d, s, l, i) {
+   w[l] = w[l] || [];
+   w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+   var f = d.getElementsByTagName(s)[0],
+       j = d.createElement(s),
+       dl = l != "dataLayer" ? "&l=" + l : "";
+   j.async = true;
+   j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+   f.parentNode.insertBefore(j, f);
+ })(window, document, "script", "dataLayer", "GTM-KWCR2HN");
+</script>
+<!-- End Google Tag Manager -->
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/scrollreveal"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stickyfill/2.1.0/stickyfill.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+<!-- From basic/layout.html -->
+<script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+  
+  
+<script src="_static/underscore.js"></script>
+  
+  
+<script src="_static/doctools.js"></script>
+  
+  
+<script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Learning rules" href="learning-rules.html" />
+    <link rel="prev" title="ImageNet ILSVRC-2012 classifier with a spiking CNN" href="examples/cuda_convnet/imagenet_spiking_cnn.html" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  </head><body class="bg-dark">
+
+<header class="fixed-top header-top shadow-sm">
+  <nav class="navbar navbar-expand-md navbar-light bg-white">
+    <a class="navbar-brand" href="https://www.nengo.ai/">
+      <img
+        src="https://www.nengo.ai/design/_images/general-full-light.svg"
+        alt="Nengo"
+        class="logo"
+      />
+    </a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbar-collapse"
+      aria-controls="navbar-collapse"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbar-collapse">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.nengo.ai/">What is Nengo?</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.nengo.ai/examples/">Examples</a>
+        </li>
+        <li class="nav-item dropdown active">
+          <a
+            class="nav-link dropdown-toggle"
+            id="navbar-dropdown-docs"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+            href="#"
+            >Documentation</a
+          >
+          <div
+            class="dropdown-menu shadow-lg border-0"
+            aria-labelledby="navbar-dropdown-docs"
+          >
+            
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo/">Nengo core</a>
+            <a class="dropdown-item" href="https://github.com/nengo/nengo-gui/">NengoGUI</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-dl/">NengoDL</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-spa/">NengoSPA</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-extras/">NengoExtras</a>
+            <a class="dropdown-item" href="https://arvoelke.github.io/nengolib-docs/">Nengolib</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/keras-spiking">KerasSpiking</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/pytorch-spiking">PyTorchSpiking</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-fpga/">NengoFPGA</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-loihi/">NengoLoihi</a>
+            <a class="dropdown-item" href="https://labs.nengo.ai/nengo-ocl/">NengoOCL</a>
+            <a class="dropdown-item" href="https://github.com/project-rig/nengo_spinnaker">NengoSpiNNaker</a>
+            <a class="dropdown-item" href="https://github.com/nengo-labs/nengo-mpi">NengoMPI</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/documentation/"
+              >All documentation</a
+            >
+          </div>
+        </li>
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle"
+            id="navbar-dropdown-community"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+            href="#"
+            >Community</a
+          >
+          <div
+            class="dropdown-menu shadow-lg border-0"
+            aria-labelledby="navbar-dropdown-community"
+          >
+            <a class="dropdown-item" href="https://forum.nengo.ai">Forum</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/people/"
+              >People</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/summer-school/"
+              >Summer school</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/contributing/"
+              >Contributing</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/publications/"
+              >Publications</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/videos/"
+              >Videos</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/conduct/"
+              >Code of conduct</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/caa/">CAA</a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link btn btn-success btn-sm text-white"
+            href="https://www.nengo.ai/getting-started/"
+            >Getting started</a
+          >
+        </li>
+      </ul>
+    </div>
+  </nav>
+</header>
+<div class="main-content gradient-top">
+  <div class="container-fluid">
+    <div class="row"><a class="toggle-sidenav d-block d-md-none" href="#"
+  ><i class="icon-close fa fa-fw fa-arrow-left"></i
+  ><i class="icon-open fa fa-fw fa-arrow-right"></i
+></a>
+<div role="complementary" class="sidenav col-4 col-xl-3 p-0 border-right">
+  <h3 class="pt-5 px-5">
+    <a href="index.html">
+      <img
+        class="img-fluid documentation-image"
+        src="https://www.nengo.ai/design/_images/general-full-light.svg"
+        alt="NengoExtras"
+      />
+    </a>
+  </h3>
+<form class="px-5 py-3 my-0 border-bottom" action="search.html" method="get">
+  <div class="form-group form-group-single">
+    <input type="text" name="q" class="form-control" placeholder="Search" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+    <button type="submit" class="btn btn-link">
+      <img src="https://www.nengo.ai/img/icon-search.svg" alt="Go" />
+    </button>
+  </div>
+</form><div class="p-5 toctree">
+  
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="loihi-training.html">Loihi training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="learning-rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization tools</a></li>
+</ul>
+
+  
+  </div>
+  
+  <form class="p-5 my-0 border-top">
+    <div class="form-group">
+      <label class="text-gray">Version:</label>
+      <select class="custom-select" onchange="switchVersion(this);">
+        
+        
+        <option selected>latest</option>
+        
+        
+          
+        <option value="v0.3.0/dists.html">
+          v0.3.0
+        </option>
+          
+        
+      </select>
+    </div>
+  </form>
+  
+</div>
+      
+
+      <div class="col-12 col-md-8 col-xl-9">
+        <div class="container">
+          <div class="row">
+            <div class="col-10 offset-1 pb-5 documentation-source" role="main">
+              
+              
+              <div class="admonition note">
+                  <p class="admonition-title">Note</p>
+                  <p>
+                  This documentation is for a development version.
+                  <a href="v0.3.0/dists.html">
+                  Click here for the latest stable release (v0.3.0).
+                  </a>
+                  </p>
+              </div>
+              
+              
+  <div class="section" id="distributions">
+<h1>Distributions<a class="headerlink" href="#distributions" title="Permalink to this headline">¶</a></h1>
+<p>These distributions can be used in any place that
+<a class="reference external" href="https://www.nengo.ai/nengo/frontend-api.html#module-nengo.dists">Nengo distributions</a>
+can be used.</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.dists.Concatenate" title="nengo_extras.dists.Concatenate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.dists.Concatenate</span></code></a>(distributions)</p></td>
+<td><p>Concatenate distributions to form an independent multivariate</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nengo_extras.dists.MultivariateCopula" title="nengo_extras.dists.MultivariateCopula"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.dists.MultivariateCopula</span></code></a>(…[, rho])</p></td>
+<td><p>Generalized multivariate distribution.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.dists.MultivariateGaussian" title="nengo_extras.dists.MultivariateGaussian"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.dists.MultivariateGaussian</span></code></a>(…)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nengo_extras.dists.Mixture" title="nengo_extras.dists.Mixture"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.dists.Mixture</span></code></a>(distributions[, p])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.dists.Tile" title="nengo_extras.dists.Tile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.dists.Tile</span></code></a>(values)</p></td>
+<td><p>Choose values in order from an array</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nengo_extras.dists.gaussian_icdf" title="nengo_extras.dists.gaussian_icdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.dists.gaussian_icdf</span></code></a>(mean, std)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.dists.loggaussian_icdf" title="nengo_extras.dists.loggaussian_icdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.dists.loggaussian_icdf</span></code></a>(…[, base])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nengo_extras.dists.uniform_icdf" title="nengo_extras.dists.uniform_icdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.dists.uniform_icdf</span></code></a>(low, high)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="nengo_extras.dists.Concatenate">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nengo_extras.dists.</span></code><code class="sig-name descname"><span class="pre">Concatenate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distributions</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/dists.py#L43-L60"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.dists.Concatenate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Concatenate distributions to form an independent multivariate</p>
+<dl class="py method">
+<dt id="nengo_extras.dists.Concatenate.sample">
+<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">numpy.random</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/dists.py#L58-L60"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.dists.Concatenate.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Samples the distribution.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>n</strong><span class="classifier">int</span></dt><dd><p>Number samples to take.</p>
+</dd>
+<dt><strong>d</strong><span class="classifier">int or None, optional</span></dt><dd><p>The number of dimensions to return. If this is an int, the return
+value will be of shape <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">d)</span></code>. If None, the return
+value will be of shape <code class="docutils literal notranslate"><span class="pre">(n,)</span></code>.</p>
+</dd>
+<dt><strong>rng</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/random/legacy.html#numpy.random.RandomState" title="(in NumPy v1.22)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.random.RandomState</span></code></a>, optional</span></dt><dd><p>Random number generator state.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>samples</strong><span class="classifier">(n,) or (n, d) array_like</span></dt><dd><p>Samples as a 1d or 2d array depending on <code class="docutils literal notranslate"><span class="pre">d</span></code>. The second
+dimension enumerates the dimensions of the process.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nengo_extras.dists.MultivariateCopula">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nengo_extras.dists.</span></code><code class="sig-name descname"><span class="pre">MultivariateCopula</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">marginal_icdfs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/dists.py#L63-L126"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.dists.MultivariateCopula" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generalized multivariate distribution.</p>
+<p>Uses the copula method to sample from a general multivariate distribution,
+given marginal distributions and copula covariances <a class="reference internal" href="#r7685bfa2aa75-1" id="id1">[1]</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>marginal_icdfs</strong><span class="classifier">iterable</span></dt><dd><p>List of functions, each one being the inverse CDF of the marginal
+distribution across that dimension.</p>
+</dd>
+<dt><strong>rho</strong><span class="classifier">array_like (optional)</span></dt><dd><p>Array of copula covariances <a class="reference internal" href="#r7685bfa2aa75-1" id="id2">[1]</a> between parameters. Defaults to
+the identity matrix (independent parameters).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#nengo_extras.dists.gaussian_icdf" title="nengo_extras.dists.gaussian_icdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gaussian_icdf</span></code></a>, <a class="reference internal" href="#nengo_extras.dists.loggaussian_icdf" title="nengo_extras.dists.loggaussian_icdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loggaussian_icdf</span></code></a>, <a class="reference internal" href="#nengo_extras.dists.uniform_icdf" title="nengo_extras.dists.uniform_icdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">uniform_icdf</span></code></a></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r7685bfa2aa75-1"><span class="brackets">1</span><span class="fn-backref">(<a href="#id1">1</a>,<a href="#id2">2</a>)</span></dt>
+<dd><p>Copula (probability theory). Wikipedia.
+<a class="reference external" href="https://en.wikipedia.org/wiki/Copula_(probability_theory%29">https://en.wikipedia.org/wiki/Copula_(probability_theory%29</a></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="nengo_extras.dists.MultivariateCopula.sample">
+<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">numpy.random</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/dists.py#L107-L126"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.dists.MultivariateCopula.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Samples the distribution.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>n</strong><span class="classifier">int</span></dt><dd><p>Number samples to take.</p>
+</dd>
+<dt><strong>d</strong><span class="classifier">int or None, optional</span></dt><dd><p>The number of dimensions to return. If this is an int, the return
+value will be of shape <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">d)</span></code>. If None, the return
+value will be of shape <code class="docutils literal notranslate"><span class="pre">(n,)</span></code>.</p>
+</dd>
+<dt><strong>rng</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/random/legacy.html#numpy.random.RandomState" title="(in NumPy v1.22)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.random.RandomState</span></code></a>, optional</span></dt><dd><p>Random number generator state.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>samples</strong><span class="classifier">(n,) or (n, d) array_like</span></dt><dd><p>Samples as a 1d or 2d array depending on <code class="docutils literal notranslate"><span class="pre">d</span></code>. The second
+dimension enumerates the dimensions of the process.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nengo_extras.dists.MultivariateGaussian">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nengo_extras.dists.</span></code><code class="sig-name descname"><span class="pre">MultivariateGaussian</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cov</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/dists.py#L129-L149"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.dists.MultivariateGaussian" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="nengo_extras.dists.MultivariateGaussian.sample">
+<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">numpy.random</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/dists.py#L147-L149"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.dists.MultivariateGaussian.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Samples the distribution.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>n</strong><span class="classifier">int</span></dt><dd><p>Number samples to take.</p>
+</dd>
+<dt><strong>d</strong><span class="classifier">int or None, optional</span></dt><dd><p>The number of dimensions to return. If this is an int, the return
+value will be of shape <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">d)</span></code>. If None, the return
+value will be of shape <code class="docutils literal notranslate"><span class="pre">(n,)</span></code>.</p>
+</dd>
+<dt><strong>rng</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/random/legacy.html#numpy.random.RandomState" title="(in NumPy v1.22)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.random.RandomState</span></code></a>, optional</span></dt><dd><p>Random number generator state.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>samples</strong><span class="classifier">(n,) or (n, d) array_like</span></dt><dd><p>Samples as a 1d or 2d array depending on <code class="docutils literal notranslate"><span class="pre">d</span></code>. The second
+dimension enumerates the dimensions of the process.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nengo_extras.dists.Mixture">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nengo_extras.dists.</span></code><code class="sig-name descname"><span class="pre">Mixture</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distributions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/dists.py#L152-L189"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.dists.Mixture" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="nengo_extras.dists.Mixture.sample">
+<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">numpy.random</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/dists.py#L174-L189"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.dists.Mixture.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Samples the distribution.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>n</strong><span class="classifier">int</span></dt><dd><p>Number samples to take.</p>
+</dd>
+<dt><strong>d</strong><span class="classifier">int or None, optional</span></dt><dd><p>The number of dimensions to return. If this is an int, the return
+value will be of shape <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">d)</span></code>. If None, the return
+value will be of shape <code class="docutils literal notranslate"><span class="pre">(n,)</span></code>.</p>
+</dd>
+<dt><strong>rng</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/random/legacy.html#numpy.random.RandomState" title="(in NumPy v1.22)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.random.RandomState</span></code></a>, optional</span></dt><dd><p>Random number generator state.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>samples</strong><span class="classifier">(n,) or (n, d) array_like</span></dt><dd><p>Samples as a 1d or 2d array depending on <code class="docutils literal notranslate"><span class="pre">d</span></code>. The second
+dimension enumerates the dimensions of the process.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nengo_extras.dists.Tile">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nengo_extras.dists.</span></code><code class="sig-name descname"><span class="pre">Tile</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/dists.py#L192-L229"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.dists.Tile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose values in order from an array</p>
+<p>This distribution is not random, but rather tiles an array to be a
+particular size. This is useful for example if you want to pass an array
+for a neuron parameter, but are not sure how many neurons there will be.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>values</strong><span class="classifier">array_like</span></dt><dd><p>The values to tile.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="nengo_extras.dists.Tile.sample">
+<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">numpy.random</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/dists.py#L216-L229"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.dists.Tile.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Samples the distribution.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>n</strong><span class="classifier">int</span></dt><dd><p>Number samples to take.</p>
+</dd>
+<dt><strong>d</strong><span class="classifier">int or None, optional</span></dt><dd><p>The number of dimensions to return. If this is an int, the return
+value will be of shape <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">d)</span></code>. If None, the return
+value will be of shape <code class="docutils literal notranslate"><span class="pre">(n,)</span></code>.</p>
+</dd>
+<dt><strong>rng</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/random/legacy.html#numpy.random.RandomState" title="(in NumPy v1.22)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.random.RandomState</span></code></a>, optional</span></dt><dd><p>Random number generator state.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>samples</strong><span class="classifier">(n,) or (n, d) array_like</span></dt><dd><p>Samples as a 1d or 2d array depending on <code class="docutils literal notranslate"><span class="pre">d</span></code>. The second
+dimension enumerates the dimensions of the process.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="nengo_extras.dists.gaussian_icdf">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.dists.</span></code><code class="sig-name descname"><span class="pre">gaussian_icdf</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/dists.py#L13-L20"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.dists.gaussian_icdf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nengo_extras.dists.loggaussian_icdf">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.dists.</span></code><code class="sig-name descname"><span class="pre">loggaussian_icdf</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_mean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_std</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.718281828459045</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/dists.py#L23-L33"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.dists.loggaussian_icdf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nengo_extras.dists.uniform_icdf">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.dists.</span></code><code class="sig-name descname"><span class="pre">uniform_icdf</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">low</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">high</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/dists.py#L36-L40"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.dists.uniform_icdf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div><footer class="text-light footer-main gradient-bottom">
+  <p class="small text-center mb-0">
+    <a class="no-hover-line" href="https://appliedbrainresearch.com">
+      <img
+        src="https://appliedbrainresearch.com/img/logo-blue-notext.svg"
+        height="48"
+      />
+    </a>
+    <a href="https://www.nengo.ai/">What is Nengo?</a>
+    <a href="https://www.nengo.ai/examples/">Examples</a>
+    <a href="https://www.nengo.ai/documentation/">Documentation</a>
+    <a href="https://www.nengo.ai/getting-started/">Getting started</a>
+    <a href="https://www.nengo.ai/privacy/">Privacy</a>
+  </p>
+  <p class="small text-center mb-0">&copy; Applied Brain Research</p>
+</footer>
+<script>
+  function switchVersion(select) {
+    var option = select.selectedOptions[0];
+    if (option.hasAttribute("value")) {
+      window.location = option.value;
+    }
+  }
+</script>
+
+<script>
+  var elements = document.querySelectorAll('.sidenav');
+  Stickyfill.add(elements);
+</script>
+<script>
+  ScrollReveal().reveal(".fade-in", {
+      scale: 0.85,
+      duration: 1000,
+      delay: 250,
+      interval: 50
+  });
+</script>
+<script>
+  $('a.toggle-sidenav').on('click', function(e) {
+    e.preventDefault();
+    if ( $(this).hasClass('active') ) {
+      $(this).removeClass('active');
+      $('.sidenav').removeClass('open');
+    } else {
+      $(this).addClass('active');
+      $('.sidenav').addClass('open');
+    }
+  });
+</script>
+<script>
+  var lists = document.querySelectorAll('.toctree ul');
+  lists.forEach((ul) => {
+      ul.classList.add("nav");
+  });
+  var links = document.querySelectorAll('.toctree a');
+  links.forEach((link) => {
+      link.classList.add("nav-link");
+  });
+  $("body").scrollspy({target: ".sidenav"});
+</script>
+  </body>
+</html>

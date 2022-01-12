@@ -1,0 +1,1212 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visualization tools &#8212; NengoExtras 0.5.0 docs</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+<link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:400,400i,600|Rajdhani:700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+<link rel="stylesheet" href="https://www.nengo.ai/css/bootstrap.css" type="text/css">
+<style>
+  body .title-bar,
+  body .documentation-source h1:after {
+    background-color: #a8acaf;
+  }
+</style>
+<!-- Google Tag Manager -->
+<script>
+ (function (w, d, s, l, i) {
+   w[l] = w[l] || [];
+   w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+   var f = d.getElementsByTagName(s)[0],
+       j = d.createElement(s),
+       dl = l != "dataLayer" ? "&l=" + l : "";
+   j.async = true;
+   j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+   f.parentNode.insertBefore(j, f);
+ })(window, document, "script", "dataLayer", "GTM-KWCR2HN");
+</script>
+<!-- End Google Tag Manager -->
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/scrollreveal"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stickyfill/2.1.0/stickyfill.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+<!-- From basic/layout.html -->
+<script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+  
+  
+<script src="_static/underscore.js"></script>
+  
+  
+<script src="_static/doctools.js"></script>
+  
+  
+<script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Visualizing Nengo networks with Gephi" href="gephi-tutorial.html" />
+    <link rel="prev" title="Classifying webcam images" href="examples/cuda_convnet/webcam_spiking_cnn.html" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  </head><body class="bg-dark">
+
+<header class="fixed-top header-top shadow-sm">
+  <nav class="navbar navbar-expand-md navbar-light bg-white">
+    <a class="navbar-brand" href="https://www.nengo.ai/">
+      <img
+        src="https://www.nengo.ai/design/_images/general-full-light.svg"
+        alt="Nengo"
+        class="logo"
+      />
+    </a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbar-collapse"
+      aria-controls="navbar-collapse"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbar-collapse">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.nengo.ai/">What is Nengo?</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.nengo.ai/examples/">Examples</a>
+        </li>
+        <li class="nav-item dropdown active">
+          <a
+            class="nav-link dropdown-toggle"
+            id="navbar-dropdown-docs"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+            href="#"
+            >Documentation</a
+          >
+          <div
+            class="dropdown-menu shadow-lg border-0"
+            aria-labelledby="navbar-dropdown-docs"
+          >
+            
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo/">Nengo core</a>
+            <a class="dropdown-item" href="https://github.com/nengo/nengo-gui/">NengoGUI</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-dl/">NengoDL</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-spa/">NengoSPA</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-extras/">NengoExtras</a>
+            <a class="dropdown-item" href="https://arvoelke.github.io/nengolib-docs/">Nengolib</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/keras-spiking">KerasSpiking</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/pytorch-spiking">PyTorchSpiking</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-fpga/">NengoFPGA</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-loihi/">NengoLoihi</a>
+            <a class="dropdown-item" href="https://labs.nengo.ai/nengo-ocl/">NengoOCL</a>
+            <a class="dropdown-item" href="https://github.com/project-rig/nengo_spinnaker">NengoSpiNNaker</a>
+            <a class="dropdown-item" href="https://github.com/nengo-labs/nengo-mpi">NengoMPI</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/documentation/"
+              >All documentation</a
+            >
+          </div>
+        </li>
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle"
+            id="navbar-dropdown-community"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+            href="#"
+            >Community</a
+          >
+          <div
+            class="dropdown-menu shadow-lg border-0"
+            aria-labelledby="navbar-dropdown-community"
+          >
+            <a class="dropdown-item" href="https://forum.nengo.ai">Forum</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/people/"
+              >People</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/summer-school/"
+              >Summer school</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/contributing/"
+              >Contributing</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/publications/"
+              >Publications</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/videos/"
+              >Videos</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/conduct/"
+              >Code of conduct</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/caa/">CAA</a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link btn btn-success btn-sm text-white"
+            href="https://www.nengo.ai/getting-started/"
+            >Getting started</a
+          >
+        </li>
+      </ul>
+    </div>
+  </nav>
+</header>
+<div class="main-content gradient-top">
+  <div class="container-fluid">
+    <div class="row"><a class="toggle-sidenav d-block d-md-none" href="#"
+  ><i class="icon-close fa fa-fw fa-arrow-left"></i
+  ><i class="icon-open fa fa-fw fa-arrow-right"></i
+></a>
+<div role="complementary" class="sidenav col-4 col-xl-3 p-0 border-right">
+  <h3 class="pt-5 px-5">
+    <a href="index.html">
+      <img
+        class="img-fluid documentation-image"
+        src="https://www.nengo.ai/design/_images/general-full-light.svg"
+        alt="NengoExtras"
+      />
+    </a>
+  </h3>
+<form class="px-5 py-3 my-0 border-bottom" action="search.html" method="get">
+  <div class="form-group form-group-single">
+    <input type="text" name="q" class="form-control" placeholder="Search" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+    <button type="submit" class="btn btn-link">
+      <img src="https://www.nengo.ai/img/icon-search.svg" alt="Go" />
+    </button>
+  </div>
+</form><div class="p-5 toctree">
+  
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="loihi-training.html">Loihi training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="learning-rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision.html">Vision models</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Visualization tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gephi-tutorial.html">Visualizing Nengo networks with Gephi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/plot_spikes.html">Creating spike raster plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphviz-diagrams">GraphViz diagrams</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#image-manipulation">Image manipulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#matplotlib-plots">Matplotlib plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tkinter-guis">TkInter GUIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gephi-visualization">Gephi visualization</a></li>
+</ul>
+</li>
+</ul>
+
+  
+  </div>
+  
+  <form class="p-5 my-0 border-top">
+    <div class="form-group">
+      <label class="text-gray">Version:</label>
+      <select class="custom-select" onchange="switchVersion(this);">
+        
+        
+        <option selected>latest</option>
+        
+        
+          
+        <option value="v0.3.0/visualization.html">
+          v0.3.0
+        </option>
+          
+        
+      </select>
+    </div>
+  </form>
+  
+</div>
+      
+
+      <div class="col-12 col-md-8 col-xl-9">
+        <div class="container">
+          <div class="row">
+            <div class="col-10 offset-1 pb-5 documentation-source" role="main">
+              
+              
+              <div class="admonition note">
+                  <p class="admonition-title">Note</p>
+                  <p>
+                  This documentation is for a development version.
+                  <a href="v0.3.0/visualization.html">
+                  Click here for the latest stable release (v0.3.0).
+                  </a>
+                  </p>
+              </div>
+              
+              
+  <div class="section" id="visualization-tools">
+<h1>Visualization tools<a class="headerlink" href="#visualization-tools" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Examples and tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gephi-tutorial.html">Visualizing Nengo networks with Gephi</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/plot_spikes.html">Creating spike raster plots</a></li>
+</ul>
+</div>
+<div class="section" id="graphviz-diagrams">
+<h2>GraphViz diagrams<a class="headerlink" href="#graphviz-diagrams" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.graphviz.net_diagram" title="nengo_extras.graphviz.net_diagram"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.graphviz.net_diagram</span></code></a>(net)</p></td>
+<td><p>Create a .dot file showing nodes, ensmbles, and connections.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nengo_extras.graphviz.obj_conn_diagram" title="nengo_extras.graphviz.obj_conn_diagram"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.graphviz.obj_conn_diagram</span></code></a>(objs, …)</p></td>
+<td><p>Create a .dot file showing nodes, ensmbles, and connections.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="nengo_extras.graphviz.net_diagram">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.graphviz.</span></code><code class="sig-name descname"><span class="pre">net_diagram</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/graphviz.py#L4-L21"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.graphviz.net_diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a .dot file showing nodes, ensmbles, and connections.</p>
+<p>This can be useful for debugging and testing builders that manipulate
+the model graph before construction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>net</strong><span class="classifier">Network</span></dt><dd><p>A network from which objects and connections will be extracted.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>text</strong><span class="classifier">string</span></dt><dd><p>Text content of the desired .dot file.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="nengo_extras.graphviz.obj_conn_diagram">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.graphviz.</span></code><code class="sig-name descname"><span class="pre">obj_conn_diagram</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connections</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/graphviz.py#L24-L60"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.graphviz.obj_conn_diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a .dot file showing nodes, ensmbles, and connections.</p>
+<p>This can be useful for debugging and testing builders that manipulate
+the model graph before construction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>objs</strong><span class="classifier">list of Nodes and Ensembles</span></dt><dd><p>All the nodes and ensembles in the model.</p>
+</dd>
+<dt><strong>connections</strong><span class="classifier">list of Connections</span></dt><dd><p>All the connections in the model.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>text</strong><span class="classifier">string</span></dt><dd><p>Text content of the desired .dot file.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="image-manipulation">
+<h2>Image manipulation<a class="headerlink" href="#image-manipulation" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.gui.preprocess_display" title="nengo_extras.gui.preprocess_display"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.gui.preprocess_display</span></code></a>(x[, …])</p></td>
+<td><p>Basic preprocessing that reshapes, transposes, and scales an image</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nengo_extras.gui.image_function" title="nengo_extras.gui.image_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.gui.image_function</span></code></a>(image_shape)</p></td>
+<td><p>Make a function to turn an array into a PIL Image.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.gui.image_string_function" title="nengo_extras.gui.image_string_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.gui.image_string_function</span></code></a>(…)</p></td>
+<td><p>Make a function to turn an array into an image string.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nengo_extras.gui.image_html_function" title="nengo_extras.gui.image_html_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.gui.image_html_function</span></code></a>(image_shape)</p></td>
+<td><p>Make a function to turn an image into HTML to display as an SVG.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.gui.image_display_function" title="nengo_extras.gui.image_display_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.gui.image_display_function</span></code></a>(…)</p></td>
+<td><p>Make a function to display images in Nengo GUI.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="nengo_extras.gui.preprocess_display">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.gui.</span></code><code class="sig-name descname"><span class="pre">preprocess_display</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transpose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">2,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">255.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gui.py#L9-L16"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gui.preprocess_display" title="Permalink to this definition">¶</a></dt>
+<dd><p>Basic preprocessing that reshapes, transposes, and scales an image</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="nengo_extras.gui.image_function">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.gui.</span></code><code class="sig-name descname"><span class="pre">image_function</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">image_shape</span></em>, <em class="sig-param"><span class="pre">preprocess=&lt;function</span> <span class="pre">preprocess_display&gt;</span></em>, <em class="sig-param"><span class="pre">**preprocess_args</span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gui.py#L19-L44"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gui.image_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a function to turn an array into a PIL Image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>image_shape</strong><span class="classifier">array_like (3,)</span></dt><dd><p>The shape of the image: (channels, height, width)</p>
+</dd>
+<dt><strong>preprocess</strong><span class="classifier">callable</span></dt><dd><p>Callable that takes an image and preprocesses it to be displayed.</p>
+</dd>
+<dt><strong>preprocess_args</strong><span class="classifier">dict</span></dt><dd><p>Optional dictionary of keyword arguments for <code class="docutils literal notranslate"><span class="pre">preprocess</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>to_pil</strong><span class="classifier">callable (x)</span></dt><dd><p>A function that takes a (flattened) image array, returning a PIL Image.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="nengo_extras.gui.image_string_function">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.gui.</span></code><code class="sig-name descname"><span class="pre">image_string_function</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">image_shape</span></em>, <em class="sig-param"><span class="pre">format='PNG'</span></em>, <em class="sig-param"><span class="pre">preprocess=&lt;function</span> <span class="pre">preprocess_display&gt;</span></em>, <em class="sig-param"><span class="pre">**preprocess_args</span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gui.py#L47-L82"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gui.image_string_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a function to turn an array into an image string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>image_shape</strong><span class="classifier">array_like (3,)</span></dt><dd><p>The shape of the image: (channels, height, width)</p>
+</dd>
+<dt><strong>format</strong><span class="classifier">string</span></dt><dd><p>A format string for the <code class="docutils literal notranslate"><span class="pre">PIL.Image.save</span></code> function.</p>
+</dd>
+<dt><strong>preprocess</strong><span class="classifier">callable</span></dt><dd><p>Callable that takes an image and preprocesses it to be displayed.</p>
+</dd>
+<dt><strong>preprocess_args</strong><span class="classifier">dict</span></dt><dd><p>Optional dictionary of keyword arguments for <code class="docutils literal notranslate"><span class="pre">preprocess</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>string_function</strong><span class="classifier">callable (x)</span></dt><dd><p>A function that takes a (flattened) image array, and returns a
+base64 string representation of the image of the requested format.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#nengo_extras.gui.image_function" title="nengo_extras.gui.image_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">image_function</span></code></a></dt><dd></dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="nengo_extras.gui.image_html_function">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.gui.</span></code><code class="sig-name descname"><span class="pre">image_html_function</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">image_shape</span></em>, <em class="sig-param"><span class="pre">preprocess=&lt;function</span> <span class="pre">preprocess_display&gt;</span></em>, <em class="sig-param"><span class="pre">**preprocess_args</span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gui.py#L85-L122"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gui.image_html_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a function to turn an image into HTML to display as an SVG.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>image_shape</strong><span class="classifier">array_like (3,)</span></dt><dd><p>The shape of the image: (channels, height, width)</p>
+</dd>
+<dt><strong>preprocess</strong><span class="classifier">callable</span></dt><dd><p>Callable that takes an image and preprocesses it to be displayed.</p>
+</dd>
+<dt><strong>preprocess_args</strong><span class="classifier">dict</span></dt><dd><p>Optional dictionary of keyword arguments for <code class="docutils literal notranslate"><span class="pre">preprocess</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>html_function</strong><span class="classifier">callable (x)</span></dt><dd><p>A function that takes a (flattened) image array, and returns
+a string that defines an SVG object in HTML to display the image.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#nengo_extras.gui.image_function" title="nengo_extras.gui.image_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">image_function</span></code></a></dt><dd></dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="nengo_extras.gui.image_display_function">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.gui.</span></code><code class="sig-name descname"><span class="pre">image_display_function</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">image_shape</span></em>, <em class="sig-param"><span class="pre">preprocess=&lt;function</span> <span class="pre">preprocess_display&gt;</span></em>, <em class="sig-param"><span class="pre">**preprocess_args</span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gui.py#L125-L152"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gui.image_display_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a function to display images in Nengo GUI.</p>
+<p class="rubric">Examples</p>
+<p>Displaying images from a <code class="docutils literal notranslate"><span class="pre">PresentInput</span></code> process in NengoGUI.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">nengo_extras.gui</span> <span class="kn">import</span> <span class="n">image_display_function</span>
+
+<span class="k">with</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Network</span><span class="p">()</span> <span class="k">as</span> <span class="n">net</span><span class="p">:</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">nengo</span><span class="o">.</span><span class="n">processes</span><span class="o">.</span><span class="n">PresentInput</span><span class="p">([[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]],</span> <span class="mf">0.1</span><span class="p">))</span>
+    <span class="n">display_f</span> <span class="o">=</span> <span class="n">image_display_function</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">display_node</span> <span class="o">=</span> <span class="n">nengo</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">display_f</span><span class="p">,</span> <span class="n">size_in</span><span class="o">=</span><span class="n">u</span><span class="o">.</span><span class="n">size_out</span><span class="p">)</span>
+    <span class="n">nengo</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">display_node</span><span class="p">,</span> <span class="n">synapse</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="matplotlib-plots">
+<h2>Matplotlib plots<a class="headerlink" href="#matplotlib-plots" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.matplotlib.imshow" title="nengo_extras.matplotlib.imshow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.matplotlib.imshow</span></code></a>(image[, ax, …])</p></td>
+<td><p>Nicer version of Matplotlib’s imshow.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nengo_extras.matplotlib.tile" title="nengo_extras.matplotlib.tile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.matplotlib.tile</span></code></a>(images[, ax, …])</p></td>
+<td><p>Plot a grid of images</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.matplotlib.compare" title="nengo_extras.matplotlib.compare"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.matplotlib.compare</span></code></a>(image_sets)</p></td>
+<td><p>Compare sets of images in a grid.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nengo_extras.plot_spikes.plot_spikes" title="nengo_extras.plot_spikes.plot_spikes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.plot_spikes.plot_spikes</span></code></a>(t, spikes)</p></td>
+<td><p>Plots a spike raster.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.plot_spikes.preprocess_spikes" title="nengo_extras.plot_spikes.preprocess_spikes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.plot_spikes.preprocess_spikes</span></code></a>(t, …)</p></td>
+<td><p>Applies a default preprocessing to spike data for plotting.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nengo_extras.plot_spikes.cluster" title="nengo_extras.plot_spikes.cluster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.plot_spikes.cluster</span></code></a>(t, spikes, …)</p></td>
+<td><p>Change order of spike trains to have similar ones close together.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.plot_spikes.merge" title="nengo_extras.plot_spikes.merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.plot_spikes.merge</span></code></a>(t, spikes, num)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nengo_extras.plot_spikes.sample_by_variance" title="nengo_extras.plot_spikes.sample_by_variance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.plot_spikes.sample_by_variance</span></code></a>(t, …)</p></td>
+<td><p>Samples the spike trains with the highest variance.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.plot_spikes.sample_by_activity" title="nengo_extras.plot_spikes.sample_by_activity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.plot_spikes.sample_by_activity</span></code></a>(t, …)</p></td>
+<td><p>Samples the spike trains with the highest spiking activity.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="nengo_extras.matplotlib.imshow">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.matplotlib.</span></code><code class="sig-name descname"><span class="pre">imshow</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/matplotlib.py#L7-L33"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.matplotlib.imshow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nicer version of Matplotlib’s imshow.</p>
+<ul class="simple">
+<li><p>By default, show the raw image with no interpolation.</p></li>
+<li><p>If the image is greyscale, use grey colormap.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py function">
+<dt id="nengo_extras.matplotlib.tile">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.matplotlib.</span></code><code class="sig-name descname"><span class="pre">tile</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">images</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gridwidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gridcolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'r'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">show_params</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/matplotlib.py#L36-L89"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.matplotlib.tile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a grid of images</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>images</strong><span class="classifier">ndarray (n_images, height, width, channels)</span></dt><dd><p>Array of images to display.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="nengo_extras.matplotlib.compare">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.matplotlib.</span></code><code class="sig-name descname"><span class="pre">compare</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_sets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gridwidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gridcolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'r'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">show_params</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/matplotlib.py#L92-L156"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.matplotlib.compare" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare sets of images in a grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>image_sets</strong><span class="classifier">list of (n_images, height, width, channels) ndarray</span></dt><dd><p>List of the sets of images to compare. Each set of images must be
+the same size.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="nengo_extras.plot_spikes.plot_spikes">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.plot_spikes.</span></code><code class="sig-name descname"><span class="pre">plot_spikes</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spikes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contrast_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/plot_spikes.py#L34-L78"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.plot_spikes.plot_spikes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots a spike raster.</p>
+<p>Will use an alpha channel by default which allows to plot colored regions
+below the spike raster to add highlights. You can set the <em>cmap</em> keyword
+argument to a different color map like <em>matplotlib.cm.gray_r</em> to get an
+opaque spike raster.</p>
+<p>Utilizes Matplotlib’s <em>imshow</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>t</strong><span class="classifier">(n,) array</span></dt><dd><p>Time indices of <em>spike</em> matrix. The indices are assumed to be
+equidistant.</p>
+</dd>
+<dt><strong>spikes</strong><span class="classifier">(n, m) array</span></dt><dd><p>Spike data for <em>m</em> neurons at <em>n</em> time points.</p>
+</dd>
+<dt><strong>contrast_scale</strong><span class="classifier">float, optional</span></dt><dd><p>Scales the contrst of the spike raster. This value multiplied with the
+maximum value in <em>spikes</em> will determine the minimum <em>spike</em> value to
+appear black (or the corresponding color of the chosen colormap).</p>
+</dd>
+<dt><strong>ax</strong><span class="classifier">matplotlib.axes.Axes, optional</span></dt><dd><p>Axes to plot onto. Uses the current axes by default.</p>
+</dd>
+<dt><strong>kwargs</strong><span class="classifier">dict</span></dt><dd><p>Additional keyword arguments will be passed on to <em>imshow</em>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>matplotlib.image.AxesImage</dt><dd><p>The spikeraster.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="nengo_extras.plot_spikes.preprocess_spikes">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.plot_spikes.</span></code><code class="sig-name descname"><span class="pre">preprocess_spikes</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spikes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_filter_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_filter_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.002</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/plot_spikes.py#L81-L125"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.plot_spikes.preprocess_spikes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies a default preprocessing to spike data for plotting.</p>
+<p>This will first sample by variance, then cluster the spike trains, and
+finally merge them. See <a class="reference internal" href="#nengo_extras.plot_spikes.sample_by_variance" title="nengo_extras.plot_spikes.sample_by_variance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample_by_variance</span></code></a>, <a class="reference internal" href="#nengo_extras.plot_spikes.cluster" title="nengo_extras.plot_spikes.cluster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cluster</span></code></a>, and <a class="reference internal" href="#nengo_extras.plot_spikes.merge" title="nengo_extras.plot_spikes.merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge</span></code></a> for
+details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>t</strong><span class="classifier">(n,) array</span></dt><dd><p>Time indices of <em>spike</em> matrix. The indices are assumed to be
+equidistant.</p>
+</dd>
+<dt><strong>spikes</strong><span class="classifier">(n, m) array</span></dt><dd><p>Spike data for <em>m</em> neurons at <em>n</em> time points.</p>
+</dd>
+<dt><strong>num</strong><span class="classifier">int, optional</span></dt><dd><p>Number of spike trains to return after merging.</p>
+</dd>
+<dt><strong>sample_size</strong><span class="classifier">int, optional</span></dt><dd><p>Number of spike trains to sample by variance.</p>
+</dd>
+<dt><strong>sample_filter_width</strong><span class="classifier">float, optional</span></dt><dd><p>Gaussian filter width in seconds for sampling by variance.</p>
+</dd>
+<dt><strong>cluster_filter_width</strong><span class="classifier">float, optional</span></dt><dd><p>Gaussian filter width in seconds for clustering.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>tuple (t, selected_spikes)</dt><dd><p>Returns the time indices <em>t</em> and the preprocessed spike trains
+<em>spikes</em>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="nengo_extras.plot_spikes.cluster">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.plot_spikes.</span></code><code class="sig-name descname"><span class="pre">cluster</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spikes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_width</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/plot_spikes.py#L128-L156"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.plot_spikes.cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change order of spike trains to have similar ones close together.</p>
+<p>Requires SciPy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>t</strong><span class="classifier">(n,) array</span></dt><dd><p>Time indices of <em>spike</em> matrix. The indices are assumed to be
+equidistant.</p>
+</dd>
+<dt><strong>spikes</strong><span class="classifier">(n, m) array</span></dt><dd><p>Spike data for <em>m</em> neurons at <em>n</em> time points.</p>
+</dd>
+<dt><strong>filter_width</strong><span class="classifier">float</span></dt><dd><p>Gaussian filter width in seconds, controls the time scale the
+clustering is sensitive to.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>tuple (t, selected_spikes)</dt><dd><p>Returns the time indices <em>t</em> and the selected spike trains <em>spikes</em>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="nengo_extras.plot_spikes.merge">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.plot_spikes.</span></code><code class="sig-name descname"><span class="pre">merge</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spikes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/plot_spikes.py#L159-L172"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.plot_spikes.merge" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nengo_extras.plot_spikes.sample_by_variance">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.plot_spikes.</span></code><code class="sig-name descname"><span class="pre">sample_by_variance</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spikes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_width</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/plot_spikes.py#L175-L205"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.plot_spikes.sample_by_variance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Samples the spike trains with the highest variance.</p>
+<p>Requires SciPy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>t</strong><span class="classifier">(n,) array</span></dt><dd><p>Time indices of <em>spike</em> matrix. The indices are assumed to be
+equidistant.</p>
+</dd>
+<dt><strong>spikes</strong><span class="classifier">(n, m) array</span></dt><dd><p>Spike data for <em>m</em> neurons at <em>n</em> time points.</p>
+</dd>
+<dt><strong>num</strong><span class="classifier">int</span></dt><dd><p>Number of spike trains to return.</p>
+</dd>
+<dt><strong>filter_width</strong><span class="classifier">float</span></dt><dd><p>Gaussian filter width in seconds, controls the time scale the variance
+calculation is sensitive to.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>tuple (t, selected_spikes)</dt><dd><p>Returns the time indices <em>t</em> and the selected spike trains <em>spikes</em>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="nengo_extras.plot_spikes.sample_by_activity">
+<code class="sig-prename descclassname"><span class="pre">nengo_extras.plot_spikes.</span></code><code class="sig-name descname"><span class="pre">sample_by_activity</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spikes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocksize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/plot_spikes.py#L208-L248"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.plot_spikes.sample_by_activity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Samples the spike trains with the highest spiking activity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>t</strong><span class="classifier">(n,) array</span></dt><dd><p>Time indices of <em>spike</em> matrix. The indices are assumed to be
+equidistant.</p>
+</dd>
+<dt><strong>spikes</strong><span class="classifier">(n, m) array</span></dt><dd><p>Spike data for <em>m</em> neurons at <em>n</em> time points.</p>
+</dd>
+<dt><strong>num</strong><span class="classifier">int</span></dt><dd><p>Number of spike trains to return.</p>
+</dd>
+<dt><strong>blocksize</strong><span class="classifier">int, optional</span></dt><dd><p>If not <em>None</em>, the spike trains will be divided into blocks of this
+size and the highest activity spike trains are obtained for each block
+individually.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>tuple (t, selected_spikes)</dt><dd><p>Returns the time indices <em>t</em> and the selected spike trains <em>spikes</em>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="tkinter-guis">
+<h2>TkInter GUIs<a class="headerlink" href="#tkinter-guis" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.deepview.ImageSelector" title="nengo_extras.deepview.ImageSelector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.deepview.ImageSelector</span></code></a>(parent, …)</p></td>
+<td><p>Choose between images with left and right arrows</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nengo_extras.deepview.ScrollCanvasFrame" title="nengo_extras.deepview.ScrollCanvasFrame"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.deepview.ScrollCanvasFrame</span></code></a>(parent)</p></td>
+<td><p>Construct a frame widget with the parent MASTER.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.deepview.ScrollWindow" title="nengo_extras.deepview.ScrollWindow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.deepview.ScrollWindow</span></code></a>(*args, …)</p></td>
+<td><p>Scroll a single window</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nengo_extras.deepview.VerticalImageFrame" title="nengo_extras.deepview.VerticalImageFrame"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.deepview.VerticalImageFrame</span></code></a>(…)</p></td>
+<td><p>Construct a frame widget with the parent MASTER.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.deepview.Viewer" title="nengo_extras.deepview.Viewer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.deepview.Viewer</span></code></a>(images, …)</p></td>
+<td><p>Return a new Toplevel widget on screen SCREENNAME.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="nengo_extras.deepview.ImageSelector">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nengo_extras.deepview.</span></code><code class="sig-name descname"><span class="pre">ImageSelector</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/deepview.py#L14-L63"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.deepview.ImageSelector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose between images with left and right arrows</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>image_function</strong><span class="classifier">callable</span></dt><dd><p>Turn an array into a PIL.Image. Can be generated by
+<code class="docutils literal notranslate"><span class="pre">nengo_extras.gui.image_function</span></code>.</p>
+</dd>
+<dt><strong>resample</strong><span class="classifier">int</span></dt><dd><p>Resampling mode for <code class="docutils literal notranslate"><span class="pre">PIL.Image.resize</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Construct a frame widget with the parent MASTER.</p>
+<p>Valid resource names: background, bd, bg, borderwidth, class,
+colormap, container, cursor, height, highlightbackground,
+highlightcolor, highlightthickness, relief, takefocus, visual, width.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="nengo_extras.deepview.ScrollCanvasFrame">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nengo_extras.deepview.</span></code><code class="sig-name descname"><span class="pre">ScrollCanvasFrame</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizontal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/deepview.py#L66-L94"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.deepview.ScrollCanvasFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a frame widget with the parent MASTER.</p>
+<p>Valid resource names: background, bd, bg, borderwidth, class,
+colormap, container, cursor, height, highlightbackground,
+highlightcolor, highlightthickness, relief, takefocus, visual, width.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="nengo_extras.deepview.ScrollWindow">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nengo_extras.deepview.</span></code><code class="sig-name descname"><span class="pre">ScrollWindow</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/deepview.py#L97-L118"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.deepview.ScrollWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scroll a single window</p>
+<p>Construct a frame widget with the parent MASTER.</p>
+<p>Valid resource names: background, bd, bg, borderwidth, class,
+colormap, container, cursor, height, highlightbackground,
+highlightcolor, highlightthickness, relief, takefocus, visual, width.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="nengo_extras.deepview.VerticalImageFrame">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nengo_extras.deepview.</span></code><code class="sig-name descname"><span class="pre">VerticalImageFrame</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/deepview.py#L121-L207"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.deepview.VerticalImageFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a frame widget with the parent MASTER.</p>
+<p>Valid resource names: background, bd, bg, borderwidth, class,
+colormap, container, cursor, height, highlightbackground,
+highlightcolor, highlightthickness, relief, takefocus, visual, width.</p>
+<dl class="py class">
+<dt id="nengo_extras.deepview.VerticalImageFrame.Column">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Column</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_function</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/deepview.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.deepview.VerticalImageFrame.Column" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create new instance of Column(width, height, image_function)</p>
+<dl class="py attribute">
+<dt id="nengo_extras.deepview.VerticalImageFrame.Column.height">
+<code class="sig-name descname"><span class="pre">height</span></code><a class="headerlink" href="#nengo_extras.deepview.VerticalImageFrame.Column.height" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nengo_extras.deepview.VerticalImageFrame.Column.image_function">
+<code class="sig-name descname"><span class="pre">image_function</span></code><a class="headerlink" href="#nengo_extras.deepview.VerticalImageFrame.Column.image_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nengo_extras.deepview.VerticalImageFrame.Column.width">
+<code class="sig-name descname"><span class="pre">width</span></code><a class="headerlink" href="#nengo_extras.deepview.VerticalImageFrame.Column.width" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nengo_extras.deepview.Viewer">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nengo_extras.deepview.</span></code><code class="sig-name descname"><span class="pre">Viewer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">images</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_function</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/deepview.py#L210-L291"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.deepview.Viewer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new Toplevel widget on screen SCREENNAME. A new Tcl interpreter will
+be created. BASENAME will be used for the identification of the profile file (see
+readprofile).
+It is constructed from sys.argv[0] without extensions if None is given. CLASSNAME
+is the name of the widget class.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="gephi-visualization">
+<h2>Gephi visualization<a class="headerlink" href="#gephi-visualization" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.gexf.DispatchTable" title="nengo_extras.gexf.DispatchTable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.gexf.DispatchTable</span></code></a>([parent])</p></td>
+<td><p>A descriptor to dispatch to other methods depending on argument type.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nengo_extras.gexf.HierarchicalLabeler" title="nengo_extras.gexf.HierarchicalLabeler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.gexf.HierarchicalLabeler</span></code></a>()</p></td>
+<td><p>Obtains labels for objects in a Nengo network.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.gexf.GexfConverter" title="nengo_extras.gexf.GexfConverter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.gexf.GexfConverter</span></code></a>([labeler, …])</p></td>
+<td><p>Converts Nengo models into GEXF files.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nengo_extras.gexf.CollapsingGexfConverter" title="nengo_extras.gexf.CollapsingGexfConverter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.gexf.CollapsingGexfConverter</span></code></a>([…])</p></td>
+<td><p>Converts Nengo models into GEXF files with some collapsed networks.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nengo_extras.gexf.Attr" title="nengo_extras.gexf.Attr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo_extras.gexf.Attr</span></code></a>(id, type, default)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="nengo_extras.gexf.DispatchTable">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nengo_extras.gexf.</span></code><code class="sig-name descname"><span class="pre">DispatchTable</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gexf.py#L18-L109"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gexf.DispatchTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>A descriptor to dispatch to other methods depending on argument type.</p>
+<p>How to use: assign the descriptor to a class attribute and use the
+<code class="docutils literal notranslate"><span class="pre">register</span></code> decorator to declare which functions to dispatch to
+for specific types:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">dispatch</span> <span class="o">=</span> <span class="n">DispatchTable</span><span class="p">()</span>
+
+    <span class="nd">@dispatch</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">TypeA</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">handle_type_a</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj_of_type_a</span><span class="p">):</span>
+        <span class="c1"># ...</span>
+
+    <span class="nd">@dispatch</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">TypeB</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">handle_type_b</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj_of_type_b</span><span class="p">):</span>
+        <span class="c1"># ...</span>
+</pre></div>
+</div>
+<p>To then call the method for the appropriate type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">inst</span> <span class="o">=</span> <span class="n">MyClass</span><span class="p">()</span>
+<span class="n">inst</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">obj_of_type_a_or_b</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If multiple methods would match (e.g. if <em>TypeB</em> inherits from <em>TypeA</em>),
+the most specific method will be used (to be precise: the first type in the
+method resolution order with a registered method will be used).</p>
+<p>The <em>DispatchTable</em> descriptor accepts another <em>DispatchTable</em> as argument
+which will be used as a fallback. This allows to inherit the dispatch
+table and selectively overwrite methods like so:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Inherited</span><span class="p">(</span><span class="n">MyClass</span><span class="p">):</span>
+    <span class="n">dispatch</span> <span class="o">=</span> <span class="n">DispatchTable</span><span class="p">(</span><span class="n">MyClass</span><span class="o">.</span><span class="n">dispatch</span><span class="p">)</span>
+
+    <span class="nd">@dispatch</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">TypeA</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">alternate_type_a_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj_of_type_a</span><span class="p">):</span>
+        <span class="c1"># ...</span>
+</pre></div>
+</div>
+<p>Finally, dispatch methods can also be changed on a per-instance basis:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">inst</span><span class="o">.</span><span class="n">dispatch</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">TypeA</span><span class="p">,</span> <span class="n">inst_type_a_handler</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py class">
+<dt id="nengo_extras.gexf.DispatchTable.InstDispatch">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">InstDispatch</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">owner</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gexf.py#L61-L91"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gexf.DispatchTable.InstDispatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return value when accessing the dispatch table on an instance.</p>
+<dl class="py method">
+<dt id="nengo_extras.gexf.DispatchTable.InstDispatch.register">
+<code class="sig-name descname"><span class="pre">register</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gexf.py#L86-L91"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gexf.DispatchTable.InstDispatch.register" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nengo_extras.gexf.HierarchicalLabeler">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nengo_extras.gexf.</span></code><code class="sig-name descname"><span class="pre">HierarchicalLabeler</span></code><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gexf.py#L112-L189"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gexf.HierarchicalLabeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtains labels for objects in a Nengo network.</p>
+<p>The names will include the network hierarchy.</p>
+<p>Usage example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">labels</span> <span class="o">=</span> <span class="n">HierarchicalLabeler</span><span class="p">()</span><span class="o">.</span><span class="n">get_labels</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt id="nengo_extras.gexf.GexfConverter">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nengo_extras.gexf.</span></code><code class="sig-name descname"><span class="pre">GexfConverter</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labeler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hierarchical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gexf.py#L195-L539"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gexf.GexfConverter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts Nengo models into GEXF files.</p>
+<p>This can be loaded in Gephi for visualization of the model graph.</p>
+<p>Links:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://gephi.org/">Gephi</a></p></li>
+<li><p><a class="reference external" href="https://github.com/gephi/gexf/wiki">GEXF</a></p></li>
+</ul>
+<p>This class can be inherited from to customize the conversion or
+alternatively the <code class="docutils literal notranslate"><span class="pre">dispatch</span></code> table can be changed on a
+per-instance basis.</p>
+<p>Note that probes are currently not included in the graph.</p>
+<p>The following attributes will be stored on graph nodes:</p>
+<ul class="simple">
+<li><p><em>type</em>: type of the Nengo object (e.g., <em>nengo.ensemble.Ensemble</em>),</p></li>
+<li><p><em>net</em>: unique ID of the containing network,</p></li>
+<li><p><em>net_label</em>: (possibly non-unique) label of the containing network,</p></li>
+<li><p><em>size_in</em>: input size,</p></li>
+<li><p><em>size_out</em>: output_size,</p></li>
+<li><p><em>radius</em>: ensemble radius (unset for other nodes),</p></li>
+<li><p><em>n_neurons</em>: number of neurons (0 for non-ensembles),</p></li>
+<li><p><em>neuron_type</em>: string representation of the neuron type (unset for
+non-ensembles).</p></li>
+</ul>
+<p>The following attributes will be stored on graph edges:</p>
+<ul class="simple">
+<li><p><em>pre_type</em>: type of the connection’s pre object (e.g.,
+<em>nengo.ensemble.Neurons</em>),</p></li>
+<li><p><em>post_type</em>: type of the connection’s post object (e.g.,
+<em>nengo.ensemble.Neurons</em>),</p></li>
+<li><p><em>synapse</em>: string representation of the synapse,</p></li>
+<li><p><em>tau</em>: the tau parameter of the synapse if existent,</p></li>
+<li><p><em>function</em>: string representation of the connection’s function,</p></li>
+<li><p><em>transform</em>: string representation of the connection’s transform,</p></li>
+<li><p><em>scalar_transform</em>: float representation of the transform if it is a
+scalar,</p></li>
+<li><p><em>learning_rule_type</em>: string representation of the connection’s learning
+rule type.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>labeler</strong><span class="classifier">optional</span></dt><dd><p>Object with a <code class="docutils literal notranslate"><span class="pre">get_labels</span></code> method that returns a dictionary mapping
+model objects to labels. If not given, a new <a class="reference internal" href="#nengo_extras.gexf.HierarchicalLabeler" title="nengo_extras.gexf.HierarchicalLabeler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HierarchicalLabeler</span></code></a>
+will be used.</p>
+</dd>
+<dt><strong>hierarchical</strong><span class="classifier">bool, optional (default: False)</span></dt><dd><p>Whether to include information of the network hierarchy in the file.
+Support for hierarchical graphs was removed in Gephi 0.9 and
+hierarchical networks will be automatically flattened which leaves an
+unconnected node for every network.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Basic usage to write a GEXF file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">GexfConverter</span><span class="p">()</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;model.gexf&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="nengo_extras.gexf.GexfConverter.convert">
+<code class="sig-name descname"><span class="pre">convert</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gexf.py#L299-L309"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gexf.GexfConverter.convert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a model to GEXF format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>xml.etree.ElementTree.ElementTree</dt><dd><p>Converted model.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nengo_extras.gexf.GexfConverter.make_document">
+<code class="sig-name descname"><span class="pre">make_document</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gexf.py#L311-L359"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gexf.GexfConverter.make_document" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the GEXF XML document from <em>model</em>.</p>
+<p>This method is exposed so it can be overwritten in inheriting classes.
+Invoke <a class="reference internal" href="#nengo_extras.gexf.GexfConverter.convert" title="nengo_extras.gexf.GexfConverter.convert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert</span></code></a> instead of this method to convert a model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>xml.etree.ElementTree.ElementTree</dt><dd><p>Converted model.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nengo_extras.gexf.GexfConverter.make_attr_defs">
+<code class="sig-name descname"><span class="pre">make_attr_defs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gexf.py#L361-L389"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gexf.GexfConverter.make_attr_defs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an attribute definition block.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>cls</strong><span class="classifier">str</span></dt><dd><p>Class the attribute definitions are for (‘node’ or ‘edge’).</p>
+</dd>
+<dt><strong>defs</strong><span class="classifier">dict</span></dt><dd><p>Attribute definitions. Maps attribute names to <a class="reference internal" href="#nengo_extras.gexf.Attr" title="nengo_extras.gexf.Attr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Attr</span></code></a> instances.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>xml.etree.ElementTree.Element</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nengo_extras.gexf.GexfConverter.make_attrs">
+<code class="sig-name descname"><span class="pre">make_attrs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">defs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gexf.py#L391-L418"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gexf.GexfConverter.make_attrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a block of attribute values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>defs</strong><span class="classifier">dict</span></dt><dd><p>Attribute definitions. Maps attribute names to <a class="reference internal" href="#nengo_extras.gexf.Attr" title="nengo_extras.gexf.Attr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Attr</span></code></a> instances.</p>
+</dd>
+<dt><strong>attrs</strong><span class="classifier">dict</span></dt><dd><p>Mapping of attribute names to assigned values.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>xml.etree.ElementTree.Element</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nengo_extras.gexf.GexfConverter.make_node">
+<code class="sig-name descname"><span class="pre">make_node</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">attrs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gexf.py#L420-L428"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gexf.GexfConverter.make_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a node for <em>obj</em> with attributes <em>attrs</em>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nengo_extras.gexf.GexfConverter.make_edge">
+<code class="sig-name descname"><span class="pre">make_edge</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">attrs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gexf.py#L430-L440"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gexf.GexfConverter.make_edge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Edge for <em>obj</em> from <em>source</em> to <em>target</em> with attributes <em>attrs</em>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nengo_extras.gexf.GexfConverter.get_node_obj">
+<code class="sig-name descname"><span class="pre">get_node_obj</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gexf.py#L518-L534"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gexf.GexfConverter.get_node_obj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an object with a corresponding graph node related to <em>obj</em>.</p>
+<p>For certain objects like <a class="reference external" href="https://www.nengo.ai/nengo/frontend-api.html#nengo.ensemble.Neurons" title="(in Nengo v3.2)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo.ensemble.Neurons</span></code></a> or
+<a class="reference external" href="https://www.nengo.ai/nengo/frontend-api.html#nengo.connection.LearningRule" title="(in Nengo v3.2)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo.connection.LearningRule</span></code></a> no graph node will be created. This
+function will resolve such an object to a related object that has a
+corresponding graph node (e.g., the ensemble for a neurons object or
+the pre object for a learning rule).</p>
+<p>In <a class="reference internal" href="#nengo_extras.gexf.GexfConverter" title="nengo_extras.gexf.GexfConverter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GexfConverter</span></code></a> this is used to make sure connections are between
+the correct nodes and do not introduce unrelated dangling nodes.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nengo_extras.gexf.CollapsingGexfConverter">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nengo_extras.gexf.</span></code><code class="sig-name descname"><span class="pre">CollapsingGexfConverter</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">to_collapse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labeler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hierarchical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gexf.py#L542-L616"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gexf.CollapsingGexfConverter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts Nengo models into GEXF files with some collapsed networks.</p>
+<p>See <a class="reference internal" href="#nengo_extras.gexf.GexfConverter" title="nengo_extras.gexf.GexfConverter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GexfConverter</span></code></a> for general information on conversion to GEXF files.
+This class will collapse certain networks to a single node in the
+conversion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>to_collapse</strong><span class="classifier">sequence, optional</span></dt><dd><p>Network types to collapse, if not given the networks listed in
+<code class="docutils literal notranslate"><span class="pre">NENGO_NETS</span></code> and <code class="docutils literal notranslate"><span class="pre">SPA_NETS</span></code> will be collapsed. Note that
+<code class="docutils literal notranslate"><span class="pre">SPA_NETS</span></code> currently only contains networks from <em>nengo_spa</em>,
+but not the <em>spa</em> module in core <em>nengo</em>.</p>
+</dd>
+<dt><strong>labeler</strong><span class="classifier">optional</span></dt><dd><p>Object with a <code class="docutils literal notranslate"><span class="pre">get_labels</span></code> method that returns a dictionary mapping
+model objects to labels. If not given, a new <a class="reference internal" href="#nengo_extras.gexf.HierarchicalLabeler" title="nengo_extras.gexf.HierarchicalLabeler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HierarchicalLabeler</span></code></a>
+will be used.</p>
+</dd>
+<dt><strong>hierarchical</strong><span class="classifier">bool, optional (default: False)</span></dt><dd><p>Whether to include information of the network hierarchy in the file.
+Support for hierarchical graphs was removed in Gephi 0.9 and
+hierarchical networks will be automatically flattened which leaves an
+unconnected node for every network.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="nengo_extras.gexf.CollapsingGexfConverter.convert_collapsed">
+<code class="sig-name descname"><span class="pre">convert_collapsed</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gexf.py#L599-L612"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gexf.CollapsingGexfConverter.convert_collapsed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to convert a network into a collapsed graph node.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nengo_extras.gexf.CollapsingGexfConverter.get_node_obj">
+<code class="sig-name descname"><span class="pre">get_node_obj</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gexf.py#L614-L616"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gexf.CollapsingGexfConverter.get_node_obj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an object with a corresponding graph node related to <em>obj</em>.</p>
+<p>For certain objects like <a class="reference external" href="https://www.nengo.ai/nengo/frontend-api.html#nengo.ensemble.Neurons" title="(in Nengo v3.2)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo.ensemble.Neurons</span></code></a> or
+<a class="reference external" href="https://www.nengo.ai/nengo/frontend-api.html#nengo.connection.LearningRule" title="(in Nengo v3.2)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nengo.connection.LearningRule</span></code></a> no graph node will be created. This
+function will resolve such an object to a related object that has a
+corresponding graph node (e.g., the ensemble for a neurons object or
+the pre object for a learning rule).</p>
+<p>In <a class="reference internal" href="#nengo_extras.gexf.GexfConverter" title="nengo_extras.gexf.GexfConverter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GexfConverter</span></code></a> this is used to make sure connections are between
+the correct nodes and do not introduce unrelated dangling nodes.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nengo_extras.gexf.Attr">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nengo_extras.gexf.</span></code><code class="sig-name descname"><span class="pre">Attr</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nengo/nengo-extras/blob/v0.5.0/nengo_extras/gexf.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nengo_extras.gexf.Attr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create new instance of Attr(id, type, default)</p>
+<dl class="py attribute">
+<dt id="nengo_extras.gexf.Attr.default">
+<code class="sig-name descname"><span class="pre">default</span></code><a class="headerlink" href="#nengo_extras.gexf.Attr.default" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nengo_extras.gexf.Attr.id">
+<code class="sig-name descname"><span class="pre">id</span></code><a class="headerlink" href="#nengo_extras.gexf.Attr.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nengo_extras.gexf.Attr.type">
+<code class="sig-name descname"><span class="pre">type</span></code><a class="headerlink" href="#nengo_extras.gexf.Attr.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div><footer class="text-light footer-main gradient-bottom">
+  <p class="small text-center mb-0">
+    <a class="no-hover-line" href="https://appliedbrainresearch.com">
+      <img
+        src="https://appliedbrainresearch.com/img/logo-blue-notext.svg"
+        height="48"
+      />
+    </a>
+    <a href="https://www.nengo.ai/">What is Nengo?</a>
+    <a href="https://www.nengo.ai/examples/">Examples</a>
+    <a href="https://www.nengo.ai/documentation/">Documentation</a>
+    <a href="https://www.nengo.ai/getting-started/">Getting started</a>
+    <a href="https://www.nengo.ai/privacy/">Privacy</a>
+  </p>
+  <p class="small text-center mb-0">&copy; Applied Brain Research</p>
+</footer>
+<script>
+  function switchVersion(select) {
+    var option = select.selectedOptions[0];
+    if (option.hasAttribute("value")) {
+      window.location = option.value;
+    }
+  }
+</script>
+
+<script>
+  var elements = document.querySelectorAll('.sidenav');
+  Stickyfill.add(elements);
+</script>
+<script>
+  ScrollReveal().reveal(".fade-in", {
+      scale: 0.85,
+      duration: 1000,
+      delay: 250,
+      interval: 50
+  });
+</script>
+<script>
+  $('a.toggle-sidenav').on('click', function(e) {
+    e.preventDefault();
+    if ( $(this).hasClass('active') ) {
+      $(this).removeClass('active');
+      $('.sidenav').removeClass('open');
+    } else {
+      $(this).addClass('active');
+      $('.sidenav').addClass('open');
+    }
+  });
+</script>
+<script>
+  var lists = document.querySelectorAll('.toctree ul');
+  lists.forEach((ul) => {
+      ul.classList.add("nav");
+  });
+  var links = document.querySelectorAll('.toctree a');
+  links.forEach((link) => {
+      link.classList.add("nav-link");
+  });
+  $("body").scrollspy({target: ".sidenav"});
+</script>
+  </body>
+</html>

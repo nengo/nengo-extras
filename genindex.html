@@ -1,0 +1,772 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index &#8212; NengoExtras 0.5.0 docs</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+<link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:400,400i,600|Rajdhani:700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+<link rel="stylesheet" href="https://www.nengo.ai/css/bootstrap.css" type="text/css">
+<style>
+  body .title-bar,
+  body .documentation-source h1:after {
+    background-color: #a8acaf;
+  }
+</style>
+<!-- Google Tag Manager -->
+<script>
+ (function (w, d, s, l, i) {
+   w[l] = w[l] || [];
+   w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+   var f = d.getElementsByTagName(s)[0],
+       j = d.createElement(s),
+       dl = l != "dataLayer" ? "&l=" + l : "";
+   j.async = true;
+   j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+   f.parentNode.insertBefore(j, f);
+ })(window, document, "script", "dataLayer", "GTM-KWCR2HN");
+</script>
+<!-- End Google Tag Manager -->
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/scrollreveal"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stickyfill/2.1.0/stickyfill.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+<!-- From basic/layout.html -->
+<script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+  
+  
+<script src="_static/underscore.js"></script>
+  
+  
+<script src="_static/doctools.js"></script>
+  
+  
+<script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="#" />
+    <link rel="search" title="Search" href="search.html" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  </head><body class="bg-dark">
+
+<header class="fixed-top header-top shadow-sm">
+  <nav class="navbar navbar-expand-md navbar-light bg-white">
+    <a class="navbar-brand" href="https://www.nengo.ai/">
+      <img
+        src="https://www.nengo.ai/design/_images/general-full-light.svg"
+        alt="Nengo"
+        class="logo"
+      />
+    </a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbar-collapse"
+      aria-controls="navbar-collapse"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbar-collapse">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.nengo.ai/">What is Nengo?</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.nengo.ai/examples/">Examples</a>
+        </li>
+        <li class="nav-item dropdown active">
+          <a
+            class="nav-link dropdown-toggle"
+            id="navbar-dropdown-docs"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+            href="#"
+            >Documentation</a
+          >
+          <div
+            class="dropdown-menu shadow-lg border-0"
+            aria-labelledby="navbar-dropdown-docs"
+          >
+            
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo/">Nengo core</a>
+            <a class="dropdown-item" href="https://github.com/nengo/nengo-gui/">NengoGUI</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-dl/">NengoDL</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-spa/">NengoSPA</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-extras/">NengoExtras</a>
+            <a class="dropdown-item" href="https://arvoelke.github.io/nengolib-docs/">Nengolib</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/keras-spiking">KerasSpiking</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/pytorch-spiking">PyTorchSpiking</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-fpga/">NengoFPGA</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-loihi/">NengoLoihi</a>
+            <a class="dropdown-item" href="https://labs.nengo.ai/nengo-ocl/">NengoOCL</a>
+            <a class="dropdown-item" href="https://github.com/project-rig/nengo_spinnaker">NengoSpiNNaker</a>
+            <a class="dropdown-item" href="https://github.com/nengo-labs/nengo-mpi">NengoMPI</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/documentation/"
+              >All documentation</a
+            >
+          </div>
+        </li>
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle"
+            id="navbar-dropdown-community"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+            href="#"
+            >Community</a
+          >
+          <div
+            class="dropdown-menu shadow-lg border-0"
+            aria-labelledby="navbar-dropdown-community"
+          >
+            <a class="dropdown-item" href="https://forum.nengo.ai">Forum</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/people/"
+              >People</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/summer-school/"
+              >Summer school</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/contributing/"
+              >Contributing</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/publications/"
+              >Publications</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/videos/"
+              >Videos</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/conduct/"
+              >Code of conduct</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/caa/">CAA</a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link btn btn-success btn-sm text-white"
+            href="https://www.nengo.ai/getting-started/"
+            >Getting started</a
+          >
+        </li>
+      </ul>
+    </div>
+  </nav>
+</header>
+<div class="main-content gradient-top">
+  <div class="container-fluid">
+    <div class="row"><a class="toggle-sidenav d-block d-md-none" href="#"
+  ><i class="icon-close fa fa-fw fa-arrow-left"></i
+  ><i class="icon-open fa fa-fw fa-arrow-right"></i
+></a>
+<div role="complementary" class="sidenav col-4 col-xl-3 p-0 border-right">
+  <h3 class="pt-5 px-5">
+    <a href="index.html">
+      <img
+        class="img-fluid documentation-image"
+        src="https://www.nengo.ai/design/_images/general-full-light.svg"
+        alt="NengoExtras"
+      />
+    </a>
+  </h3>
+<form class="px-5 py-3 my-0 border-bottom" action="search.html" method="get">
+  <div class="form-group form-group-single">
+    <input type="text" name="q" class="form-control" placeholder="Search" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+    <button type="submit" class="btn btn-link">
+      <img src="https://www.nengo.ai/img/icon-search.svg" alt="Go" />
+    </button>
+  </div>
+</form><div class="p-5 toctree">
+  
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="loihi-training.html">Loihi training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deeplearning.html">Deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dists.html">Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="learning-rules.html">Learning rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networks.html">Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="neurons.html">Neuron types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision.html">Vision models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization tools</a></li>
+</ul>
+
+  
+  </div>
+  
+  <form class="p-5 my-0 border-top">
+    <div class="form-group">
+      <label class="text-gray">Version:</label>
+      <select class="custom-select" onchange="switchVersion(this);">
+        
+        
+        <option selected>latest</option>
+        
+        
+          
+        <option value="v0.3.0/genindex.html">
+          v0.3.0
+        </option>
+          
+        
+      </select>
+    </div>
+  </form>
+  
+</div>
+      
+
+      <div class="col-12 col-md-8 col-xl-9">
+        <div class="container">
+          <div class="row">
+            <div class="col-10 offset-1 pb-5 documentation-source" role="main">
+              
+              
+              <div class="admonition note">
+                  <p class="admonition-title">Note</p>
+                  <p>
+                  This documentation is for a development version.
+                  <a href="v0.3.0/genindex.html">
+                  Click here for the latest stable release (v0.3.0).
+                  </a>
+                  </p>
+              </div>
+              
+              
+
+<h1 id="index">Index</h1>
+
+<div class="genindex-jumpbox">
+ <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
+ | <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
+ | <a href="#F"><strong>F</strong></a>
+ | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
+ | <a href="#I"><strong>I</strong></a>
+ | <a href="#L"><strong>L</strong></a>
+ | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
+ | <a href="#O"><strong>O</strong></a>
+ | <a href="#P"><strong>P</strong></a>
+ | <a href="#R"><strong>R</strong></a>
+ | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
+ | <a href="#Z"><strong>Z</strong></a>
+ 
+</div>
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="loihi-training.html#nengo_extras.loihi_training.AlphaRCNoise">AlphaRCNoise (class in nengo_extras.loihi_training)</a>
+</li>
+      <li><a href="loihi-training.html#nengo_extras.loihi_training.AlphaRCNoiseBuilder">AlphaRCNoiseBuilder (class in nengo_extras.loihi_training)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="learning-rules.html#nengo_extras.learning_rules.AML">AML (class in nengo_extras.learning_rules)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gexf.Attr">Attr (class in nengo_extras.gexf)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="loihi-training.html#nengo_extras.loihi_training.NoiseBuilder.build">build() (nengo_extras.loihi_training.NoiseBuilder class method)</a>
+</li>
+      <li><a href="loihi-training.html#nengo_extras.loihi_training.AlphaRCNoiseBuilder.build_step">build_step() (nengo_extras.loihi_training.AlphaRCNoiseBuilder method)</a>
+
+      <ul>
+        <li><a href="loihi-training.html#nengo_extras.loihi_training.LowpassRCNoiseBuilder.build_step">(nengo_extras.loihi_training.LowpassRCNoiseBuilder method)</a>
+</li>
+        <li><a href="loihi-training.html#nengo_extras.loihi_training.NoiseBuilder.build_step">(nengo_extras.loihi_training.NoiseBuilder method)</a>
+</li>
+        <li><a href="loihi-training.html#nengo_extras.loihi_training.NoNoiseBuilder.build_step">(nengo_extras.loihi_training.NoNoiseBuilder method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="deeplearning.html#nengo_extras.keras.SoftLIF.call">call() (nengo_extras.keras.SoftLIF method)</a>
+</li>
+      <li><a href="vision.html#nengo_extras.camera.Camera">Camera (class in nengo_extras.camera)</a>
+</li>
+      <li><a href="vision.html#nengo_extras.camera.CameraData">CameraData (class in nengo_extras.camera)</a>
+</li>
+      <li><a href="vision.html#nengo_extras.camera.CameraPipeline">CameraPipeline (class in nengo_extras.camera)</a>
+</li>
+      <li><a href="vision.html#nengo_extras.vision.cd_encoders_biases">cd_encoders_biases() (in module nengo_extras.vision)</a>
+</li>
+      <li><a href="vision.html#nengo_extras.vision.ciw_encoders">ciw_encoders() (in module nengo_extras.vision)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.plot_spikes.cluster">cluster() (in module nengo_extras.plot_spikes)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="visualization.html#nengo_extras.gexf.CollapsingGexfConverter">CollapsingGexfConverter (class in nengo_extras.gexf)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.matplotlib.compare">compare() (in module nengo_extras.matplotlib)</a>
+</li>
+      <li><a href="dists.html#nengo_extras.dists.Concatenate">Concatenate (class in nengo_extras.dists)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.convnet.Conv2d">Conv2d (class in nengo_extras.convnet)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gexf.GexfConverter.convert">convert() (nengo_extras.gexf.GexfConverter method)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gexf.CollapsingGexfConverter.convert_collapsed">convert_collapsed() (nengo_extras.gexf.CollapsingGexfConverter method)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.deepnetworks.ConvLayer">ConvLayer (class in nengo_extras.deepnetworks)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.cuda_convnet.CudaConvnetNetwork">CudaConvnetNetwork (class in nengo_extras.cuda_convnet)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="deeplearning.html#nengo_extras.deepnetworks.DataLayer">DataLayer (class in nengo_extras.deepnetworks)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.deepnetworks.DeepNetwork">DeepNetwork (class in nengo_extras.deepnetworks)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gexf.Attr.default">default (nengo_extras.gexf.Attr attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="learning-rules.html#nengo_extras.learning_rules.DeltaRule">DeltaRule (class in nengo_extras.learning_rules)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gexf.DispatchTable">DispatchTable (class in nengo_extras.gexf)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gexf.DispatchTable.InstDispatch">DispatchTable.InstDispatch (class in nengo_extras.gexf)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.deepnetworks.DropoutLayer">DropoutLayer (class in nengo_extras.deepnetworks)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="neurons.html#nengo_extras.neurons.FastLIF">FastLIF (class in nengo_extras.neurons)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="deeplearning.html#nengo_extras.data.ZCAWhiten.fit">fit() (nengo_extras.data.ZCAWhiten method)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.deepnetworks.FullLayer">FullLayer (class in nengo_extras.deepnetworks)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vision.html#nengo_extras.vision.Gabor">Gabor (class in nengo_extras.vision)</a>
+</li>
+      <li><a href="dists.html#nengo_extras.dists.gaussian_icdf">gaussian_icdf() (in module nengo_extras.dists)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.data.get_cifar100_tar_gz">get_cifar100_tar_gz() (in module nengo_extras.data)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.data.get_cifar10_tar_gz">get_cifar10_tar_gz() (in module nengo_extras.data)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.keras.SoftLIF.get_config">get_config() (nengo_extras.keras.SoftLIF method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="deeplearning.html#nengo_extras.data.get_ilsvrc2012_tar_gz">get_ilsvrc2012_tar_gz() (in module nengo_extras.data)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.data.get_mnist_pkl_gz">get_mnist_pkl_gz() (in module nengo_extras.data)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gexf.CollapsingGexfConverter.get_node_obj">get_node_obj() (nengo_extras.gexf.CollapsingGexfConverter method)</a>
+
+      <ul>
+        <li><a href="visualization.html#nengo_extras.gexf.GexfConverter.get_node_obj">(nengo_extras.gexf.GexfConverter method)</a>
+</li>
+      </ul></li>
+      <li><a href="deeplearning.html#nengo_extras.data.get_svhn_tar_gz">get_svhn_tar_gz() (in module nengo_extras.data)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gexf.GexfConverter">GexfConverter (class in nengo_extras.gexf)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="visualization.html#nengo_extras.deepview.VerticalImageFrame.Column.height">height (nengo_extras.deepview.VerticalImageFrame.Column attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="visualization.html#nengo_extras.gexf.HierarchicalLabeler">HierarchicalLabeler (class in nengo_extras.gexf)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="visualization.html#nengo_extras.gexf.Attr.id">id (nengo_extras.gexf.Attr attribute)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gui.image_display_function">image_display_function() (in module nengo_extras.gui)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.deepview.VerticalImageFrame.Column.image_function">image_function (nengo_extras.deepview.VerticalImageFrame.Column attribute)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gui.image_function">image_function() (in module nengo_extras.gui)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="visualization.html#nengo_extras.gui.image_html_function">image_html_function() (in module nengo_extras.gui)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gui.image_string_function">image_string_function() (in module nengo_extras.gui)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.deepview.ImageSelector">ImageSelector (class in nengo_extras.deepview)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.matplotlib.imshow">imshow() (in module nengo_extras.matplotlib)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="deeplearning.html#nengo_extras.deepnetworks.Layer">Layer (class in nengo_extras.deepnetworks)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.data.load_cifar10">load_cifar10() (in module nengo_extras.data)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.data.load_cifar100">load_cifar100() (in module nengo_extras.data)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.data.load_ilsvrc2012">load_ilsvrc2012() (in module nengo_extras.data)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.data.load_mnist">load_mnist() (in module nengo_extras.data)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.keras.load_model_pair">load_model_pair() (in module nengo_extras.keras)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.data.load_svhn">load_svhn() (in module nengo_extras.data)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="deeplearning.html#nengo_extras.deepnetworks.LocalLayer">LocalLayer (class in nengo_extras.deepnetworks)</a>
+</li>
+      <li><a href="dists.html#nengo_extras.dists.loggaussian_icdf">loggaussian_icdf() (in module nengo_extras.dists)</a>
+</li>
+      <li><a href="loihi-training.html#nengo_extras.loihi_training.LoihiLIFBuilder">LoihiLIFBuilder (class in nengo_extras.loihi_training)</a>
+</li>
+      <li><a href="loihi-training.html#nengo_extras.loihi_training.LoihiSpikingRectifiedLinearBuilder">LoihiSpikingRectifiedLinearBuilder (class in nengo_extras.loihi_training)</a>
+</li>
+      <li><a href="loihi-training.html#nengo_extras.loihi_training.LowpassRCNoise">LowpassRCNoise (class in nengo_extras.loihi_training)</a>
+</li>
+      <li><a href="loihi-training.html#nengo_extras.loihi_training.LowpassRCNoiseBuilder">LowpassRCNoiseBuilder (class in nengo_extras.loihi_training)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.keras.LSUVinit">LSUVinit() (in module nengo_extras.keras)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="M">M</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="visualization.html#nengo_extras.gexf.GexfConverter.make_attr_defs">make_attr_defs() (nengo_extras.gexf.GexfConverter method)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gexf.GexfConverter.make_attrs">make_attrs() (nengo_extras.gexf.GexfConverter method)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gexf.GexfConverter.make_document">make_document() (nengo_extras.gexf.GexfConverter method)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gexf.GexfConverter.make_edge">make_edge() (nengo_extras.gexf.GexfConverter method)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gexf.GexfConverter.make_node">make_node() (nengo_extras.gexf.GexfConverter method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vision.html#nengo_extras.vision.Mask">Mask (class in nengo_extras.vision)</a>
+</li>
+      <li><a href="networks.html#nengo_extras.networks.MatrixMult">MatrixMult() (in module nengo_extras.networks)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.plot_spikes.merge">merge() (in module nengo_extras.plot_spikes)</a>
+</li>
+      <li><a href="dists.html#nengo_extras.dists.Mixture">Mixture (class in nengo_extras.dists)</a>
+</li>
+      <li><a href="dists.html#nengo_extras.dists.MultivariateCopula">MultivariateCopula (class in nengo_extras.dists)</a>
+</li>
+      <li><a href="dists.html#nengo_extras.dists.MultivariateGaussian">MultivariateGaussian (class in nengo_extras.dists)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="visualization.html#nengo_extras.graphviz.net_diagram">net_diagram() (in module nengo_extras.graphviz)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.deepnetworks.NeuronLayer">NeuronLayer (class in nengo_extras.deepnetworks)</a>
+</li>
+      <li><a href="loihi-training.html#nengo_extras.loihi_training.NeuronOutputNoise">NeuronOutputNoise (class in nengo_extras.loihi_training)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="deeplearning.html#nengo_extras.deepnetworks.NodeLayer">NodeLayer (class in nengo_extras.deepnetworks)</a>
+</li>
+      <li><a href="loihi-training.html#nengo_extras.loihi_training.NoiseBuilder">NoiseBuilder (class in nengo_extras.loihi_training)</a>
+</li>
+      <li><a href="loihi-training.html#nengo_extras.loihi_training.NoNoiseBuilder">NoNoiseBuilder (class in nengo_extras.loihi_training)</a>
+</li>
+      <li><a href="neurons.html#nengo_extras.neurons.NumbaLIF">NumbaLIF (class in nengo_extras.neurons)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="visualization.html#nengo_extras.graphviz.obj_conn_diagram">obj_conn_diagram() (in module nengo_extras.graphviz)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="deeplearning.html#nengo_extras.data.one_hot_from_labels">one_hot_from_labels() (in module nengo_extras.data)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="P">P</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vision.html#nengo_extras.vision.percentile_biases">percentile_biases() (in module nengo_extras.vision)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.plot_spikes.plot_spikes">plot_spikes() (in module nengo_extras.plot_spikes)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.convnet.Pool2d">Pool2d (class in nengo_extras.convnet)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.deepnetworks.PoolLayer">PoolLayer (class in nengo_extras.deepnetworks)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gui.preprocess_display">preprocess_display() (in module nengo_extras.gui)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="visualization.html#nengo_extras.plot_spikes.preprocess_spikes">preprocess_spikes() (in module nengo_extras.plot_spikes)</a>
+</li>
+      <li><a href="vision.html#nengo_extras.convnet.PresentJitteredImages">PresentJitteredImages (class in nengo_extras.convnet)</a>
+</li>
+      <li><a href="networks.html#nengo_extras.probe.probe_all">probe_all() (in module nengo_extras.probe)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.deepnetworks.ProcessLayer">ProcessLayer (class in nengo_extras.deepnetworks)</a>
+</li>
+      <li><a href="networks.html#nengo_extras.networks.Product">Product() (in module nengo_extras.networks)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="neurons.html#nengo_extras.neurons.SoftLIFRate.rates">rates() (nengo_extras.neurons.SoftLIFRate method)</a>
+</li>
+      <li><a href="neurons.html#nengo_extras.neurons.rates_isi">rates_isi() (in module nengo_extras.neurons)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="neurons.html#nengo_extras.neurons.rates_kernel">rates_kernel() (in module nengo_extras.neurons)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gexf.DispatchTable.InstDispatch.register">register() (nengo_extras.gexf.DispatchTable.InstDispatch method)</a>
+
+      <ul>
+        <li><a href="loihi-training.html#nengo_extras.loihi_training.NoiseBuilder.register">(nengo_extras.loihi_training.NoiseBuilder class method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dists.html#nengo_extras.dists.Concatenate.sample">sample() (nengo_extras.dists.Concatenate method)</a>
+
+      <ul>
+        <li><a href="dists.html#nengo_extras.dists.Mixture.sample">(nengo_extras.dists.Mixture method)</a>
+</li>
+        <li><a href="dists.html#nengo_extras.dists.MultivariateCopula.sample">(nengo_extras.dists.MultivariateCopula method)</a>
+</li>
+        <li><a href="dists.html#nengo_extras.dists.MultivariateGaussian.sample">(nengo_extras.dists.MultivariateGaussian method)</a>
+</li>
+        <li><a href="dists.html#nengo_extras.dists.Tile.sample">(nengo_extras.dists.Tile method)</a>
+</li>
+      </ul></li>
+      <li><a href="visualization.html#nengo_extras.plot_spikes.sample_by_activity">sample_by_activity() (in module nengo_extras.plot_spikes)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.plot_spikes.sample_by_variance">sample_by_variance() (in module nengo_extras.plot_spikes)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.keras.save_model_pair">save_model_pair() (in module nengo_extras.keras)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.deepview.ScrollCanvasFrame">ScrollCanvasFrame (class in nengo_extras.deepview)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="visualization.html#nengo_extras.deepview.ScrollWindow">ScrollWindow (class in nengo_extras.deepview)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.deepnetworks.SequentialNetwork">SequentialNetwork (class in nengo_extras.deepnetworks)</a>
+
+      <ul>
+        <li><a href="deeplearning.html#nengo_extras.keras.SequentialNetwork">(class in nengo_extras.keras)</a>
+</li>
+      </ul></li>
+      <li><a href="deeplearning.html#nengo_extras.keras.SoftLIF">SoftLIF (class in nengo_extras.keras)</a>
+</li>
+      <li><a href="neurons.html#nengo_extras.neurons.SoftLIFRate">SoftLIFRate (class in nengo_extras.neurons)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.deepnetworks.SoftmaxLayer">SoftmaxLayer (class in nengo_extras.deepnetworks)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.data.spasafe_name">spasafe_name() (in module nengo_extras.data)</a>
+</li>
+      <li><a href="deeplearning.html#nengo_extras.data.spasafe_names">spasafe_names() (in module nengo_extras.data)</a>
+</li>
+      <li><a href="neurons.html#nengo_extras.neurons.spikes2events">spikes2events() (in module nengo_extras.neurons)</a>
+</li>
+      <li><a href="neurons.html#nengo_extras.neurons.SoftLIFRate.step_math">step_math() (nengo_extras.neurons.SoftLIFRate method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dists.html#nengo_extras.dists.Tile">Tile (class in nengo_extras.dists)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="visualization.html#nengo_extras.matplotlib.tile">tile() (in module nengo_extras.matplotlib)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.gexf.Attr.type">type (nengo_extras.gexf.Attr attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dists.html#nengo_extras.dists.uniform_icdf">uniform_icdf() (in module nengo_extras.dists)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="visualization.html#nengo_extras.deepview.VerticalImageFrame">VerticalImageFrame (class in nengo_extras.deepview)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="visualization.html#nengo_extras.deepview.VerticalImageFrame.Column">VerticalImageFrame.Column (class in nengo_extras.deepview)</a>
+</li>
+      <li><a href="visualization.html#nengo_extras.deepview.Viewer">Viewer (class in nengo_extras.deepview)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="visualization.html#nengo_extras.deepview.VerticalImageFrame.Column.width">width (nengo_extras.deepview.VerticalImageFrame.Column attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Z">Z</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="deeplearning.html#nengo_extras.data.ZCAWhiten">ZCAWhiten (class in nengo_extras.data)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div><footer class="text-light footer-main gradient-bottom">
+  <p class="small text-center mb-0">
+    <a class="no-hover-line" href="https://appliedbrainresearch.com">
+      <img
+        src="https://appliedbrainresearch.com/img/logo-blue-notext.svg"
+        height="48"
+      />
+    </a>
+    <a href="https://www.nengo.ai/">What is Nengo?</a>
+    <a href="https://www.nengo.ai/examples/">Examples</a>
+    <a href="https://www.nengo.ai/documentation/">Documentation</a>
+    <a href="https://www.nengo.ai/getting-started/">Getting started</a>
+    <a href="https://www.nengo.ai/privacy/">Privacy</a>
+  </p>
+  <p class="small text-center mb-0">&copy; Applied Brain Research</p>
+</footer>
+<script>
+  function switchVersion(select) {
+    var option = select.selectedOptions[0];
+    if (option.hasAttribute("value")) {
+      window.location = option.value;
+    }
+  }
+</script>
+
+<script>
+  var elements = document.querySelectorAll('.sidenav');
+  Stickyfill.add(elements);
+</script>
+<script>
+  ScrollReveal().reveal(".fade-in", {
+      scale: 0.85,
+      duration: 1000,
+      delay: 250,
+      interval: 50
+  });
+</script>
+<script>
+  $('a.toggle-sidenav').on('click', function(e) {
+    e.preventDefault();
+    if ( $(this).hasClass('active') ) {
+      $(this).removeClass('active');
+      $('.sidenav').removeClass('open');
+    } else {
+      $(this).addClass('active');
+      $('.sidenav').addClass('open');
+    }
+  });
+</script>
+<script>
+  var lists = document.querySelectorAll('.toctree ul');
+  lists.forEach((ul) => {
+      ul.classList.add("nav");
+  });
+  var links = document.querySelectorAll('.toctree a');
+  links.forEach((link) => {
+      link.classList.add("nav-link");
+  });
+  $("body").scrollspy({target: ".sidenav"});
+</script>
+  </body>
+</html>
