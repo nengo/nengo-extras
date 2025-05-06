@@ -151,7 +151,7 @@ def cluster(t, spikes, filter_width):
         raise ImportError("`cluster` requires `scipy`")
 
     dt = (t[-1] - t[0]) / (len(t) - 1)
-    filtered = gaussian_filter1d(np.asfarray(spikes), filter_width / dt, axis=0)
+    filtered = gaussian_filter1d(np.asarray(spikes, dtype=float), filter_width / dt, axis=0)
     order = to_tree(linkage(filtered.T)).pre_order()
     return t, spikes[:, order]
 
@@ -200,7 +200,7 @@ def sample_by_variance(t, spikes, num, filter_width):
         raise ImportError("`sample_by_variance` requires `scipy`")
 
     dt = (t[-1] - t[0]) / (len(t) - 1)
-    filtered = gaussian_filter1d(np.asfarray(spikes), filter_width / dt, axis=0)
+    filtered = gaussian_filter1d(np.asarray(spikes, dtype=float), filter_width / dt, axis=0)
     selected = np.argsort(np.var(filtered, axis=0))[-1 : (-num - 1) : -1]
     return t, spikes[:, selected]
 
