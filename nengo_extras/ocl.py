@@ -163,7 +163,7 @@ def plan_aml(queue, error, decoders, delta, alpha, decoded, tag=None):
 
 
 class AmlSimulator(nengo_ocl.Simulator):
-    def plan_SimAML(self, ops):
+    def _plan_SimAML(self, ops):
         alpha = self.Array([op.learning_rate * self.model.dt for op in ops])
         base_decoders = self.RaggedArray(
             [op.base_decoders for op in ops], dtype=np.float32
